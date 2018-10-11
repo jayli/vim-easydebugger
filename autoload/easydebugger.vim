@@ -20,37 +20,37 @@ function! easydebugger#Enable()
 endfunction
 
 function! easydebugger#InspectCont()
-	if term_getstatus('debugger_window') == 'running'
-		call term_sendkeys('debugger_window',"cont\<CR>")
+	if term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		call term_sendkeys(get(g:debugger,'debugger_window_name'),"cont\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectNext()
-	if term_getstatus('debugger_window') == 'running'
-		call term_sendkeys('debugger_window',"next\<CR>")
+	if term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		call term_sendkeys(get(g:debugger,'debugger_window_name'),"next\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectStep()
-	if term_getstatus('debugger_window') == 'running'
-		call term_sendkeys('debugger_window',"step\<CR>")
+	if term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		call term_sendkeys(get(g:debugger,'debugger_window_name'),"step\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectOut()
-	if term_getstatus('debugger_window') == 'running'
-		call term_sendkeys('debugger_window',"out\<CR>")
+	if term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		call term_sendkeys(get(g:debugger,'debugger_window_name'),"out\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectPause()
-	if term_getstatus('debugger_window') == 'running'
-		call term_sendkeys('debugger_window',"pause\<CR>")
+	if term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		call term_sendkeys(get(g:debugger,'debugger_window_name'),"pause\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectSetBreakPoint()
-	if term_getstatus('debugger_window') != 'running'
+	if term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
 		return ""
 	endif
 	if exists("g:debugger") && bufnr('') == g:debugger.original_bnr
@@ -58,10 +58,10 @@ function! easydebugger#InspectSetBreakPoint()
 		let fname = bufname('%')
 		let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
 		if breakpoint_contained >= 0
-			call term_sendkeys('debugger_window',"clearBreakpoint('".fname."', ".line.")\<CR>")
+			call term_sendkeys(get(g:debugger,'debugger_window_name'),"clearBreakpoint('".fname."', ".line.")\<CR>")
 			call remove(g:debugger.break_points, breakpoint_contained)
 		else
-			call term_sendkeys('debugger_window',"setBreakpoint('".fname."', ".line.")\<CR>")
+			call term_sendkeys(get(g:debugger,'debugger_window_name'),"setBreakpoint('".fname."', ".line.")\<CR>")
 			call add(g:debugger.break_points, fname."|".line)
 			let g:debugger.break_points =  uniq(g:debugger.break_points)
 		endif
@@ -94,14 +94,18 @@ function! easydebugger#NodeInspect()
 	else 
 		call term_start(l:command . " 2>/dev/null",{ 
 						\ 'term_finish': 'close',
-						\ 'term_name':'debugger_window',
-						\ 'term_rows':23,
+						\ 'term_name':get(g:debugger,'debugger_window_name') ,
+						\ 'term_cols':50,
+						\ 'vertical':'1',
 						\ 'out_cb':'easydebugger#Term_callback',
-						\ 'exit_cb':'easydebugger#Reset_Editor',
+						\ 'close_cb':'easydebugger#Reset_Editor',
 						\ })
-		let g:debugger.term_winnr = bufnr('debugger_window')
+		if !exists('g:debugger_term_winnr')
+			let g:debugger_term_winnr = bufnr(get(g:debugger,'debugger_window_name'))
+		endif
+		let g:debugger.term_winnr = g:debugger_term_winnr
 		tnoremap <buffer> <silent> <CR> <C-\><C-n>:call easydebugger#Special_Cmd_Handler()<CR>i<C-P><Down>
-		call term_wait('debugger_window')
+		call term_wait(get(g:debugger,'debugger_window_name'))
 		call s:Debugger_Break_Action(g:debugger.log)
 
 		if g:debugger.original_cursor_color
@@ -112,10 +116,13 @@ endfunction
 
 function! easydebugger#Reset_Editor(...)
 	call execute(g:debugger.term_winnr.'wincmd w','silent!')
-	exec ":b ". g:debugger.original_bufname
+	exec "echom '".bufname('%')."'"
+	if g:debugger.original_bufname !=  bufname('%')
+		exec ":b ". g:debugger.original_bufname
+	endif
 	exec ":sign unplace 1 file=".g:debugger.original_bufname
-	call execute('redraw','silent!')
 	call s:Debugger_del_tmpbuf()
+	call execute('redraw','silent!')
 	if g:debugger.original_cursor_color
 		call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
 	endif
@@ -134,8 +141,8 @@ function! easydebugger#Term_callback(channel, msg)
 	let g:debugger.log += [""]
 
 	if a:msg =~ 'Waiting for the debugger to disconnect'
-		call s:Close_Term()
-		exec "echom 'Debugger Finish...'"
+		"call s:Close_Term()
+		exec "echom '调试结束,两个<C-C>结束掉,Debugger Finish, <C-C><C-C> to Close Term...'"
 	else
 		call s:Debugger_Break_Action(g:debugger.log)
 	endif
@@ -185,6 +192,12 @@ endfunction
 
 function! s:Create_Debugger()
 	let g:debugger = {}
+	if !exists('g:debugger_window_id')
+		let g:debugger_window_id = 1
+	else
+		let g:debugger_window_id += 1
+	endif
+	let g:debugger.debugger_window_name = "dw" . g:debugger_window_id
 	let g:debugger.original_bnr = bufnr('')
 	let g:debugger.original_buf = getbufinfo()
 	let g:debugger.original_winnr = winnr()
@@ -223,9 +236,9 @@ function! s:Highlight_Args(name)
 endfunction
 
 function! s:Debugger_Stop(fname, line)
-	if !exists("g:debugger")
-		let g:debugger = s:Create_Debugger()
-	endif
+	"if !exists("g:debugger")
+	"	let g:debugger = s:Create_Debugger()
+	"endif
 
 	if a:fname == get(g:debugger,'stop_fname') && a:line == get(g:debugger,'stop_line')
 		return
@@ -245,7 +258,7 @@ function! s:Debugger_Stop(fname, line)
 		sleep 1000m
 		exec "echom '>>> 程序结束 Debugger will Terminate in 1..'"
 		sleep 1000m
-		exec "echom '>>> 调试结束 Debugger Terminated !'"
+		exec "echom '>>> 调试结束,两个<C-C><C-C>结束掉 Debugger Terminated !'"
 		call s:Close_Term()
 	endif
 	try
@@ -292,7 +305,7 @@ function! s:Debugger_get_filebuf(fname)
 endfunction
 
 function! s:Close_Term()
-	call term_sendkeys('debugger_window',"\<CR>\<C-C>\<C-C>")
+	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>\<C-C>\<C-C>")
 	if winnr() != g:debugger.original_winnr
 		call feedkeys("\<S-ZZ>")
 	endif
@@ -305,6 +318,6 @@ function! easydebugger#Special_Cmd_Handler()
 		" 关掉term
 		call s:Close_Term()
 	endif
-	call term_sendkeys('debugger_window',"\<CR>")
+	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>")
 endfunction
 
