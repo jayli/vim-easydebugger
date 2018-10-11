@@ -81,6 +81,8 @@ function! easydebugger#NodeWebInspect()
 		call term_start(l:command . " 2>/dev/null",{ 
 						\ 'term_finish': 'close',
 						\ 'term_rows':11,
+						\ 'term_cols':50,
+						\ 'vertical':'1',
 						\ })
 	endif
 endfunction
