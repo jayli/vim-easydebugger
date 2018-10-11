@@ -8,17 +8,17 @@ VIM 的 NodeJS 调试器插件 @author：[Jayli](http://jayli.github.io/)
 
 ### 一个精简的 VIM 调试器
 
-VIM 上一直缺少好用的 GDB 调试器，在命令行环境中 Debug 代码通常用打 Log 的方式。VIM 从 8.1 版本开始支持“终端”特性（Terminal），并内置了基于`c`语言的 GDB 调试器，强大的 Terminal 特性让 GDB 插件开发难度大大降低，不用依赖 Python 作为代理嫁接在 Debug 服务 （GDB Server） 和调试器（Inspector）之间，从而避免重新实现 Debugger 协议（[Debugger Protocol](https://chromedevtools.github.io/debugger-protocol-viewer/v8/)），同时基于 Terminal 的原生命令行支持，也大大简化了 VIM 视窗的管理。Vim-Easydebugger 就是基于 Terminal 特性实现的 NodeJS 调试器，只依赖 JS 运行环境（[node](https://nodejs.org)）和 VimL，不依赖 Python，安装配置非常方便。
+VIM 上一直缺少好用的 GDB 调试器，在命令行环境中 Debug 代码通常用打 Log 的方式。VIM 从 8.1 版本开始支持“终端”特性（Terminal），并内置了基于`c`语言的 GDB 调试器，强大的 Terminal 特性让 GDB 插件开发难度大大降低，不用依赖其他代理嫁接在 Debug 服务 （GDB Server） 和调试器（Inspector）之间，从而避免重写 Debugger 协议（[Debugger Protocol](https://chromedevtools.github.io/debugger-protocol-viewer/v8/)），同时基于 Terminal 的原生命令行支持，也大大简化了 VIM 视窗的管理。Vim-Easydebugger 就是基于 Terminal 特性实现的 NodeJS 调试器，只依赖 JS 运行环境（[node](https://nodejs.org)）和 VimL，安装配置非常方便。
 
 开源社区已有的 VIM 调试器现状：
 
-- [Vdebug](https://github.com/vim-vdebug/vdebug)：多语言支持，无需要求最新的 VIM 8.1。Vdebug 运行在 Python3 上，用户通常需要重新编译安装 VIM，开启 Python3 支持；此外 Vdebug 更新过于缓慢，PHP 和 Python 支持很好，包括 Node 在内的多个语言的调试是不可用的。
+- [Vdebug](https://github.com/vim-vdebug/vdebug)：多语言支持，无需要求最新的 VIM 8.1。Vdebug 运行在 Python3 上，用户通常需要重新编译安装 VIM 并开启 Python3 支持；此外 Vdebug 更新过于缓慢，PHP 和 Python 支持很好，包括 Node 在内的多个语言的调试是不可用的。
 - [Vim-vebugger](https://github.com/idanarye/vim-vebugger)：[作者](https://github.com/idanarye)比较勤快，代码更新率很高。但作为一个全新的调试器插件，Bug 实在太多，多平台、多语言、多终端的兼容基本没做，不支持 MacOS，我的 Pull Request 也因为作者缺少环境迟迟不能 Merge。此外，Vim-Debugger 的实现过于复杂，外部依赖太多，这也是它的健壮性不够的原因。终放弃。
-- [Node-Vim-Debugger](https://github.com/sidorares/node-vim-debugger)：一个 NodeJS 调试器，基于 Debugger Protocol 实现，启动过程极为复杂，没有借助 Terminal 特性，需要多道命令来辅助启动，中间的代理是基于 Node 实现，这个项目太长时间不更新，已经不支持最新的 Node Inspect 了，目前处于无人维护状态。
+- [Node-Vim-Debugger](https://github.com/sidorares/node-vim-debugger)：一个 NodeJS 调试器，基于 Debugger Protocol 实现，启动过程极为复杂，需要多道命令来辅助启动，中间的代理是基于 Node 实现，这个项目太长时间不更新，已经不支持最新的 Node Inspect 了，目前处于无人维护状态。
 - [Vim-Godebug](https://github.com/jodosha/vim-godebug)：Go 语言的调试器，基于 [Neovim](https://github.com/jodosha/vim-godebug) 和 [Vim-go](https://github.com/jodosha/vim-godebug)，项目更新缓慢，环境依赖较为复杂，反正我是没搞定。
 - [Fisa-Vim-Config](http://fisadev.github.io/fisa-vim-config/)：Github 上关注度最高的一个 VIM 配置，包含了 Python 的 Debugger，不支持 NodeJS，当前项目已经不维护了。
 
-这些调试器都是基于 VIM 8 以下的版本开发，且普遍更新缓慢，缺少 VIM 8.x 的新特性支持，特别是 GDB 方面的更新不如 VIM 迅速。存在大量 Hack 的实现方式，缺少向前兼容和充足的测试，所以鲁棒性始终是个问题，只能在特定环境中试运行。因此一直以来 VIM 的调试器插件都质量不佳，直到 VIM 8.1 的发布...
+这些调试器都是基于 VIM 8 以下的版本开发，且普遍更新缓慢，缺少 VIM 8.x 的新特性支持，特别是 GDB 方面的更新不如 VIM 迅速。存在大量 Hack 的实现方式，同时缺少向前兼容和充足的测试，所以鲁棒性始终是个问题，只能在特定环境中试运行。因此一直以来 VIM 的调试器插件都质量不佳，直到 VIM 8.1 的发布...
 
 ### Vim-EasyDebugger 特性
 
