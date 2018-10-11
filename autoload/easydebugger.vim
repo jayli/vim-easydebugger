@@ -10,6 +10,19 @@ function! s:Echo_debugging_info(command)
 	exec "echom '>>> ". a:command . " : Press <Ctrl-C> to stop debugger Server...'"
 endfunction
 
+function! easydebugger#NodeWebInspect()
+	let l:command = 'node --inspect-brk '.getbufinfo('%')[0].name
+	call s:Echo_debugging_info(l:command)
+	if version <= 800
+		call system(l:command . " 2>/dev/null")
+	else 
+		call term_start(l:command . " 2>/dev/null",{ 
+						\ 'term_finish': 'close',
+						\ 'term_rows':11,
+						\ })
+	endif
+endfunction
+
 function! easydebugger#NodeInspect()
 	let l:command = 'node inspect '.getbufinfo('%')[0].name
 	call s:Echo_debugging_info(l:command)
@@ -22,12 +35,21 @@ function! easydebugger#NodeInspect()
 						\ 'term_name':'debugger_window',
 						\ 'term_rows':23,
 						\ 'out_cb':'easydebugger#Term_callback',
+						\ 'exit_cb':'easydebugger#Reset_Editor'
 						\ })
 		let g:debugger.term_winnr = bufnr('debugger_window')
 		tnoremap <buffer> <silent> <CR> <C-\><C-n>:call easydebugger#Special_Cmd_Handler()<CR>i<C-P><Down>
 		call term_wait('debugger_window')
 		call s:Debugger_Break_Action(g:debugger.log)
 	endif
+endfunction
+
+function! easydebugger#Reset_Editor(...)
+	call execute(g:debugger.term_winnr.'wincmd w','silent!')
+	exec ":b ". g:debugger.original_bufname
+	exec ":sign unplace 1 file=".g:debugger.original_bufname
+	call execute('redraw','silent!')
+	call s:Debugger_del_tmpbuf()
 endfunction
 
 function! easydebugger#Term_callback(channel, msg)
@@ -118,16 +140,27 @@ function! s:Debugger_Stop(fname, line)
 	let fname = s:Debugger_get_filebuf(a:fname)
 	exec ":sign unplace 1 file=".fname
 	exec ":sign place 1 line=".string(a:line)." name=stop_point file=".fname
-	sleep 5m
+	sleep 10m
 	call cursor(a:line,1)
 	"sleep 100m
 	call execute(g:debugger.original_bnr.'wincmd w','silent!')
 endfunction
 
+
 function! s:Debugger_add_filebuf(fname)
 	exec ":badd ". a:fname
 	exec ":b ". a:fname
 	call add(g:debugger.bufs, a:fname)
+endfunction
+
+function! s:Debugger_del_tmpbuf()
+	let tmp_bufs = deepcopy(g:debugger.bufs)
+	for t_buf in tmp_bufs
+		if t_buf != g:debugger.original_bufname
+			call execute('bdelete! '.t_buf,'silent!')
+		endif
+	endfor
+	let g:debugger.bufs = []
 endfunction
 
 function! s:Debugger_get_filebuf(fname)
@@ -156,15 +189,3 @@ function! easydebugger#Special_Cmd_Handler()
 	call term_sendkeys('debugger_window',"\<CR>")
 endfunction
 
-function! easydebugger#NodeWebInspect()
-	let l:command = 'node --inspect-brk '.getbufinfo('%')[0].name
-	call s:Echo_debugging_info(l:command)
-	if version <= 800
-		call system(l:command . " 2>/dev/null")
-	else 
-		call term_start(l:command . " 2>/dev/null",{ 
-						\ 'term_finish': 'close',
-						\ 'term_rows':11,
-						\ })
-	endif
-endfunction

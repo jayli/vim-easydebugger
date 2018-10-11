@@ -1,5 +1,5 @@
 if has( 'vim_starting' ) " vim 启动时加载
-	augroup EasyCompleteStart
+	augroup EasyDebuggerStart
 		autocmd!
 		autocmd VimEnter * call easydebugger#Enable()
 	augroup END
