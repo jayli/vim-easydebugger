@@ -4,7 +4,7 @@
 
 VIM 的 NodeJS 调试器插件 @author：[Jayli](http://jayli.github.io/)
 
-![](https://gw.alicdn.com/tfs/TB188q6hb2pK1RjSZFsXXaNlXXa-570-317.gif)
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger.gif)
 
 ### 一个精简的 VIM 调试器
 
