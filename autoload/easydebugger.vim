@@ -1,10 +1,9 @@
 " 插件初始化入口
 function! easydebugger#Enable()
-	"nmap <S-R> <Plug>EasyDebuggerInspect
-	"nmap <S-W> <Plug>EasyDebuggerWebInspect
+	" 服务启动唤醒键映射
 	nnoremap <silent> <Plug>EasyDebuggerInspect :call easydebugger#NodeInspect()<CR>
 	nnoremap <silent> <Plug>EasyDebuggerWebInspect :call easydebugger#NodeWebInspect()<CR>
-	" 快捷键映射
+	" 调试快捷键映射
 	nnoremap <silent> <Plug>EasyDebuggerContinue :call easydebugger#InspectCont()<CR>
 	tnoremap <silent> <Plug>EasyDebuggerContinue cont<CR>
 	nnoremap <silent> <Plug>EasyDebuggerNext :call easydebugger#InspectNext()<CR>
@@ -49,6 +48,7 @@ function! easydebugger#InspectPause()
 	endif
 endfunction
 
+" TODO ：设置断点，功能未测试
 function! easydebugger#InspectSetBreakPoint()
 	if term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
 		return ""
@@ -72,6 +72,7 @@ function! s:Echo_debugging_info(command)
 	exec "echom '>>> ". a:command . " : Press <Ctrl-C> to stop debugger Server...'"
 endfunction
 
+" 启动Chrome DevTools 模式的调试服务
 function! easydebugger#NodeWebInspect()
 	let l:command = 'node --inspect-brk '.getbufinfo('%')[0].name
 	call s:Echo_debugging_info(l:command)
@@ -80,16 +81,17 @@ function! easydebugger#NodeWebInspect()
 	else 
 		call term_start(l:command . " 2>/dev/null",{ 
 						\ 'term_finish': 'close',
-						\ 'term_rows':11,
 						\ 'term_cols':50,
 						\ 'vertical':'1',
 						\ })
 	endif
 endfunction
 
+" VIM 调试模式
 function! easydebugger#NodeInspect()
 	let l:command = 'node inspect '.getbufinfo('%')[0].name
 	call s:Echo_debugging_info(l:command)
+	" 创建 g:debugger ，最重要的一个全局变量
 	call s:Create_Debugger()
 	if version <= 800
 		call system(l:command . " 2>/dev/null")
@@ -106,16 +108,19 @@ function! easydebugger#NodeInspect()
 			let g:debugger_term_winnr = bufnr(get(g:debugger,'debugger_window_name'))
 		endif
 		let g:debugger.term_winnr = g:debugger_term_winnr
+		" 监听 Terminal 模式里的回车键
 		tnoremap <buffer> <silent> <CR> <C-\><C-n>:call easydebugger#Special_Cmd_Handler()<CR>i<C-P><Down>
 		call term_wait(get(g:debugger,'debugger_window_name'))
 		call s:Debugger_Break_Action(g:debugger.log)
 
+		" 设置停住的行高亮样式
 		if g:debugger.original_cursor_color
 			call execute("hi CursorLine ctermbg=17","silent!")
 		endif
 	endif
 endfunction
 
+" 退出 Terminal 时重置编辑器
 function! easydebugger#Reset_Editor(...)
 	call execute(g:debugger.term_winnr.'wincmd w','silent!')
 	exec "echom '".bufname('%')."'"
@@ -124,6 +129,7 @@ function! easydebugger#Reset_Editor(...)
 	endif
 	exec ":sign unplace 1 file=".g:debugger.original_bufname
 	call s:Debugger_del_tmpbuf()
+	" 这句话貌似没用
 	call execute('redraw','silent!')
 	if g:debugger.original_cursor_color
 		call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
@@ -133,6 +139,7 @@ function! easydebugger#Reset_Editor(...)
 	endif
 endfunction
 
+" Terminal 消息回传
 function! easydebugger#Term_callback(channel, msg)
 	if empty(a:msg)
 		return
@@ -151,6 +158,7 @@ function! easydebugger#Term_callback(channel, msg)
 	
 endfunction
 
+" 设置停留的代码行
 function! s:Debugger_Break_Action(log)
 	let break_msg = s:Get_Term_Break_Msg(a:log)
 	if type(break_msg) == type({})
@@ -159,6 +167,8 @@ function! s:Debugger_Break_Action(log)
 	"exec "echom 'channel: ".a:channel.", msg:".a."'"
 endfunction
 
+" 处理Termnal里的log
+" 这里比较奇怪，Log 不是整片输出的，是碎片输出的
 function! s:Get_Term_Break_Msg(log)
 	if len(a:log) == 0
 		return 0
@@ -192,6 +202,7 @@ function! s:StringTrim(str)
 	return ""
 endfunction
 
+" 创建全局 g:debugger 对象
 function! s:Create_Debugger()
 	let g:debugger = {}
 	if !exists('g:debugger_window_id')
@@ -199,6 +210,7 @@ function! s:Create_Debugger()
 	else
 		let g:debugger_window_id += 1
 	endif
+	" 调试窗口随机一下，其实不用随机，固定名字也可以
 	let g:debugger.debugger_window_name = "dw" . g:debugger_window_id
 	let g:debugger.original_bnr = bufnr('')
 	let g:debugger.original_buf = getbufinfo()
@@ -221,6 +233,7 @@ function! s:Create_Debugger()
 	return g:debugger
 endfunction
 
+" 获得当前 CursorLine 样式
 function! s:Get_CursorLine_bgColor()
 	if &t_Co > 255 && !has('gui_running')
 		let hiCursorLine = s:Highlight_Args('CursorLine')
@@ -233,10 +246,12 @@ function! s:Get_CursorLine_bgColor()
 	return 0
 endfunction
 
+" 执行高亮
 function! s:Highlight_Args(name)
 	return 'hi ' . substitute(split(execute('hi ' . a:name), '\n')[0], '\<xxx\>', '', '')
 endfunction
 
+" 执行到什么文件的什么行
 function! s:Debugger_Stop(fname, line)
 	"if !exists("g:debugger")
 	"	let g:debugger = s:Create_Debugger()
@@ -273,13 +288,14 @@ function! s:Debugger_Stop(fname, line)
 	call execute(g:debugger.original_bnr.'wincmd w','silent!')
 endfunction
 
-
+" 如果跳转到一个新文件，新增一个 Buffer
 function! s:Debugger_add_filebuf(fname)
 	exec ":badd ". a:fname
 	exec ":b ". a:fname
 	call add(g:debugger.bufs, a:fname)
 endfunction
 
+" 退出调试后需要删除这些新增的 Buffer
 function! s:Debugger_del_tmpbuf()
 	let tmp_bufs = deepcopy(g:debugger.bufs)
 	for t_buf in tmp_bufs
@@ -290,10 +306,10 @@ function! s:Debugger_del_tmpbuf()
 	let g:debugger.bufs = []
 endfunction
 
+" 获得当前Buffer里的文件名字
 function! s:Debugger_get_filebuf(fname)
-	" TODO bufname用的相对路径需要改为绝对路径
-	" fnameescape(fnamemodify(l:filename,':p'))
-	" :echo fnameescape(fnamemodify(bufname('%'),':p'))
+	" TODO bufname用的相对路径需要改为绝对路径，
+	" 我现将这个功能屏蔽掉了
 	if !filereadable(fnameescape(fnamemodify(a:fname,':p')))
 		return 0
 	endif
@@ -306,6 +322,7 @@ function! s:Debugger_get_filebuf(fname)
 	return a:fname
 endfunction
 
+" 关闭 Terminal
 function! s:Close_Term()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>\<C-C>\<C-C>")
 	if winnr() != g:debugger.original_winnr
@@ -313,6 +330,7 @@ function! s:Close_Term()
 	endif
 endfunction
 
+" 命令行的特殊命令处理：比如这里输入 kill 直接关掉 Terminal
 function! easydebugger#Special_Cmd_Handler()
 	let cmd = getline('.')[0 : col('.')-1]
 	let cmd = substitute(cmd,"^.*> ","","g")

@@ -1,3 +1,6 @@
+" https://github.com/jayli/vim-easydebugger
+" @author : Jayli
+" @inro	: http://jayli.github.io/
 if has( 'vim_starting' ) " vim 启动时加载
 	augroup EasyDebuggerStart
 		autocmd!
