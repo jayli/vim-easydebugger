@@ -4,6 +4,68 @@ function! easydebugger#Enable()
 	"nmap <S-W> <Plug>EasyDebuggerWebInspect
 	nnoremap <silent> <Plug>EasyDebuggerInspect :call easydebugger#NodeInspect()<CR>
 	nnoremap <silent> <Plug>EasyDebuggerWebInspect :call easydebugger#NodeWebInspect()<CR>
+	" 快捷键映射
+	nnoremap <silent> <Plug>EasyDebuggerContinue :call easydebugger#InspectCont()<CR>
+	tnoremap <silent> <Plug>EasyDebuggerContinue cont<CR>
+	nnoremap <silent> <Plug>EasyDebuggerNext :call easydebugger#InspectNext()<CR>
+	tnoremap <silent> <Plug>EasyDebuggerNext next<CR>
+	nnoremap <silent> <Plug>EasyDebuggerStepIn :call easydebugger#InspectStep()<CR>
+	tnoremap <silent> <Plug>EasyDebuggerStepIn step<CR>
+	nnoremap <silent> <Plug>EasyDebuggerStepOut :call easydebugger#InspectOut()<CR>
+	tnoremap <silent> <Plug>EasyDebuggerStepOut out<CR>
+	nnoremap <silent> <Plug>EasyDebuggerPause :call easydebugger#InspectPause()<CR>
+	tnoremap <silent> <Plug>EasyDebuggerPause pause<CR>
+	" TODO 设置断点功能未添加
+	nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#InspectSetBreakPoint()<CR>
+endfunction
+
+function! easydebugger#InspectCont()
+	if term_getstatus('debugger_window') == 'running'
+		call term_sendkeys('debugger_window',"cont\<CR>")
+	endif
+endfunction
+
+function! easydebugger#InspectNext()
+	if term_getstatus('debugger_window') == 'running'
+		call term_sendkeys('debugger_window',"next\<CR>")
+	endif
+endfunction
+
+function! easydebugger#InspectStep()
+	if term_getstatus('debugger_window') == 'running'
+		call term_sendkeys('debugger_window',"step\<CR>")
+	endif
+endfunction
+
+function! easydebugger#InspectOut()
+	if term_getstatus('debugger_window') == 'running'
+		call term_sendkeys('debugger_window',"out\<CR>")
+	endif
+endfunction
+
+function! easydebugger#InspectPause()
+	if term_getstatus('debugger_window') == 'running'
+		call term_sendkeys('debugger_window',"pause\<CR>")
+	endif
+endfunction
+
+function! easydebugger#InspectSetBreakPoint()
+	if term_getstatus('debugger_window') != 'running'
+		return ""
+	endif
+	if exists("g:debugger") && bufnr('') == g:debugger.original_bnr
+		let line = line('.')
+		let fname = bufname('%')
+		let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
+		if breakpoint_contained >= 0
+			call term_sendkeys('debugger_window',"clearBreakpoint('".fname."', ".line.")\<CR>")
+			call remove(g:debugger.break_points, breakpoint_contained)
+		else
+			call term_sendkeys('debugger_window',"setBreakpoint('".fname."', ".line.")\<CR>")
+			call add(g:debugger.break_points, fname."|".line)
+			let g:debugger.break_points =  uniq(g:debugger.break_points)
+		endif
+	endif
 endfunction
 
 function! s:Echo_debugging_info(command)
@@ -35,12 +97,16 @@ function! easydebugger#NodeInspect()
 						\ 'term_name':'debugger_window',
 						\ 'term_rows':23,
 						\ 'out_cb':'easydebugger#Term_callback',
-						\ 'exit_cb':'easydebugger#Reset_Editor'
+						\ 'exit_cb':'easydebugger#Reset_Editor',
 						\ })
 		let g:debugger.term_winnr = bufnr('debugger_window')
 		tnoremap <buffer> <silent> <CR> <C-\><C-n>:call easydebugger#Special_Cmd_Handler()<CR>i<C-P><Down>
 		call term_wait('debugger_window')
 		call s:Debugger_Break_Action(g:debugger.log)
+
+		if g:debugger.original_cursor_color
+			call execute("hi CursorLine ctermbg=17","silent!")
+		endif
 	endif
 endfunction
 
@@ -50,6 +116,12 @@ function! easydebugger#Reset_Editor(...)
 	exec ":sign unplace 1 file=".g:debugger.original_bufname
 	call execute('redraw','silent!')
 	call s:Debugger_del_tmpbuf()
+	if g:debugger.original_cursor_color
+		call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
+	endif
+	if winnr() != g:debugger.original_winnr
+		call feedkeys("\<S-ZZ>")
+	endif
 endfunction
 
 function! easydebugger#Term_callback(channel, msg)
@@ -60,8 +132,14 @@ function! easydebugger#Term_callback(channel, msg)
 	let g:msgs = split(m,"\r\n")
 	let g:debugger.log += g:msgs
 	let g:debugger.log += [""]
+
+	if a:msg =~ 'Waiting for the debugger to disconnect'
+		call s:Close_Term()
+		exec "echom 'Debugger Finish...'"
+	else
+		call s:Debugger_Break_Action(g:debugger.log)
+	endif
 	
-	call s:Debugger_Break_Action(g:debugger.log)
 endfunction
 
 function! s:Debugger_Break_Action(log)
@@ -70,7 +148,6 @@ function! s:Debugger_Break_Action(log)
 		call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'break_line'))
 	endif
 	"exec "echom 'channel: ".a:channel.", msg:".a."'"
-	" TODO: msgs 是输出结果，按行组成一个 List
 endfunction
 
 function! s:Get_Term_Break_Msg(log)
@@ -110,18 +187,39 @@ function! s:Create_Debugger()
 	let g:debugger = {}
 	let g:debugger.original_bnr = bufnr('')
 	let g:debugger.original_buf = getbufinfo()
+	let g:debugger.original_winnr = winnr()
+	let g:debugger.original_cursor_color = s:Get_CursorLine_bgColor()
 	let g:debugger.cwd = getcwd()
 	let g:debugger.original_bufname = bufname('%')
 	let g:debugger.original_line_nr = line(".")
 	let g:debugger.original_col_nr = col(".")
 	let g:debugger.buf_winnr = bufwinnr('%')
+	let g:debugger.current_winnr = -1
 	let g:debugger.bufs = []
 	let g:debugger.stop_line = 0
 	let g:debugger.stop_fname = ''
 	let g:debugger.log = []
+	" break_points: ['a.js|3','t/b.js|34']
+	let g:debugger.break_points= []
 	call add(g:debugger.bufs, g:debugger.original_bufname)
-	exec 'sign define stop_point text=>> texthl=SignColumn linehl=CursorLine '
+	exec 'sign define stop_point text=>> texthl=SignColumn linehl=CursorLine'
 	return g:debugger
+endfunction
+
+function! s:Get_CursorLine_bgColor()
+	if &t_Co > 255 && !has('gui_running')
+		let hiCursorLine = s:Highlight_Args('CursorLine')
+		let bgColor = matchstr(hiCursorLine,"\\(\\sctermbg=\\)\\@<=\\d\\{\-}\\(\\s\\)\\@=")
+		if s:StringTrim(bgColor) != ''
+			return str2nr(bgColor)
+		endif
+	endif
+
+	return 0
+endfunction
+
+function! s:Highlight_Args(name)
+	return 'hi ' . substitute(split(execute('hi ' . a:name), '\n')[0], '\<xxx\>', '', '')
 endfunction
 
 function! s:Debugger_Stop(fname, line)
@@ -138,11 +236,25 @@ function! s:Debugger_Stop(fname, line)
 
 	call execute(g:debugger.term_winnr.'wincmd w','silent!')
 	let fname = s:Debugger_get_filebuf(a:fname)
-	exec ":sign unplace 1 file=".fname
-	exec ":sign place 1 line=".string(a:line)." name=stop_point file=".fname
-	sleep 10m
+	" 如果读到一个不存在的文件，认为进入到了 Node Native 部分 Debugging
+	" 这时 node inspect 没有给出完整路径，调试不得不中断
+	if type(fname) == type(0)  && fname == 0
+		exec "echom '>>> 程序结束 Debugger will Terminate in 3..'"
+		sleep 1000m
+		exec "echom '>>> 程序结束 Debugger will Terminate in 2..'"
+		sleep 1000m
+		exec "echom '>>> 程序结束 Debugger will Terminate in 1..'"
+		sleep 1000m
+		exec "echom '>>> 调试结束 Debugger Terminated !'"
+		call s:Close_Term()
+	endif
+	try
+		exec ":sign unplace 1 file=".fname
+		exec ":sign place 1 line=".string(a:line)." name=stop_point file=".fname
+	catch
+	endtry
+	sleep 40m
 	call cursor(a:line,1)
-	"sleep 100m
 	call execute(g:debugger.original_bnr.'wincmd w','silent!')
 endfunction
 
@@ -166,6 +278,10 @@ endfunction
 function! s:Debugger_get_filebuf(fname)
 	" TODO bufname用的相对路径需要改为绝对路径
 	" fnameescape(fnamemodify(l:filename,':p'))
+	" :echo fnameescape(fnamemodify(bufname('%'),':p'))
+	if !filereadable(fnameescape(fnamemodify(a:fname,':p')))
+		return 0
+	endif
 	if index(g:debugger.bufs , a:fname) < 0 
 		call s:Debugger_add_filebuf(a:fname)
 	endif
@@ -177,6 +293,9 @@ endfunction
 
 function! s:Close_Term()
 	call term_sendkeys('debugger_window',"\<CR>\<C-C>\<C-C>")
+	if winnr() != g:debugger.original_winnr
+		call feedkeys("\<S-ZZ>")
+	endif
 endfunction
 
 function! easydebugger#Special_Cmd_Handler()
