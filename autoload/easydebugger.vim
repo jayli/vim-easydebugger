@@ -130,7 +130,7 @@ function! s:Get_Term_Width()
 	if winwidth(winnr()) >= 130
 		let term_width = 40 
 	else
-		let term_width = floor(winwidth(winnr()) * 25 / 100) 
+		let term_width = float2nr(floor(winwidth(winnr()) * 25 / 100))
 	endif
 	return term_width
 endfunction
