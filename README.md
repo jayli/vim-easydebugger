@@ -2,9 +2,9 @@
 
 ![Vim](https://img.shields.io/badge/vim-awesome-brightgreen.svg) [![Gitter](https://img.shields.io/badge/gitter-join%20chat-yellowgreen.svg)](https://gitter.im/jayli/vim-easydebugger) ![](https://img.shields.io/badge/Linux-available-brightgreen.svg) ![](https://img.shields.io/badge/MacOS-available-brightgreen.svg) ![](https://img.shields.io/badge/:%20h-easydebugger-orange.svg) ![](https://img.shields.io/badge/license-MIT-blue.svg)
 
-VIM 的 NodeJS 调试器插件 @author：[Jayli](http://jayli.github.io/)
+VIM 的 NodeJS 调试器插件（[演示](https://gw.alicdn.com/tfs/TB188q6hb2pK1RjSZFsXXaNlXXa-570-317.gif)） @author：[Jayli](http://jayli.github.io/)
 
-![](https://gw.alicdn.com/tfs/TB188q6hb2pK1RjSZFsXXaNlXXa-570-317.gif)
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger.gif)
 
 ### 一个精简的 VIM 调试器
 
