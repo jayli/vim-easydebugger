@@ -134,7 +134,7 @@ Done!
 
 ![](https://gw.alicdn.com/tfs/TB1uX3YekzoK1RjSZFlXXai4VXa-744-95.png)
 
-### VIM GDB 的一些思考
+### 关于 VIM GDB 的一些思考
 
 VIM 的 GDB 能力一直被诟病，除了 VIM 8.1 原生支持的 GDB 之外还没有广泛流行的 GDB 插件，包括对语言的支持也很吃力。主要原因是 VIM 在 8.0 以前，在视窗管理方面不够强大，尽管 Buffer 和 WinCmd 特性能够很好的接受定制，但涉及到视窗之间的命令传递，以及 Insert 和 Normal 模式之间的频繁切换的场景，缺少鼠标参与的情况下，需要极多的交互命令，命令的记忆成本较高，所以需要适当的简化 VIM GDB 插件的设计，通常一个完整的调试器需要至少四个视窗，源码、Log、监视器、文件列表。所以简化交互的诉求，与基础功能完备之间往往难以两全。这也导致 VIM GDB 开发难度大。我在实现 Vim-EasyDebugger 时干脆简化成两个视窗，以 node inspect 自有能力为主，外加一个代码跟踪视窗，跟踪 JavaScript 代码已经足够用了，较为复杂的代码跟踪则使用 VIM + Chrome DevTools 的方式，弥补 VIM 调试能力上的不足。
 
@@ -145,9 +145,4 @@ VIM 的 GDB 能力一直被诟病，除了 VIM 8.1 原生支持的 GDB 之外还
 → [在这里提 ISSUE](https://github.com/jayli/vim-easydebugger/issues)
 
 > 更多好玩的 VIM 碎碎，参照[我的 VIM 配置](https://github.com/jayli/vim)
-
-
-
-
-
 
