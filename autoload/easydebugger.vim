@@ -69,11 +69,14 @@ function! easydebugger#InspectSetBreakPoint()
 endfunction
 
 function! s:Echo_debugging_info(command)
-	exec "echom '>>> ". a:command . " : Press <Ctrl-C> to stop debugger Server...'"
+	exec "echom '>>> ". a:command . " : Press <Ctrl-C><Ctrl-C> to stop debugging..'"
 endfunction
 
 " 启动Chrome DevTools 模式的调试服务
 function! easydebugger#NodeWebInspect()
+	if &filetype != 'javascript'
+		return ""
+	endif
 	let l:command = 'node --inspect-brk '.getbufinfo('%')[0].name
 	call s:Echo_debugging_info(l:command)
 	if version <= 800
@@ -81,7 +84,7 @@ function! easydebugger#NodeWebInspect()
 	else 
 		call term_start(l:command . " 2>/dev/null",{ 
 						\ 'term_finish': 'close',
-						\ 'term_cols':50,
+						\ 'term_cols':s:Get_Term_Width(),
 						\ 'vertical':'1',
 						\ })
 	endif
@@ -89,6 +92,9 @@ endfunction
 
 " VIM 调试模式
 function! easydebugger#NodeInspect()
+	if &filetype != 'javascript'
+		return ""
+	endif
 	let l:command = 'node inspect '.getbufinfo('%')[0].name
 	call s:Echo_debugging_info(l:command)
 	" 创建 g:debugger ，最重要的一个全局变量
@@ -99,7 +105,7 @@ function! easydebugger#NodeInspect()
 		call term_start(l:command . " 2>/dev/null",{ 
 						\ 'term_finish': 'close',
 						\ 'term_name':get(g:debugger,'debugger_window_name') ,
-						\ 'term_cols':50,
+						\ 'term_cols':s:Get_Term_Width(),
 						\ 'vertical':'1',
 						\ 'out_cb':'easydebugger#Term_callback',
 						\ 'close_cb':'easydebugger#Reset_Editor',
@@ -115,15 +121,23 @@ function! easydebugger#NodeInspect()
 
 		" 设置停住的行高亮样式
 		if g:debugger.original_cursor_color
-			call execute("hi CursorLine ctermbg=17","silent!")
+			call execute("hi CursorLine ctermbg=18","silent!")
 		endif
 	endif
+endfunction
+
+function! s:Get_Term_Width()
+	if winwidth(winnr()) >= 130
+		let term_width = 40 
+	else
+		let term_width = float2nr(floor(winwidth(winnr()) * 25 / 100))
+	endif
+	return term_width
 endfunction
 
 " 退出 Terminal 时重置编辑器
 function! easydebugger#Reset_Editor(...)
 	call execute(g:debugger.term_winnr.'wincmd w','silent!')
-	exec "echom '".bufname('%')."'"
 	if g:debugger.original_bufname !=  bufname('%')
 		exec ":b ". g:debugger.original_bufname
 	endif
@@ -134,9 +148,17 @@ function! easydebugger#Reset_Editor(...)
 	if g:debugger.original_cursor_color
 		call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
 	endif
-	if winnr() != g:debugger.original_winnr
-		call feedkeys("\<S-ZZ>")
+	if winnr() != g:debugger.original_winnr 
+		if !(type(a:1) == type('string') && a:1 == 'manually')
+			call feedkeys("\<S-ZZ>")
+		else
+			call s:Show_Close_Msg()
+		endif
 	endif
+endfunction
+
+function! s:Show_Close_Msg()
+	exec "echom '".bufname('%')." ". get(g:debugger,'close_msg') . "'"
 endfunction
 
 " Terminal 消息回传
@@ -151,7 +173,8 @@ function! easydebugger#Term_callback(channel, msg)
 
 	if a:msg =~ 'Waiting for the debugger to disconnect'
 		"call s:Close_Term()
-		exec "echom '调试结束,两个<C-C>结束掉,Debugger Finish, <C-C><C-C> to Close Term...'"
+		call s:Show_Close_Msg()
+		call easydebugger#Reset_Editor('manually')
 	else
 		call s:Debugger_Break_Action(g:debugger.log)
 	endif
@@ -164,7 +187,6 @@ function! s:Debugger_Break_Action(log)
 	if type(break_msg) == type({})
 		call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'break_line'))
 	endif
-	"exec "echom 'channel: ".a:channel.", msg:".a."'"
 endfunction
 
 " 处理Termnal里的log
@@ -213,6 +235,8 @@ function! s:Create_Debugger()
 	" 调试窗口随机一下，其实不用随机，固定名字也可以
 	let g:debugger.debugger_window_name = "dw" . g:debugger_window_id
 	let g:debugger.original_bnr = bufnr('')
+	let g:debugger.close_msg = "调试结束,两个<Ctrl-C>结束掉,或者输入exit回车结束掉, " . 
+				\ "Debug Finished, <C-C><C-C> to Close Term..."
 	let g:debugger.original_buf = getbufinfo()
 	let g:debugger.original_winnr = winnr()
 	let g:debugger.original_cursor_color = s:Get_CursorLine_bgColor()
@@ -269,14 +293,10 @@ function! s:Debugger_Stop(fname, line)
 	" 如果读到一个不存在的文件，认为进入到了 Node Native 部分 Debugging
 	" 这时 node inspect 没有给出完整路径，调试不得不中断
 	if type(fname) == type(0)  && fname == 0
-		exec "echom '>>> 程序结束 Debugger will Terminate in 3..'"
-		sleep 1000m
-		exec "echom '>>> 程序结束 Debugger will Terminate in 2..'"
-		sleep 1000m
-		exec "echom '>>> 程序结束 Debugger will Terminate in 1..'"
-		sleep 1000m
-		exec "echom '>>> 调试结束,两个<C-C><C-C>结束掉 Debugger Terminated !'"
-		call s:Close_Term()
+		"exec "echom '>>> 程序结束 Debugger should be Terminated ..'"
+		call s:Show_Close_Msg()
+		call term_sendkeys(get(g:debugger,'debugger_window_name'),"kill\<CR>")
+		call easydebugger#Reset_Editor('manually')
 	endif
 	try
 		exec ":sign unplace 1 file=".fname
@@ -330,11 +350,11 @@ function! s:Close_Term()
 	endif
 endfunction
 
-" 命令行的特殊命令处理：比如这里输入 kill 直接关掉 Terminal
+" 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal
 function! easydebugger#Special_Cmd_Handler()
 	let cmd = getline('.')[0 : col('.')-1]
 	let cmd = substitute(cmd,"^.*> ","","g")
-	if cmd == 'kill'
+	if cmd == 'exit'
 		" 关掉term
 		call s:Close_Term()
 	endif

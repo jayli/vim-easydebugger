@@ -119,6 +119,8 @@ Done!
 
 <img src="https://gw.alicdn.com/tfs/TB1qfi7hmzqK1RjSZFjXXblCFXa-620-227.png" width=350>
 
+在左侧终端内敲入`exit` + <kbd>Enter</kdb> 退出调试模式。
+
 > 方便起见，Debugger 调试器启动总是会停留在首行。此外，由于 Node Inspector 会将 JS 源码包一层外壳，因此调试器中所示行数通常比源文件多出一到两行，但行号跟源码是一一对应的，基本不影响调试。
 
 #### - Chrome DevTools 调试模式
