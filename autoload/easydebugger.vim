@@ -1,8 +1,8 @@
 " 插件初始化入口
 function! easydebugger#Enable()
 	" 服务启动唤醒键映射
-	nnoremap <silent> <Plug>EasyDebuggerInspect :call easydebugger#NodeInspect()<CR>
-	nnoremap <silent> <Plug>EasyDebuggerWebInspect :call easydebugger#NodeWebInspect()<CR>
+	au FileType javascript nnoremap <silent> <Plug>EasyDebuggerInspect :call easydebugger#NodeInspect()<CR>
+	au FileType javascript nnoremap <silent> <Plug>EasyDebuggerWebInspect :call easydebugger#NodeWebInspect()<CR>
 	" 调试快捷键映射
 	nnoremap <silent> <Plug>EasyDebuggerContinue :call easydebugger#InspectCont()<CR>
 	tnoremap <silent> <Plug>EasyDebuggerContinue cont<CR>
