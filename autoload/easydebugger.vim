@@ -1,3 +1,9 @@
+" TODO:
+" - 断点设置/取消
+" - 基于 NetBeans 的重构
+" - 调试窗口启动位置可配置，比如在底部打开
+" - 进入命令的自定义
+
 " 插件初始化入口
 function! easydebugger#Enable()
 	" 服务启动唤醒键映射
@@ -355,7 +361,6 @@ function! easydebugger#Special_Cmd_Handler()
 	let cmd = getline('.')[0 : col('.')-1]
 	let cmd = substitute(cmd,"^.*> ","","g")
 	if cmd == 'exit'
-		" 关掉term
 		call s:Close_Term()
 	endif
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>")

@@ -1,6 +1,10 @@
-" https://github.com/jayli/vim-easydebugger
-" @author : Jayli
-" @inro	: http://jayli.github.io/
+" File:			easydebugger.vim
+" Author:		@jayli <http://jayli.github.io>
+" Description:	vim-easydebugger 插件的启动文件，
+"				EasyDebugger 是 NodeJS 的 Debug 程序，运行在 VIM 8.1 上
+"
+"				更多信息请访问 <https://github.com/jayli/vim-easydebugger>
+
 if has( 'vim_starting' ) " vim 启动时加载
 	augroup EasyDebuggerStart
 		autocmd!

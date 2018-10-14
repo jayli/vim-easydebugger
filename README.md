@@ -8,7 +8,7 @@ VIM 的 NodeJS 调试器插件（[演示](https://gw.alicdn.com/tfs/TB1DQVHhwHqK
 
 ### 一个精简的 VIM 调试器
 
-VIM 上一直缺少好用的 GDB 调试器，在命令行环境中 Debug 代码通常用打 Log 的方式。VIM 从 8.1 版本开始支持“终端”特性（Terminal），并内置了基于`c`语言的 GDB 调试器，强大的 Terminal 特性让 GDB 插件开发难度大大降低，不用依赖其他代理嫁接在 Debug 服务 （GDB Server） 和调试器（Inspector）之间，从而避免重写 Debugger 协议（[Debugger Protocol](https://chromedevtools.github.io/debugger-protocol-viewer/v8/)），同时基于 Terminal 的原生命令行支持，也大大简化了 VIM 视窗的管理。Vim-Easydebugger 就是基于 Terminal 特性实现的 NodeJS 调试器，只依赖 JS 运行环境（[node](https://nodejs.org)）和 VimL，安装配置非常方便。
+VIM 上一直缺少好用的断点跟踪调试插件，在命令行环境中 Debug 代码通常用打 Log 的方式。VIM 从 8.1 版本开始支持“终端”特性（Terminal），并内置了基于`c`语言的 GDB 调试器，强大的 Terminal 特性让 Debugger 插件开发难度大大降低，不用依赖其他代理嫁接在 Debug 服务 （GDB Server） 和调试器（Inspector）之间，从而避免重写 Debugger 协议（[Debugger Protocol](https://chromedevtools.github.io/debugger-protocol-viewer/v8/)），同时基于 Terminal 的原生命令行支持，也大大简化了 VIM 视窗的管理。Vim-Easydebugger 就是基于 Terminal 特性实现的 NodeJS 调试器，只依赖 JS 运行环境（[node](https://nodejs.org)）和 VimL，安装配置非常方便。
 
 开源社区已有的 VIM 调试器现状：
 
@@ -134,11 +134,11 @@ Done!
 
 ![](https://gw.alicdn.com/tfs/TB1uX3YekzoK1RjSZFlXXai4VXa-744-95.png)
 
-### 关于 VIM GDB 的一些思考
+### 关于 VIM Debugger Plugin 的一些思考
 
-VIM 的 GDB 能力一直被诟病，除了 VIM 8.1 原生支持的 GDB 之外还没有广泛流行的 GDB 插件，包括对语言的支持也很吃力。主要原因是 VIM 在 8.0 以前，在视窗管理方面不够强大，尽管 Buffer 和 WinCmd 特性能够很好的接受定制，但涉及到视窗之间的命令传递，以及 Insert 和 Normal 模式之间的频繁切换的场景，缺少鼠标参与的情况下，需要极多的交互命令，命令的记忆成本较高，所以需要适当的简化 VIM GDB 插件的设计，通常一个完整的调试器需要至少四个视窗，源码、Log、监视器、文件列表。所以简化交互的诉求，与基础功能完备之间往往难以两全。这也导致 VIM GDB 开发难度大。我在实现 Vim-EasyDebugger 时干脆简化成两个视窗，以 node inspect 自有能力为主，外加一个代码跟踪视窗，跟踪 JavaScript 代码已经足够用了，较为复杂的代码跟踪则使用 VIM + Chrome DevTools 的方式，弥补 VIM 调试能力上的不足。
+VIM 的代码逐行调试能力一直被诟病，除了 VIM 8.1 原生支持的 GDB 之外还没有广泛流行的 Debugger 插件，包括对语言的支持也很吃力。主要原因是 VIM 在 8.0 以前，在视窗管理方面不够强大，尽管 Buffer 和 WinCmd 特性能够很好的接受定制，但涉及到视窗之间的命令传递，以及 Insert 和 Normal 模式之间的频繁切换的场景，缺少鼠标参与的情况下，需要极多的交互命令，命令的记忆成本较高，所以需要适当的简化 VIM Debugger 插件的设计，通常一个完整的调试器需要至少四个视窗，源码、Log、监视器、文件列表。所以简化交互的诉求，与基础功能完备之间往往难以两全。这也导致 VIM Debugger 开发难度大。我在实现 Vim-EasyDebugger 时干脆简化成两个视窗，以 node inspect 自有能力为主，外加一个代码跟踪视窗，跟踪 JavaScript 代码已经足够用了，较为复杂的代码跟踪则使用 VIM + Chrome DevTools 的方式，弥补 VIM 调试能力上的不足。
 
-另外，VIM 8.1 所支持的 Terminal 是这个大版本最主要的特性，我个人非常喜欢，他让我很大程度抛弃了对 Python 和其他辅助工具的依赖，用纯净的 VimL 就能完成 GDB 插件的开发，开发体验还是很赞的。后续会陆续补全其他语言的支持。
+另外，VIM 8.1 所支持的 Terminal 是这个大版本最主要的特性，我个人非常喜欢，他让我很大程度抛弃了对 Python 和其他辅助工具的依赖，用纯净的 VimL 就能完成 Debugger 插件的开发，开发体验还是很赞的。后续会陆续补全其他语言的支持。
 
 ### For Help！？需要帮助
 
