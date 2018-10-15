@@ -62,8 +62,6 @@ Node 需要携带 `node inspect` 调试器（通常是 v8.x 及以上）。执�
 
 #### - 也可以直接基于 VIM8 安装
 
-一口气安装：
-
 	git clone https://github.com/jayli/vim-easydebugger.git \
 		~/.vim/pack/dist/start/vim-easydebugger
 Done!
@@ -122,6 +120,10 @@ Done!
 在左侧终端内敲入`exit` + <kbd>Enter</kbd> 退出调试模式。
 
 > 方便起见，Debugger 调试器启动总是会停留在首行。此外，由于 Node Inspector 会将 JS 源码包一层外壳，因此调试器中所示行数通常比源文件多出一到两行，但行号跟源码是一一对应的，基本不影响调试。
+
+**断点调试**：Debuger 启动之后，在右侧源码窗口中，光标停留在需要打断点的行，按下 <kbd>F12</kbd>，打断点成功，取消断点也是 <kbd>F12</kbd>
+
+![](https://gw.alicdn.com/tfs/TB1CgKpihnaK1RjSZFtXXbC2VXa-1944-926.jpg)
 
 #### - Chrome DevTools 调试模式
 

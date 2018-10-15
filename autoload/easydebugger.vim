@@ -88,7 +88,7 @@ function! easydebugger#InspectSetBreakPoint()
 			call term_sendkeys(get(g:debugger,'debugger_window_name'),"clearBreakpoint('".fname."', ".line.")\<CR>")
 			call remove(g:debugger.break_points, breakpoint_contained)
 			" TODO jayli 清除 BreakPoint 样式
-			exec ":sign unplace 2 line=".fname." name=break_point file=".line
+			exec ":sign unplace 2 line=".line." name=break_point file=".fname
 		else
 			" 如果不存在 BreakPoint，则新增 BreakPoint
 			call term_sendkeys(get(g:debugger,'debugger_window_name'),"setBreakpoint('".fname."', ".line.");list(1)\<CR>")
