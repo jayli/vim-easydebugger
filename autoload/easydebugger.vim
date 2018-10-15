@@ -54,7 +54,7 @@ function! easydebugger#InspectPause()
 	endif
 endfunction
 
-" TODO ：设置断点，功能未测试
+" TODO ：设置断点
 function! easydebugger#InspectSetBreakPoint()
 	if term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
 		return ""
@@ -64,12 +64,16 @@ function! easydebugger#InspectSetBreakPoint()
 		let fname = bufname('%')
 		let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
 		if breakpoint_contained >= 0
+			" 已经存在 BreakPoint，则清除掉 BreakPoint
 			call term_sendkeys(get(g:debugger,'debugger_window_name'),"clearBreakpoint('".fname."', ".line.")\<CR>")
 			call remove(g:debugger.break_points, breakpoint_contained)
+			" TODO jayli 清除 BreakPoint 样式
 		else
-			call term_sendkeys(get(g:debugger,'debugger_window_name'),"setBreakpoint('".fname."', ".line.")\<CR>")
+			" 如果不存在 BreakPoint，则新增 BreakPoint
+			call term_sendkeys(get(g:debugger,'debugger_window_name'),"setBreakpoint('".fname."', ".line.");list(1)\<CR>")
 			call add(g:debugger.break_points, fname."|".line)
 			let g:debugger.break_points =  uniq(g:debugger.break_points)
+			" TODO jayli 设置BreakPoint样式
 		endif
 	endif
 endfunction
@@ -108,11 +112,11 @@ function! easydebugger#NodeInspect()
 	if version <= 800
 		call system(l:command . " 2>/dev/null")
 	else 
+						" \ 'vertical':'1',
 		call term_start(l:command . " 2>/dev/null",{ 
 						\ 'term_finish': 'close',
 						\ 'term_name':get(g:debugger,'debugger_window_name') ,
 						\ 'term_cols':s:Get_Term_Width(),
-						\ 'vertical':'1',
 						\ 'out_cb':'easydebugger#Term_callback',
 						\ 'close_cb':'easydebugger#Reset_Editor',
 						\ })
@@ -121,7 +125,7 @@ function! easydebugger#NodeInspect()
 		endif
 		let g:debugger.term_winnr = g:debugger_term_winnr
 		" 监听 Terminal 模式里的回车键
-		tnoremap <buffer> <silent> <CR> <C-\><C-n>:call easydebugger#Special_Cmd_Handler()<CR>i<C-P><Down>
+		tnoremap <silent> <CR> <C-\><C-n>:call easydebugger#Special_Cmd_Handler()<CR>i<C-P><Down>
 		call term_wait(get(g:debugger,'debugger_window_name'))
 		call s:Debugger_Break_Action(g:debugger.log)
 
@@ -181,6 +185,10 @@ function! easydebugger#Term_callback(channel, msg)
 		"call s:Close_Term()
 		call s:Show_Close_Msg()
 		call easydebugger#Reset_Editor('manually')
+		" 调试终止之后应该将光标停止在 Term 内
+		if winnr() != get(g:debugger, 'original_winnr')
+			call execute(get(g:debugger, 'original_winnr').'wincmd w','silent!')
+		endif
 	else
 		call s:Debugger_Break_Action(g:debugger.log)
 	endif
@@ -352,6 +360,7 @@ function! s:Close_Term()
 	if winnr() != g:debugger.original_winnr
 		call feedkeys("\<S-ZZ>")
 	endif
+	call s:LogMsg("调试结束,Debug over..")
 endfunction
 
 " 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal
