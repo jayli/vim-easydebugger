@@ -86,16 +86,16 @@ function! easydebugger#InspectSetBreakPoint()
 		if breakpoint_contained >= 0
 			" 已经存在 BreakPoint，则清除掉 BreakPoint
 			call term_sendkeys(get(g:debugger,'debugger_window_name'),"clearBreakpoint('".fname."', ".line.")\<CR>")
+			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
+			exec ":sign unplace ".sid." file=".fname
 			call remove(g:debugger.break_points, breakpoint_contained)
-			" TODO jayli 清除 BreakPoint 样式
-			exec ":sign unplace 2 line=".line." name=break_point file=".fname
 		else
 			" 如果不存在 BreakPoint，则新增 BreakPoint
 			call term_sendkeys(get(g:debugger,'debugger_window_name'),"setBreakpoint('".fname."', ".line.");list(1)\<CR>")
 			call add(g:debugger.break_points, fname."|".line)
 			let g:debugger.break_points =  uniq(g:debugger.break_points)
-			" TODO jayli 设置BreakPoint样式
-			exec ":sign place 2 line=".line." name=break_point file=".fname
+			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
+			exec ":sign place ".sid." line=".line." name=break_point file=".fname
 		endif
 	endif
 endfunction
@@ -189,11 +189,15 @@ function! easydebugger#Reset_Editor(...)
 endfunction
 
 function! s:Clear_All_Signs()
-	exec ":sign unplace 1 file=".g:debugger.original_bufname
-	exec ":sign unplace 2 file=".g:debugger.original_bufname
+	exec ":sign unplace 100 file=".g:debugger.original_bufname
 	for bfname in g:debugger.bufs
-		exec ":sign unplace 2 file=".bfname
-		exec ":sign unplace 2 file=".bfname
+		exec ":sign unplace 100 file=".bfname
+	endfor
+	for item in g:debugger.break_points
+		let fname = split(item,"|")[0]
+		let line = split(item,"|")[1]
+		let sid = string(index(g:debugger.break_points, item) + 1)
+		exec ":sign unplace ".sid." file=".fname
 	endfor
 	" 退出 Debug 时清除当前所有断点
 	let g:debugger.break_points = []
@@ -298,9 +302,9 @@ function! s:Create_Debugger()
 	" break_points: ['a.js|3','t/b.js|34']
 	let g:debugger.break_points= []
 	call add(g:debugger.bufs, g:debugger.original_bufname)
-	" 语句执行位置标记 id=1
+	" 语句执行位置标记 id=100
 	exec 'sign define stop_point text=>> texthl=SignColumn linehl=CursorLine'
-	" 断点标记 id=2
+	" 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
 	exec 'sign define break_point text=** texthl=keyword'
 	return g:debugger
 endfunction
@@ -345,8 +349,8 @@ function! s:Debugger_Stop(fname, line)
 		call s:Show_Close_Msg()
 	endif
 	try
-		exec ":sign unplace 1 file=".fname
-		exec ":sign place 1 line=".string(a:line)." name=stop_point file=".fname
+		exec ":sign unplace 100 file=".fname
+		exec ":sign place 100 line=".string(a:line)." name=stop_point file=".fname
 	catch
 	endtry
 	"sleep 40m
