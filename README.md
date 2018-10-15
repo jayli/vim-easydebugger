@@ -74,36 +74,36 @@ Done!
 
 	" Vim-EasyDebugger 快捷键配置
 	" 启动调试器的两个快捷键
-	nmap <S-R>   <Plug>EasyDebuggerInspect                                                                                                                        
+	nmap <S-R>   <Plug>EasyDebuggerInspect
 	nmap <S-W>   <Plug>EasyDebuggerWebInspect
 	" 暂停程序
-	nmap <F8>    <Plug>EasyDebuggerPause
-	tmap <F8>    <Plug>EasyDebuggerPause
+	nmap <F7>    <Plug>EasyDebuggerPause
+	tmap <F7>    <Plug>EasyDebuggerPause
+	" 进入函数
+	nmap <F8>   <Plug>EasyDebuggerStepIn
+	tmap <F8>   <Plug>EasyDebuggerStepIn
+	" 跳出函数
+	nmap <S-F8> <Plug>EasyDebuggerStepOut
+	tmap <S-F8> <Plug>EasyDebuggerStepOut
 	" 单步执行
 	nmap <F9>    <Plug>EasyDebuggerNext
 	tmap <F9>    <Plug>EasyDebuggerNext
-	" 继续执行
+	" Continue
 	nmap <F10>   <Plug>EasyDebuggerContinue
 	tmap <F10>   <Plug>EasyDebuggerContinue
-	" 进入函数
-	nmap <F11>   <Plug>EasyDebuggerStepIn
-	tmap <F11>   <Plug>EasyDebuggerStepIn
-	" 跳出函数
-	nmap <S-F11> <Plug>EasyDebuggerStepOut
-	tmap <S-F11> <Plug>EasyDebuggerStepOut
-	" 设置断点(TODO)
+	" 设置断点
 	nmap <F12>   <Plug>EasyDebuggerSetBreakPoint
 	
 快捷键说明：
 
 - <kbd>Shift-R</kbd> ：启动 VIM 调试器
 - <kbd>Shift-W</kbd> ：启动 Chrome DevTools 调试服务
+- <kbd>F7</kbd> ：进入函数
+- <kbd>Shift-F7</kbd> ：跳出函数
 - <kbd>F8</kbd> ：暂停执行
 - <kbd>F9</kbd> ：单步执行
 - <kbd>F10</kbd> ：继续执行
-- <kbd>F11</kbd> ：进入函数
-- <kbd>Shift-F11</kbd> ：跳出函数
-- <kbd>F12</kbd> ：给当前行设置断点 (TODO)
+- <kbd>F12</kbd> ：给当前行设置断点 
 
 ### 使用
 

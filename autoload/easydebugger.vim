@@ -1,5 +1,4 @@
 " TODO:
-" - 断点设置/取消
 " - 基于 NetBeans 的重构
 " - 调试窗口启动位置可配置，比如在底部打开
 " - 进入命令的自定义
@@ -20,46 +19,47 @@ function! easydebugger#Enable()
 	tnoremap <silent> <Plug>EasyDebuggerStepOut out<CR>
 	nnoremap <silent> <Plug>EasyDebuggerPause :call easydebugger#InspectPause()<CR>
 	tnoremap <silent> <Plug>EasyDebuggerPause pause<CR>
-	" TODO 设置断点功能未添加
 	nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#InspectSetBreakPoint()<CR>
 endfunction
 
 function! easydebugger#InspectCont()
-	if term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if exists('g:debugger') && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"cont\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectNext()
-	if term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if exists('g:debugger') && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"next\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectStep()
-	if term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if exists('g:debugger') && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"step\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectOut()
-	if term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if exists('g:debugger') && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"out\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectPause()
-	if term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if exists('g:debugger') && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"pause\<CR>")
 	endif
 endfunction
 
-" TODO ：设置断点
+" 置断点，在当前行按 F12
 function! easydebugger#InspectSetBreakPoint()
-	if term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
+	if exists('g:debugger') && term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
+		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
 		return ""
 	endif
-	if exists("g:debugger") && bufnr('') == g:debugger.original_bnr
+	" 如果是当前文件所在的 Buf 或者是临时加载的 Buf
+	if exists("g:debugger") && (bufnr('') == g:debugger.original_bnr || index(g:debugger.bufs,bufname('%')) >= 0)
 		let line = line('.')
 		let fname = bufname('%')
 		let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
@@ -68,12 +68,14 @@ function! easydebugger#InspectSetBreakPoint()
 			call term_sendkeys(get(g:debugger,'debugger_window_name'),"clearBreakpoint('".fname."', ".line.")\<CR>")
 			call remove(g:debugger.break_points, breakpoint_contained)
 			" TODO jayli 清除 BreakPoint 样式
+			exec ":sign unplace 2 line=".fname." name=break_point file=".line
 		else
 			" 如果不存在 BreakPoint，则新增 BreakPoint
 			call term_sendkeys(get(g:debugger,'debugger_window_name'),"setBreakpoint('".fname."', ".line.");list(1)\<CR>")
 			call add(g:debugger.break_points, fname."|".line)
 			let g:debugger.break_points =  uniq(g:debugger.break_points)
 			" TODO jayli 设置BreakPoint样式
+			exec ":sign place 2 line=".line." name=break_point file=".fname
 		endif
 	endif
 endfunction
@@ -112,11 +114,11 @@ function! easydebugger#NodeInspect()
 	if version <= 800
 		call system(l:command . " 2>/dev/null")
 	else 
-						" \ 'vertical':'1',
 		call term_start(l:command . " 2>/dev/null",{ 
 						\ 'term_finish': 'close',
 						\ 'term_name':get(g:debugger,'debugger_window_name') ,
 						\ 'term_cols':s:Get_Term_Width(),
+						\ 'vertical':'1',
 						\ 'out_cb':'easydebugger#Term_callback',
 						\ 'close_cb':'easydebugger#Reset_Editor',
 						\ })
@@ -151,10 +153,8 @@ function! easydebugger#Reset_Editor(...)
 	if g:debugger.original_bufname !=  bufname('%')
 		exec ":b ". g:debugger.original_bufname
 	endif
-	exec ":sign unplace 1 file=".g:debugger.original_bufname
+	call s:Clear_All_Signs()
 	call s:Debugger_del_tmpbuf()
-	" 这句话貌似没用
-	call execute('redraw','silent!')
 	if g:debugger.original_cursor_color
 		call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
 	endif
@@ -165,6 +165,19 @@ function! easydebugger#Reset_Editor(...)
 			call s:Show_Close_Msg()
 		endif
 	endif
+	call execute('redraw','silent!')
+	unlet g:debugger
+endfunction
+
+function! s:Clear_All_Signs()
+	exec ":sign unplace 1 file=".g:debugger.original_bufname
+	exec ":sign unplace 2 file=".g:debugger.original_bufname
+	for bfname in g:debugger.bufs
+		exec ":sign unplace 2 file=".bfname
+		exec ":sign unplace 2 file=".bfname
+	endfor
+	" 退出 Debug 时清除当前所有断点
+	let g:debugger.break_points = []
 endfunction
 
 function! s:Show_Close_Msg()
@@ -182,7 +195,6 @@ function! easydebugger#Term_callback(channel, msg)
 	let g:debugger.log += [""]
 
 	if a:msg =~ 'Waiting for the debugger to disconnect'
-		"call s:Close_Term()
 		call s:Show_Close_Msg()
 		call easydebugger#Reset_Editor('manually')
 		" 调试终止之后应该将光标停止在 Term 内
@@ -267,7 +279,10 @@ function! s:Create_Debugger()
 	" break_points: ['a.js|3','t/b.js|34']
 	let g:debugger.break_points= []
 	call add(g:debugger.bufs, g:debugger.original_bufname)
+	" 语句执行位置标记 id=1
 	exec 'sign define stop_point text=>> texthl=SignColumn linehl=CursorLine'
+	" 断点标记 id=2
+	exec 'sign define break_point text=** texthl=keyword'
 	return g:debugger
 endfunction
 
@@ -315,8 +330,9 @@ function! s:Debugger_Stop(fname, line)
 		exec ":sign place 1 line=".string(a:line)." name=stop_point file=".fname
 	catch
 	endtry
-	sleep 40m
+	"sleep 40m
 	call cursor(a:line,1)
+	call execute('redraw','silent!')
 	call execute(g:debugger.original_bnr.'wincmd w','silent!')
 endfunction
 
@@ -361,6 +377,7 @@ function! s:Close_Term()
 		call feedkeys("\<S-ZZ>")
 	endif
 	call s:LogMsg("调试结束,Debug over..")
+	unlet g:debugger
 endfunction
 
 " 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal
