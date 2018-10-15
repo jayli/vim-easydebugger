@@ -23,38 +23,58 @@ function! easydebugger#Enable()
 endfunction
 
 function! easydebugger#InspectCont()
-	if exists('g:debugger') && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if !exists('g:debugger')
+		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
+		return
+	endif
+	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"cont\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectNext()
-	if exists('g:debugger') && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if !exists('g:debugger')
+		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
+		return
+	endif
+	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"next\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectStep()
-	if exists('g:debugger') && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if !exists('g:debugger')
+		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
+		return
+	endif
+	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"step\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectOut()
-	if exists('g:debugger') && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if !exists('g:debugger')
+		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
+		return
+	endif
+	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"out\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectPause()
-	if exists('g:debugger') && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if !exists('g:debugger')
+		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
+		return
+	endif
+	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"pause\<CR>")
 	endif
 endfunction
 
 " 置断点，在当前行按 F12
 function! easydebugger#InspectSetBreakPoint()
-	if exists('g:debugger') && term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
+	if !exists('g:debugger') || term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
 		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
 		return ""
 	endif
@@ -166,7 +186,6 @@ function! easydebugger#Reset_Editor(...)
 		endif
 	endif
 	call execute('redraw','silent!')
-	unlet g:debugger
 endfunction
 
 function! s:Clear_All_Signs()
@@ -186,7 +205,7 @@ endfunction
 
 " Terminal 消息回传
 function! easydebugger#Term_callback(channel, msg)
-	if empty(a:msg)
+	if !exists('g:debugger') || empty(a:msg)
 		return
 	endif
 	let m = substitute(a:msg,"\\W\\[\\d\\{-}[a-zA-Z]","","g")
@@ -321,9 +340,9 @@ function! s:Debugger_Stop(fname, line)
 	" 如果读到一个不存在的文件，认为进入到了 Node Native 部分 Debugging
 	" 这时 node inspect 没有给出完整路径，调试不得不中断
 	if type(fname) == type(0)  && fname == 0
-		call s:Show_Close_Msg()
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"kill\<CR>")
 		call easydebugger#Reset_Editor('manually')
+		call s:Show_Close_Msg()
 	endif
 	try
 		exec ":sign unplace 1 file=".fname
@@ -373,11 +392,10 @@ endfunction
 " 关闭 Terminal
 function! s:Close_Term()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>\<C-C>\<C-C>")
-	if winnr() != g:debugger.original_winnr
+	if exists('g:debugger') && winnr() != g:debugger.original_winnr
 		call feedkeys("\<S-ZZ>")
 	endif
 	call s:LogMsg("调试结束,Debug over..")
-	unlet g:debugger
 endfunction
 
 " 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal
