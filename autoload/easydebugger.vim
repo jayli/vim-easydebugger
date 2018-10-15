@@ -75,7 +75,7 @@ function! easydebugger#InspectSetBreakPoint()
 endfunction
 
 function! s:Echo_debugging_info(command)
-	exec "echom '>>> ". a:command . " : Press <Ctrl-C><Ctrl-C> to stop debugging..'"
+	call s:LogMsg(a:command . ' ' . " : 点击两次 <Ctrl-C> 终止调试, Press <Ctrl-C><Ctrl-C> to stop debugging..'")
 endfunction
 
 " 启动Chrome DevTools 模式的调试服务
@@ -164,7 +164,7 @@ function! easydebugger#Reset_Editor(...)
 endfunction
 
 function! s:Show_Close_Msg()
-	exec "echom '".bufname('%')." ". get(g:debugger,'close_msg') . "'"
+	call s:LogMsg(bufname('%')." ". get(g:debugger,'close_msg'))
 endfunction
 
 " Terminal 消息回传
@@ -272,7 +272,6 @@ function! s:Get_CursorLine_bgColor()
 			return str2nr(bgColor)
 		endif
 	endif
-
 	return 0
 endfunction
 
@@ -299,7 +298,6 @@ function! s:Debugger_Stop(fname, line)
 	" 如果读到一个不存在的文件，认为进入到了 Node Native 部分 Debugging
 	" 这时 node inspect 没有给出完整路径，调试不得不中断
 	if type(fname) == type(0)  && fname == 0
-		"exec "echom '>>> 程序结束 Debugger should be Terminated ..'"
 		call s:Show_Close_Msg()
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"kill\<CR>")
 		call easydebugger#Reset_Editor('manually')
@@ -365,4 +363,11 @@ function! easydebugger#Special_Cmd_Handler()
 	endif
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>")
 endfunction
+
+" 输出 LogMsg
+function! s:LogMsg(msg)
+	echohl MoreMsg 
+	echom '>>> '. a:msg
+	echohl NONE
+endfunc
 
