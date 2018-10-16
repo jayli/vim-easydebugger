@@ -20,11 +20,13 @@ function! easydebugger#Enable()
 	nnoremap <silent> <Plug>EasyDebuggerPause :call easydebugger#InspectPause()<CR>
 	tnoremap <silent> <Plug>EasyDebuggerPause pause<CR>
 	nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#InspectSetBreakPoint()<CR>
+
+	let s:None_Run_Msg = '请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..'
 endfunction
 
 function! easydebugger#InspectCont()
 	if !exists('g:debugger')
-		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
+		call s:LogMsg(s:None_Run_Msg)
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
@@ -34,7 +36,7 @@ endfunction
 
 function! easydebugger#InspectNext()
 	if !exists('g:debugger')
-		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
+		call s:LogMsg(s:None_Run_Msg)
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
@@ -44,7 +46,7 @@ endfunction
 
 function! easydebugger#InspectStep()
 	if !exists('g:debugger')
-		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
+		call s:LogMsg(s:None_Run_Msg)
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
@@ -54,7 +56,7 @@ endfunction
 
 function! easydebugger#InspectOut()
 	if !exists('g:debugger')
-		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
+		call s:LogMsg(s:None_Run_Msg)
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
@@ -64,7 +66,7 @@ endfunction
 
 function! easydebugger#InspectPause()
 	if !exists('g:debugger')
-		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
+		call s:LogMsg(s:None_Run_Msg)
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
@@ -75,7 +77,7 @@ endfunction
 " 设置/取消断点，在当前行按 F12
 function! easydebugger#InspectSetBreakPoint()
 	if !exists('g:debugger') || term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
-		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
+		call s:LogMsg(s:None_Run_Msg)
 		return ""
 	endif
 	" 如果是当前文件所在的 Buf 或者是临时加载的 Buf
