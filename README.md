@@ -1,4 +1,4 @@
-# Vim-Easydebugger<sup>[v1.0]</sup>
+# Vim-Easydebugger
 
 ![Vim](https://img.shields.io/badge/vim-awesome-brightgreen.svg) [![Gitter](https://img.shields.io/badge/gitter-join%20chat-yellowgreen.svg)](https://gitter.im/jayli/vim-easydebugger) ![](https://img.shields.io/badge/Linux-available-brightgreen.svg) ![](https://img.shields.io/badge/MacOS-available-brightgreen.svg) ![](https://img.shields.io/badge/:%20h-easydebugger-orange.svg) ![](https://img.shields.io/badge/license-MIT-blue.svg)
 
@@ -147,4 +147,10 @@ VIM 的代码逐行调试能力一直被诟病，除了 VIM 8.1 原生支持的 
 → [在这里提 ISSUE](https://github.com/jayli/vim-easydebugger/issues)
 
 > 更多好玩的 VIM 碎碎，参照[我的 VIM 配置](https://github.com/jayli/vim)
+
+### ChangeLog
+
+- v1.0：
+	- 支持 Unix 和 MacOS，Windows 平台暂未支持
+	- 支持语言种类：NodeJS
 
