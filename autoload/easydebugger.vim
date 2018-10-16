@@ -288,7 +288,6 @@ function! s:Create_Debugger()
 				\ "Debug Finished, <C-C><C-C> to Close Term..."
 	let g:debugger.original_buf = getbufinfo()
 	let g:debugger.original_winnr = winnr()
-	let g:debugger.original_cursor_color = s:Get_CursorLine_bgColor()
 	let g:debugger.cwd = getcwd()
 	let g:debugger.original_bufname = bufname('%')
 	let g:debugger.original_line_nr = line(".")
@@ -301,24 +300,30 @@ function! s:Create_Debugger()
 	let g:debugger.log = []
 	" break_points: ['a.js|3','t/b.js|34']
 	let g:debugger.break_points= []
+	let g:debugger.original_cursor_color = s:Get_CursorLine_bgColor()
 	call add(g:debugger.bufs, g:debugger.original_bufname)
+	exec "hi DebuggerBreakPoint ctermfg=197 cterm=bold ctermbg=". s:Get_BgColor('SignColumn')
 	" 语句执行位置标记 id=100
 	exec 'sign define stop_point text=>> texthl=SignColumn linehl=CursorLine'
 	" 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
-	exec 'sign define break_point text=** texthl=keyword'
+	exec 'sign define break_point text=** texthl=DebuggerBreakPoint'
 	return g:debugger
 endfunction
 
 " 获得当前 CursorLine 样式
 function! s:Get_CursorLine_bgColor()
+	return s:Get_BgColor('CursorLine')
+endfunction
+
+function! s:Get_BgColor(name)
 	if &t_Co > 255 && !has('gui_running')
-		let hiCursorLine = s:Highlight_Args('CursorLine')
-		let bgColor = matchstr(hiCursorLine,"\\(\\sctermbg=\\)\\@<=\\d\\{\-}\\(\\s\\)\\@=")
-		if s:StringTrim(bgColor) != ''
+		let hlString = s:Highlight_Args(a:name)
+		let bgColor = matchstr(hlString,"\\(\\sctermbg=\\)\\@<=\\d\\{\-}\\(\\s\\)\\@=")
+		if bgColor != ''
 			return str2nr(bgColor)
 		endif
 	endif
-	return 0
+	return 'none'
 endfunction
 
 " 执行高亮
