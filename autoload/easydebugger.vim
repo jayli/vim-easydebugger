@@ -203,8 +203,8 @@ function! s:Clear_All_Signs()
 		" break_points 的存储格式为: ['a.js|3','t/b.js|34']
 		" break_points 里的索引作为 sign id
 		let fname = split(item,"|")[0]
-		let line = split(item,"|")[1]
-		let sid = string(index(g:debugger.break_points, item) + 1)
+		let line  = split(item,"|")[1]
+		let sid   = string(index(g:debugger.break_points, item) + 1)
 		exec ":sign unplace ".sid." file=".fname
 	endfor
 	" 退出 Debug 时清除当前所有断点
@@ -291,21 +291,21 @@ function! s:Create_Debugger()
 	endif
 	" 调试窗口随机一下，其实不用随机，固定名字也可以
 	let g:debugger.debugger_window_name = "dw" . g:debugger_window_id
-	let g:debugger.original_bnr = bufnr('')
-	let g:debugger.close_msg = "调试结束,两个<Ctrl-C>结束掉,或者输入exit回车结束掉, " . 
-				\ "Debug Finished, <C-C><C-C> to Close Term..."
-	let g:debugger.original_buf = getbufinfo()
-	let g:debugger.original_winnr = winnr()
-	let g:debugger.cwd = getcwd()
-	let g:debugger.original_bufname = bufname('%')
-	let g:debugger.original_line_nr = line(".")
-	let g:debugger.original_col_nr = col(".")
-	let g:debugger.buf_winnr = bufwinnr('%')
-	let g:debugger.current_winnr = -1
-	let g:debugger.bufs = []
-	let g:debugger.stop_line = 0
-	let g:debugger.stop_fname = ''
-	let g:debugger.log = []
+	let g:debugger.original_bnr         = bufnr('')
+	let g:debugger.original_buf         = getbufinfo()
+	let g:debugger.original_winnr       = winnr()
+	let g:debugger.cwd                  = getcwd()
+	let g:debugger.original_bufname     = bufname('%')
+	let g:debugger.original_line_nr     = line(".")
+	let g:debugger.original_col_nr      = col(".")
+	let g:debugger.buf_winnr            = bufwinnr('%')
+	let g:debugger.current_winnr        = -1
+	let g:debugger.bufs                 = []
+	let g:debugger.stop_line            = 0
+	let g:debugger.stop_fname           = ''
+	let g:debugger.log                  = []
+	let g:debugger.close_msg            = "调试结束,两个<Ctrl-C>结束掉,或者输入exit回车结束掉, " .
+										\ "Debug Finished, <C-C><C-C> to Close Term..."
 	" break_points: ['a.js|3','t/b.js|34']
 	" break_points 里的索引作为 sign id
 	let g:debugger.break_points= []
