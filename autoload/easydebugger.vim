@@ -72,7 +72,7 @@ function! easydebugger#InspectPause()
 	endif
 endfunction
 
-" 置断点，在当前行按 F12
+" 设置/取消断点，在当前行按 F12
 function! easydebugger#InspectSetBreakPoint()
 	if !exists('g:debugger') || term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
 		call s:LogMsg('请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..')
@@ -158,6 +158,7 @@ function! easydebugger#NodeInspect()
 	endif
 endfunction
 
+" 获得 term 宽度
 function! s:Get_Term_Width()
 	if winwidth(winnr()) >= 130
 		let term_width = 40 
@@ -186,14 +187,19 @@ function! easydebugger#Reset_Editor(...)
 		endif
 	endif
 	call execute('redraw','silent!')
+	" 最后清空本次 Terminal 里的 log
+	let g:debugger.log = []
 endfunction
 
+" 将标记清除
 function! s:Clear_All_Signs()
 	exec ":sign unplace 100 file=".g:debugger.original_bufname
 	for bfname in g:debugger.bufs
 		exec ":sign unplace 100 file=".bfname
 	endfor
 	for item in g:debugger.break_points
+		" break_points 的存储格式为: ['a.js|3','t/b.js|34']
+		" break_points 里的索引作为 sign id
 		let fname = split(item,"|")[0]
 		let line = split(item,"|")[1]
 		let sid = string(index(g:debugger.break_points, item) + 1)
@@ -299,6 +305,7 @@ function! s:Create_Debugger()
 	let g:debugger.stop_fname = ''
 	let g:debugger.log = []
 	" break_points: ['a.js|3','t/b.js|34']
+	" break_points 里的索引作为 sign id
 	let g:debugger.break_points= []
 	let g:debugger.original_cursor_color = s:Get_CursorLine_bgColor()
 	call add(g:debugger.bufs, g:debugger.original_bufname)
@@ -315,6 +322,7 @@ function! s:Get_CursorLine_bgColor()
 	return s:Get_BgColor('CursorLine')
 endfunction
 
+" 获得某个颜色主题的背景色
 function! s:Get_BgColor(name)
 	if &t_Co > 255 && !has('gui_running')
 		let hlString = s:Highlight_Args(a:name)
