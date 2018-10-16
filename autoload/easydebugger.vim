@@ -432,5 +432,5 @@ function! s:LogMsg(msg)
 	echohl MoreMsg 
 	echom '>>> '. a:msg
 	echohl NONE
-endfunc
+endfunction
 
