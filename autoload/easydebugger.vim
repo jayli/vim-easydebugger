@@ -133,6 +133,7 @@ function! easydebugger#NodeInspect()
 	call s:Echo_debugging_info(l:command)
 	" 创建 g:debugger ，最重要的一个全局变量
 	call s:Create_Debugger()
+	call easydebugger#Reset_Editor('manually')
 	if version <= 800
 		call system(l:command . " 2>/dev/null")
 	else 
@@ -153,10 +154,14 @@ function! easydebugger#NodeInspect()
 		call term_wait(get(g:debugger,'debugger_window_name'))
 		call s:Debugger_Break_Action(g:debugger.log)
 
-		" 设置停住的行高亮样式
-		if g:debugger.original_cursor_color
-			call execute("hi CursorLine ctermbg=18","silent!")
-		endif
+		call s:Set_Debug_CursorLine()
+	endif
+endfunction
+
+" 设置停住的行高亮样式
+function! s:Set_Debug_CursorLine()
+	if g:debugger.original_cursor_color
+		call execute("hi CursorLine ctermbg=18","silent!")
 	endif
 endfunction
 
@@ -179,6 +184,7 @@ function! easydebugger#Reset_Editor(...)
 	call s:Clear_All_Signs()
 	call s:Debugger_del_tmpbuf()
 	if g:debugger.original_cursor_color
+		" 恢复 CursorLine 的高亮样式
 		call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
 	endif
 	if winnr() != g:debugger.original_winnr 
@@ -188,6 +194,7 @@ function! easydebugger#Reset_Editor(...)
 			call s:Show_Close_Msg()
 		endif
 	endif
+	call s:Clear_All_Signs()
 	call execute('redraw','silent!')
 	" 最后清空本次 Terminal 里的 log
 	let g:debugger.log = []
@@ -423,6 +430,8 @@ function! easydebugger#Special_Cmd_Handler()
 	let cmd = substitute(cmd,"^.*> ","","g")
 	if cmd == 'exit'
 		call s:Close_Term()
+	"elseif cmd =='restart'
+	"	call s:Set_Debug_CursorLine()
 	endif
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>")
 endfunction
