@@ -133,7 +133,7 @@ function! easydebugger#NodeInspect()
 	call s:Echo_debugging_info(l:command)
 	" 创建 g:debugger ，最重要的一个全局变量
 	call s:Create_Debugger()
-	call easydebugger#Reset_Editor('manually')
+	call easydebugger#Reset_Editor('silently')
 	if version <= 800
 		call system(l:command . " 2>/dev/null")
 	else 
@@ -162,6 +162,7 @@ endfunction
 function! s:Set_Debug_CursorLine()
 	if g:debugger.original_cursor_color
 		call execute("hi CursorLine ctermbg=18","silent!")
+		call execute('redraw','silent!')
 	endif
 endfunction
 
@@ -176,19 +177,20 @@ function! s:Get_Term_Width()
 endfunction
 
 " 退出 Terminal 时重置编辑器
+" 可传入单独的参数：
+" - silently: 不关闭Term
 function! easydebugger#Reset_Editor(...)
 	call execute(g:debugger.term_winnr.'wincmd w','silent!')
 	if g:debugger.original_bufname !=  bufname('%')
 		exec ":b ". g:debugger.original_bufname
 	endif
-	call s:Clear_All_Signs()
 	call s:Debugger_del_tmpbuf()
 	if g:debugger.original_cursor_color
 		" 恢复 CursorLine 的高亮样式
 		call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
 	endif
 	if winnr() != g:debugger.original_winnr 
-		if !(type(a:1) == type('string') && a:1 == 'manually')
+		if !(type(a:1) == type('string') && a:1 == 'silently')
 			call feedkeys("\<S-ZZ>")
 		else
 			call s:Show_Close_Msg()
@@ -234,7 +236,7 @@ function! easydebugger#Term_callback(channel, msg)
 
 	if a:msg =~ 'Waiting for the debugger to disconnect'
 		call s:Show_Close_Msg()
-		call easydebugger#Reset_Editor('manually')
+		call easydebugger#Reset_Editor('silently')
 		" 调试终止之后应该将光标停止在 Term 内
 		if winnr() != get(g:debugger, 'original_winnr')
 			call execute(get(g:debugger, 'original_winnr').'wincmd w','silent!')
@@ -355,6 +357,7 @@ function! s:Debugger_Stop(fname, line)
 	"endif
 
 	if a:fname == get(g:debugger,'stop_fname') && a:line == get(g:debugger,'stop_line')
+		call s:Sign_Set_BreakPoint(a:fname, a:line)
 		return
 	else
 		let g:debugger.stop_fname = a:fname
@@ -367,18 +370,23 @@ function! s:Debugger_Stop(fname, line)
 	" 这时 node inspect 没有给出完整路径，调试不得不中断
 	if type(fname) == type(0)  && fname == 0
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"kill\<CR>")
-		call easydebugger#Reset_Editor('manually')
+		call easydebugger#Reset_Editor('silently')
 		call s:Show_Close_Msg()
 	endif
-	try
-		exec ":sign unplace 100 file=".fname
-		exec ":sign place 100 line=".string(a:line)." name=stop_point file=".fname
-	catch
-	endtry
+	call s:Sign_Set_BreakPoint(a:fname, a:line)
 	"sleep 40m
 	call cursor(a:line,1)
 	call execute('redraw','silent!')
 	call execute(g:debugger.original_bnr.'wincmd w','silent!')
+endfunction
+
+" 重新设置 Break Point 的 Sign 标记的位置
+function! s:Sign_Set_BreakPoint(fname, line)
+	try
+		exec ":sign unplace 100 file=".a:fname
+		exec ":sign place 100 line=".string(a:line)." name=stop_point file=".a:fname
+	catch
+	endtry
 endfunction
 
 " 如果跳转到一个新文件，新增一个 Buffer
@@ -427,11 +435,13 @@ endfunction
 " 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal
 function! easydebugger#Special_Cmd_Handler()
 	let cmd = getline('.')[0 : col('.')-1]
-	let cmd = substitute(cmd,"^.*> ","","g")
+	let cmd = s:StringTrim(substitute(cmd,"^.*debug>\\s","","g"))
 	if cmd == 'exit'
 		call s:Close_Term()
-	"elseif cmd =='restart'
-	"	call s:Set_Debug_CursorLine()
+	elseif cmd == 'restart'
+		call s:Set_Debug_CursorLine()
+	elseif cmd == 'run'
+		call s:Set_Debug_CursorLine()
 	endif
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>")
 endfunction
