@@ -22,6 +22,12 @@ function! easydebugger#Enable()
 	nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#InspectSetBreakPoint()<CR>
 
 	let s:None_Run_Msg = '请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..'
+	let s:Global_Options = {
+				\	"language_supported": ['javascript','go']
+				\ }
+	""""""" 语言设置
+	let s:Lang_JavaScript = {}
+	let s:Lang_Go = {}
 endfunction
 
 function! easydebugger#InspectCont()
@@ -101,6 +107,12 @@ function! easydebugger#InspectSetBreakPoint()
 		endif
 	endif
 endfunction
+
+" 判断语言是否支持
+function! s:Language_supported()
+	return index(get(s:Global_Options, 'language_supported'), &filetype) >= 0 ? 1 : 0
+endfunction
+
 
 function! s:Echo_debugging_info(command)
 	call s:LogMsg(a:command . ' ' . " : 点击两次 <Ctrl-C> 终止调试, Press <Ctrl-C><Ctrl-C> to stop debugging..'")
@@ -315,6 +327,7 @@ function! s:Create_Debugger()
 	else
 		let g:debugger_window_id += 1
 	endif
+	
 	" 调试窗口随机一下，其实不用随机，固定名字也可以
 	let g:debugger.debugger_window_name = "dw" . g:debugger_window_id
 	let g:debugger.original_bnr         = bufnr('')
