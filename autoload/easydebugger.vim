@@ -106,11 +106,22 @@ function! s:Echo_debugging_info(command)
 	call s:LogMsg(a:command . ' ' . " : 点击两次 <Ctrl-C> 终止调试, Press <Ctrl-C><Ctrl-C> to stop debugging..'")
 endfunction
 
+function! s:Node_Command_Exists()
+	let result =  system("node -v 2>/dev/null")
+	return len(matchstr(result,"^v\\d\\{1,}")) >=1 ? 1 : 0
+endfunction
+
 " 启动Chrome DevTools 模式的调试服务
 function! easydebugger#NodeWebInspect()
 	if &filetype != 'javascript'
 		return ""
 	endif
+
+	if !s:Node_Command_Exists()
+		s:LogMsg("系统没有安装 Node！Please install node first.")
+		return ""
+	endif
+
 	let l:command = 'node --inspect-brk '.getbufinfo('%')[0].name
 	call s:Echo_debugging_info(l:command)
 	if version <= 800
@@ -129,6 +140,12 @@ function! easydebugger#NodeInspect()
 	if &filetype != 'javascript'
 		return ""
 	endif
+
+	if !s:Node_Command_Exists()
+		s:LogMsg("系统没有安装 Node！Please install node first.")
+		return ""
+	endif
+
 	let l:command = 'node inspect '.getbufinfo('%')[0].name
 	call s:Echo_debugging_info(l:command)
 	" 创建 g:debugger ，最重要的一个全局变量
