@@ -5,127 +5,57 @@
 
 " 插件初始化入口
 function! easydebugger#Enable()
-	" 服务启动唤醒键映射
-	nnoremap <silent> <Plug>EasyDebuggerInspect :call easydebugger#NodeInspect()<CR>
-	nnoremap <silent> <Plug>EasyDebuggerWebInspect :call easydebugger#NodeWebInspect()<CR>
-	" 调试快捷键映射
-	nnoremap <silent> <Plug>EasyDebuggerContinue :call easydebugger#InspectCont()<CR>
-	tnoremap <silent> <Plug>EasyDebuggerContinue cont<CR>
-	nnoremap <silent> <Plug>EasyDebuggerNext :call easydebugger#InspectNext()<CR>
-	tnoremap <silent> <Plug>EasyDebuggerNext next<CR>
-	nnoremap <silent> <Plug>EasyDebuggerStepIn :call easydebugger#InspectStep()<CR>
-	tnoremap <silent> <Plug>EasyDebuggerStepIn step<CR>
-	nnoremap <silent> <Plug>EasyDebuggerStepOut :call easydebugger#InspectOut()<CR>
-	tnoremap <silent> <Plug>EasyDebuggerStepOut out<CR>
-	nnoremap <silent> <Plug>EasyDebuggerPause :call easydebugger#InspectPause()<CR>
-	tnoremap <silent> <Plug>EasyDebuggerPause pause<CR>
-	nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#InspectSetBreakPoint()<CR>
-
-	let s:None_Run_Msg = '请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..'
-	let s:Global_Options = {
-				\	"language_supported": ['javascript','go']
-				\ }
 	""""""" 语言设置
-	let s:Lang_JavaScript = {}
-	let s:Lang_Go = {}
-endfunction
+	let g:javascript_setup = {
+				\	'ctrl_cmd_continue':    'cont',
+				\	'ctrl_cmd_next':        'next',
+				\	'ctrl_cmd_stepin':      'step',
+				\	'ctrl_cmd_stepout':     'out',
+				\	'ctrl_cmd_pause':       'pause',
+				\	'InspectInit':          function('easydebugger#InspectInit'),
+				\	'WebInspectInit':       function('easydebugger#WebInspectInit'),
+				\	'InspectCont':          function('easydebugger#InspectCont'),
+				\	'InspectNext':          function('easydebugger#InspectNext'),
+				\	'InspectStep':          function('easydebugger#InspectStep'),
+				\	'InspectOut':           function('easydebugger#InspectOut'),
+				\	'InspectPause':         function('easydebugger#InspectPause'),
+				\	'InspectSetBreakPoint': function('easydebugger#InspectSetBreakPoint')
+				\ }
+	let g:go_setup = {}
 
-function! easydebugger#InspectCont()
-	if !exists('g:debugger')
-		call s:LogMsg(s:None_Run_Msg)
+	if exists('g:'. &filetype . '_setup')
+		call execute('let g:language_setup = g:'. &filetype . '_setup' )
+	else 
 		return
 	endif
-	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call term_sendkeys(get(g:debugger,'debugger_window_name'),"cont\<CR>")
-	endif
+
+	let g:None_Run_Msg = '请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..'
+
+	call s:Bind_Map_Keys()
 endfunction
 
-function! easydebugger#InspectNext()
-	if !exists('g:debugger')
-		call s:LogMsg(s:None_Run_Msg)
-		return
-	endif
-	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call term_sendkeys(get(g:debugger,'debugger_window_name'),"next\<CR>")
-	endif
-endfunction
-
-function! easydebugger#InspectStep()
-	if !exists('g:debugger')
-		call s:LogMsg(s:None_Run_Msg)
-		return
-	endif
-	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call term_sendkeys(get(g:debugger,'debugger_window_name'),"step\<CR>")
-	endif
-endfunction
-
-function! easydebugger#InspectOut()
-	if !exists('g:debugger')
-		call s:LogMsg(s:None_Run_Msg)
-		return
-	endif
-	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call term_sendkeys(get(g:debugger,'debugger_window_name'),"out\<CR>")
-	endif
-endfunction
-
-function! easydebugger#InspectPause()
-	if !exists('g:debugger')
-		call s:LogMsg(s:None_Run_Msg)
-		return
-	endif
-	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call term_sendkeys(get(g:debugger,'debugger_window_name'),"pause\<CR>")
-	endif
-endfunction
-
-" 设置/取消断点，在当前行按 F12
-function! easydebugger#InspectSetBreakPoint()
-	if !exists('g:debugger') || term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
-		call s:LogMsg(s:None_Run_Msg)
-		return ""
-	endif
-	" 如果是当前文件所在的 Buf 或者是临时加载的 Buf
-	if exists("g:debugger") && (bufnr('') == g:debugger.original_bnr || index(g:debugger.bufs,bufname('%')) >= 0)
-		let line = line('.')
-		let fname = bufname('%')
-		let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
-		if breakpoint_contained >= 0
-			" 已经存在 BreakPoint，则清除掉 BreakPoint
-			call term_sendkeys(get(g:debugger,'debugger_window_name'),"clearBreakpoint('".fname."', ".line.")\<CR>")
-			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
-			exec ":sign unplace ".sid." file=".fname
-			call remove(g:debugger.break_points, breakpoint_contained)
-		else
-			" 如果不存在 BreakPoint，则新增 BreakPoint
-			call term_sendkeys(get(g:debugger,'debugger_window_name'),"setBreakpoint('".fname."', ".line.");list(1)\<CR>")
-			call add(g:debugger.break_points, fname."|".line)
-			let g:debugger.break_points =  uniq(g:debugger.break_points)
-			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
-			exec ":sign place ".sid." line=".line." name=break_point file=".fname
-		endif
-	endif
-endfunction
-
-" 判断语言是否支持
-function! s:Language_supported()
-	return index(get(s:Global_Options, 'language_supported'), &filetype) >= 0 ? 1 : 0
-endfunction
-
-
-function! s:Echo_debugging_info(command)
-	call s:LogMsg(a:command . ' ' . " : 点击两次 <Ctrl-C> 终止调试, Press <Ctrl-C><Ctrl-C> to stop debugging..'")
-endfunction
-
-function! s:Node_Command_Exists()
-	let result =  system("node -v 2>/dev/null")
-	return len(matchstr(result,"^v\\d\\{1,}")) >=1 ? 1 : 0
+function! s:Bind_Map_Keys()
+	" 服务启动唤醒键映射
+	nnoremap <silent> <Plug>EasyDebuggerInspect :call get(g:language_setup,'InspectInit')()<CR>
+	nnoremap <silent> <Plug>EasyDebuggerWebInspect :call get(g:language_setup,'WebInspectInit')()<CR>
+	" 调试快捷键映射
+	nnoremap <silent> <Plug>EasyDebuggerContinue :call get(g:language_setup,'InspectCont')()<CR>
+	exec "tnoremap <silent> <Plug>EasyDebuggerContinue ".g:language_setup.ctrl_cmd_continue."<CR>"
+	nnoremap <silent> <Plug>EasyDebuggerNext :call get(g:language_setup,'InspectNext')()<CR>
+	exec "tnoremap <silent> <Plug>EasyDebuggerNext ".g:language_setup.ctrl_cmd_next."<CR>"
+	nnoremap <silent> <Plug>EasyDebuggerStepIn :call get(g:language_setup,'InspectStep')()<CR>
+	exec "tnoremap <silent> <Plug>EasyDebuggerStepIn ".g:language_setup.ctrl_cmd_stepin."<CR>"
+	nnoremap <silent> <Plug>EasyDebuggerStepOut :call get(g:language_setup,'InspectOut')()<CR>
+	exec "tnoremap <silent> <Plug>EasyDebuggerStepOut ".g:language_setup.ctrl_cmd_stepout."<CR>"
+	nnoremap <silent> <Plug>EasyDebuggerPause :call get(g:language_setup,'InspectPause')()<CR>
+	tnoremap <silent> <Plug>EasyDebuggerPause pause<CR>
+	exec "tnoremap <silent> <Plug>EasyDebuggerPause ".g:language_setup.ctrl_cmd_pause."<CR>"
+	nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call get(g:language_setup,'InspectSetBreakPoint')()<CR>
 endfunction
 
 " 启动Chrome DevTools 模式的调试服务
-function! easydebugger#NodeWebInspect()
-	if &filetype != 'javascript'
+function! easydebugger#WebInspectInit()
+	if !s:Language_supported() 
 		return ""
 	endif
 
@@ -148,10 +78,11 @@ function! easydebugger#NodeWebInspect()
 endfunction
 
 " VIM 调试模式
-function! easydebugger#NodeInspect()
-	if &filetype != 'javascript'
+function! easydebugger#InspectInit()
+	if !s:Language_supported() 
 		return ""
 	endif
+
 
 	if !s:Node_Command_Exists()
 		s:LogMsg("系统没有安装 Node！Please install node first.")
@@ -185,6 +116,99 @@ function! easydebugger#NodeInspect()
 
 		call s:Set_Debug_CursorLine()
 	endif
+endfunction
+
+function! easydebugger#InspectCont()
+	if !exists('g:debugger')
+		call s:LogMsg(g:None_Run_Msg)
+		return
+	endif
+	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		call term_sendkeys(get(g:debugger,'debugger_window_name'),"cont\<CR>")
+	endif
+endfunction
+
+function! easydebugger#InspectNext()
+	if !exists('g:debugger')
+		call s:LogMsg(g:None_Run_Msg)
+		return
+	endif
+	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		call term_sendkeys(get(g:debugger,'debugger_window_name'),"next\<CR>")
+	endif
+endfunction
+
+function! easydebugger#InspectStep()
+	if !exists('g:debugger')
+		call s:LogMsg(g:None_Run_Msg)
+		return
+	endif
+	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		call term_sendkeys(get(g:debugger,'debugger_window_name'),"step\<CR>")
+	endif
+endfunction
+
+function! easydebugger#InspectOut()
+	if !exists('g:debugger')
+		call s:LogMsg(g:None_Run_Msg)
+		return
+	endif
+	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		call term_sendkeys(get(g:debugger,'debugger_window_name'),"out\<CR>")
+	endif
+endfunction
+
+function! easydebugger#InspectPause()
+	if !exists('g:debugger')
+		call s:LogMsg(g:None_Run_Msg)
+		return
+	endif
+	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		call term_sendkeys(get(g:debugger,'debugger_window_name'),"pause\<CR>")
+	endif
+endfunction
+
+" 设置/取消断点，在当前行按 F12
+function! easydebugger#InspectSetBreakPoint()
+	if !exists('g:debugger') || term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
+		call s:LogMsg(g:None_Run_Msg)
+		return ""
+	endif
+	" 如果是当前文件所在的 Buf 或者是临时加载的 Buf
+	if exists("g:debugger") && (bufnr('') == g:debugger.original_bnr || index(g:debugger.bufs,bufname('%')) >= 0)
+		let line = line('.')
+		let fname = bufname('%')
+		let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
+		if breakpoint_contained >= 0
+			" 已经存在 BreakPoint，则清除掉 BreakPoint
+			call term_sendkeys(get(g:debugger,'debugger_window_name'),"clearBreakpoint('".fname."', ".line.")\<CR>")
+			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
+			exec ":sign unplace ".sid." file=".fname
+			call remove(g:debugger.break_points, breakpoint_contained)
+		else
+			" 如果不存在 BreakPoint，则新增 BreakPoint
+			call term_sendkeys(get(g:debugger,'debugger_window_name'),"setBreakpoint('".fname."', ".line.");list(1)\<CR>")
+			call add(g:debugger.break_points, fname."|".line)
+			let g:debugger.break_points =  uniq(g:debugger.break_points)
+			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
+			exec ":sign place ".sid." line=".line." name=break_point file=".fname
+		endif
+	endif
+endfunction
+
+" 判断语言是否支持
+function! s:Language_supported()
+	return exists('g:'. &filetype . '_setup')
+endfunction
+
+
+function! s:Echo_debugging_info(command)
+	call s:LogMsg(a:command . ' ' . " : 点击两次 <Ctrl-C> 终止调试, Press <Ctrl-C><Ctrl-C> to stop debugging..'")
+endfunction
+
+function! s:Node_Command_Exists()
+	let result =  system("node -v 2>/dev/null")
+	return len(matchstr(result,"^v\\d\\{1,}")) >=1 ? 1 : 0
 endfunction
 
 " 设置停住的行高亮样式
