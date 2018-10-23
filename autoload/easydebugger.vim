@@ -5,31 +5,24 @@
 
 " 插件初始化入口
 function! easydebugger#Enable()
-	""""""" 语言设置
-	let g:javascript_setup = {
-				\	'ctrl_cmd_continue':    'cont',
-				\	'ctrl_cmd_next':        'next',
-				\	'ctrl_cmd_stepin':      'step',
-				\	'ctrl_cmd_stepout':     'out',
-				\	'ctrl_cmd_pause':       'pause',
-				\	'InspectInit':          function('easydebugger#InspectInit'),
-				\	'WebInspectInit':       function('easydebugger#WebInspectInit'),
-				\	'InspectCont':          function('easydebugger#InspectCont'),
-				\	'InspectNext':          function('easydebugger#InspectNext'),
-				\	'InspectStep':          function('easydebugger#InspectStep'),
-				\	'InspectOut':           function('easydebugger#InspectOut'),
-				\	'InspectPause':         function('easydebugger#InspectPause'),
-				\	'InspectSetBreakPoint': function('easydebugger#InspectSetBreakPoint')
-				\ }
-	let g:go_setup = {}
 
-	if exists('g:'. &filetype . '_setup')
-		call execute('let g:language_setup = g:'. &filetype . '_setup' )
-	else 
+	" VIM 8.1 以下版本不支持
+	if version <= 800
 		return
 	endif
 
+	" 全局对象
+	" g:debugger Debug 全局对象，运行 Term 时存在
+	" g:language_setup 当前语言的 Debugger 配置，当支持当前语言的情况下随文件
+	" 加载初始化
+	" g:Debug_Lang_Supported 当前支持的debug语言种类
+	" g:None_Run_Msg 语言不支持时的提示语
+	let g:Debug_Lang_Supported = ["javascript","go"]
 	let g:None_Run_Msg = '请先启动 Debugger 再设置断点（<Shift-R>）, Please run debuger first(<Shift-R>)..'
+
+	if index(g:Debug_Lang_Supported, &filetype) >= 0
+		call execute('let g:language_setup = debugger#'. &filetype .'#Setup()' )
+	endif
 
 	call s:Bind_Map_Keys()
 endfunction
@@ -57,15 +50,21 @@ endfunction
 " 启动Chrome DevTools 模式的调试服务
 function! easydebugger#WebInspectInit()
 	if !s:Language_supported() 
+		call s:LogMsg("不支持当前语言的调试")
 		return ""
 	endif
 
-	if !debugger#javascript#Command_Exists()
-		s:LogMsg("系统没有安装 Node！Please install node first.")
+	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		call s:LogMsg("请先关掉正在运行的调试器")
 		return ""
 	endif
 
-	let l:command = 'node --inspect-brk '.getbufinfo('%')[0].name
+	if !get(g:language_setup,'DebuggerTester')()
+		call s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
+		return ""
+	endif
+
+	let l:command = get(g:language_setup,'WebDebuggerCommandPrefix') . ' ' . getbufinfo('%')[0].name
 	call s:Echo_debugging_info(l:command)
 	if version <= 800
 		call system(l:command . " 2>/dev/null")
@@ -81,15 +80,21 @@ endfunction
 " VIM 调试模式
 function! easydebugger#InspectInit()
 	if !s:Language_supported() 
+		call s:LogMsg("不支持当前语言的调试")
 		return ""
 	endif
 
-	if !debugger#javascript#Command_Exists()
-		s:LogMsg("系统没有安装 Node！Please install node first.")
+	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		call s:LogMsg("请先关掉正在运行的调试器")
 		return ""
 	endif
 
-	let l:command = 'node inspect '.getbufinfo('%')[0].name
+	if !get(g:language_setup,'DebuggerTester')()
+		call s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
+		return ""
+	endif
+
+	let l:command = get(g:language_setup,'LocalDebuggerCommandPrefix') . ' ' . getbufinfo('%')[0].name
 	call s:Echo_debugging_info(l:command)
 	" 创建 g:debugger ，最重要的一个全局变量
 	call s:Create_Debugger()
@@ -108,68 +113,96 @@ function! easydebugger#InspectInit()
 		if !exists('g:debugger_term_winnr')
 			let g:debugger_term_winnr = bufnr(get(g:debugger,'debugger_window_name'))
 		endif
-		let g:debugger.term_winnr = g:debugger_term_winnr
+		let g:debugger.term_winnr = string(g:debugger_term_winnr)
 		" 监听 Terminal 模式里的回车键
 		tnoremap <silent> <CR> <C-\><C-n>:call easydebugger#Special_Cmd_Handler()<CR>i<C-P><Down>
 		call term_wait(get(g:debugger,'debugger_window_name'))
 		call s:Debugger_Break_Action(g:debugger.log)
 
 		call s:Set_Debug_CursorLine()
+
+		if get(g:language_setup, "TermSetupScript")
+			call get(g:language_setup,"TermSetupScript")()
+		endif
 	endif
 endfunction
 
 function! easydebugger#InspectCont()
+	if !s:Language_supported() 
+		call s:LogMsg("不支持当前语言的调试")
+		return ""
+	endif
 	if !exists('g:debugger')
 		call s:LogMsg(g:None_Run_Msg)
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call term_sendkeys(get(g:debugger,'debugger_window_name'),"cont\<CR>")
+		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_continue."\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectNext()
+	if !s:Language_supported() 
+		call s:LogMsg("不支持当前语言的调试")
+		return ""
+	endif
 	if !exists('g:debugger')
 		call s:LogMsg(g:None_Run_Msg)
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call term_sendkeys(get(g:debugger,'debugger_window_name'),"next\<CR>")
+		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_next."\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectStep()
+	if !s:Language_supported() 
+		call s:LogMsg("不支持当前语言的调试")
+		return ""
+	endif
 	if !exists('g:debugger')
 		call s:LogMsg(g:None_Run_Msg)
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call term_sendkeys(get(g:debugger,'debugger_window_name'),"step\<CR>")
+		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_stepin."\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectOut()
+	if !s:Language_supported() 
+		call s:LogMsg("不支持当前语言的调试")
+		return ""
+	endif
 	if !exists('g:debugger')
 		call s:LogMsg(g:None_Run_Msg)
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call term_sendkeys(get(g:debugger,'debugger_window_name'),"out\<CR>")
+		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_stepout."\<CR>")
 	endif
 endfunction
 
 function! easydebugger#InspectPause()
+	if !s:Language_supported() 
+		call s:LogMsg("不支持当前语言的调试")
+		return ""
+	endif
 	if !exists('g:debugger')
 		call s:LogMsg(g:None_Run_Msg)
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call term_sendkeys(get(g:debugger,'debugger_window_name'),"pause\<CR>")
+		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_pause."\<CR>")
 	endif
 endfunction
 
 " 设置/取消断点，在当前行按 F12
 function! easydebugger#InspectSetBreakPoint()
+	if !s:Language_supported() 
+		call s:LogMsg("不支持当前语言的调试")
+		return ""
+	endif
 	if !exists('g:debugger') || term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
 		call s:LogMsg(g:None_Run_Msg)
 		return ""
@@ -198,7 +231,7 @@ endfunction
 
 " 判断语言是否支持
 function! s:Language_supported()
-	return exists('g:'. &filetype . '_setup')
+	return index(g:Debug_Lang_Supported, &filetype) >= 0 ? 1 : 0
 endfunction
 
 function! s:Echo_debugging_info(command)
@@ -227,8 +260,15 @@ endfunction
 " 可传入单独的参数：
 " - silently: 不关闭Term
 function! easydebugger#Reset_Editor(...)
+	" 如果多个 Tab 存在，开启 Term 的时候会莫名其妙的调用到这里
+	" 不得不加一个保护
+	if !exists("g:debugger") || !get(g:debugger, "term_winnr")
+		return
+	endif
 	call execute(g:debugger.term_winnr.'wincmd w','silent!')
-	if g:debugger.original_bufname !=  bufname('%')
+	" 短名长名都不等，当前所在buf不是原始buf的话，先切换到原始Buf
+	if g:debugger.original_bufname !=  bufname('%') &&
+				\ g:debugger.original_bufname != fnameescape(fnamemodify(bufname('%'),':p'))
 		exec ":b ". g:debugger.original_bufname
 	endif
 	call s:Debugger_del_tmpbuf()
@@ -236,7 +276,9 @@ function! easydebugger#Reset_Editor(...)
 		" 恢复 CursorLine 的高亮样式
 		call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
 	endif
-	if winnr() != g:debugger.original_winnr 
+	" if winnr() != g:debugger.original_winnr 
+	"if g:debugger.original_buf[0].windows != getbufinfo(bufnr(""))[0].windows
+	if g:debugger.original_winid != bufwinid(bufnr(""))
 		if !(type(a:1) == type('string') && a:1 == 'silently')
 			call feedkeys("\<S-ZZ>")
 		else
@@ -331,10 +373,7 @@ endfunction
 
 " 相当于 trim，去掉首尾的空字符
 function! s:StringTrim(str)
-	if !empty(a:str)
-		return substitute(a:str, "^\\s\\+\\(.\\{\-}\\)\\s\\+$","\\1","g")
-	endif
-	return ""
+	return debugger#util#StringTrim(a:str)
 endfunction
 
 " 创建全局 g:debugger 对象
@@ -349,8 +388,11 @@ function! s:Create_Debugger()
 	" 调试窗口随机一下，其实不用随机，固定名字也可以
 	let g:debugger.debugger_window_name = "dw" . g:debugger_window_id
 	let g:debugger.original_bnr         = bufnr('')
-	let g:debugger.original_buf         = getbufinfo()
+	" winnr 并不和 最初的 Buf 强绑定，原始 winnr 不能作为 window 的标识
+	" 要用 bufinfo 里的 windows 数组来代替唯一性
 	let g:debugger.original_winnr       = winnr()
+	let g:debugger.original_winid       = bufwinid(bufnr(""))
+	let g:debugger.original_buf         = getbufinfo(bufnr(''))
 	let g:debugger.cwd                  = getcwd()
 	let g:debugger.original_bufname     = bufname('%')
 	let g:debugger.original_line_nr     = line(".")
@@ -366,36 +408,14 @@ function! s:Create_Debugger()
 	" break_points: ['a.js|3','t/b.js|34']
 	" break_points 里的索引作为 sign id
 	let g:debugger.break_points= []
-	let g:debugger.original_cursor_color = s:Get_CursorLine_bgColor()
+	let g:debugger.original_cursor_color = debugger#util#Get_CursorLine_bgColor()
 	call add(g:debugger.bufs, g:debugger.original_bufname)
-	exec "hi DebuggerBreakPoint ctermfg=197 cterm=bold ctermbg=". s:Get_BgColor('SignColumn')
+	exec "hi DebuggerBreakPoint ctermfg=197 cterm=bold ctermbg=". debugger#util#Get_BgColor('SignColumn')
 	" 语句执行位置标记 id=100
 	exec 'sign define stop_point text=>> texthl=SignColumn linehl=CursorLine'
 	" 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
 	exec 'sign define break_point text=** texthl=DebuggerBreakPoint'
 	return g:debugger
-endfunction
-
-" 获得当前 CursorLine 样式
-function! s:Get_CursorLine_bgColor()
-	return s:Get_BgColor('CursorLine')
-endfunction
-
-" 获得某个颜色主题的背景色
-function! s:Get_BgColor(name)
-	if &t_Co > 255 && !has('gui_running')
-		let hlString = s:Highlight_Args(a:name)
-		let bgColor = matchstr(hlString,"\\(\\sctermbg=\\)\\@<=\\d\\{\-}\\(\\s\\)\\@=")
-		if bgColor != ''
-			return str2nr(bgColor)
-		endif
-	endif
-	return 'none'
-endfunction
-
-" 执行高亮
-function! s:Highlight_Args(name)
-	return 'hi ' . substitute(split(execute('hi ' . a:name), '\n')[0], '\<xxx\>', '', '')
 endfunction
 
 " 执行到什么文件的什么行
@@ -440,7 +460,7 @@ endfunction
 " 如果跳转到一个新文件，新增一个 Buffer
 function! s:Debugger_add_filebuf(fname)
 	exec ":badd ". a:fname
-	exec ":b ". a:fname
+	exec ":!b ". a:fname
 	call add(g:debugger.bufs, a:fname)
 endfunction
 
@@ -448,7 +468,9 @@ endfunction
 function! s:Debugger_del_tmpbuf()
 	let tmp_bufs = deepcopy(g:debugger.bufs)
 	for t_buf in tmp_bufs
-		if t_buf != g:debugger.original_bufname
+		" 如果 Buf 短名不是原始值，长名也不是原始值
+		if t_buf != g:debugger.original_bufname && 
+					\ fnameescape(fnamemodify(g:debugger.original_bufname,':p')) != fnameescape(fnamemodify(t_buf,':p'))
 			call execute('bdelete! '.t_buf,'silent!')
 		endif
 	endfor
@@ -474,8 +496,12 @@ endfunction
 " 关闭 Terminal
 function! s:Close_Term()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>\<C-C>\<C-C>")
-	if exists('g:debugger') && winnr() != g:debugger.original_winnr
-		call feedkeys("\<S-ZZ>")
+	call execute('redraw','silent!')
+	" if exists('g:debugger') && winnr() != g:debugger.original_winnr
+	if exists('g:debugger') && g:debugger.original_winid != bufwinid(bufnr(""))
+		call s:LogMsg("关闭窗口")
+		" TODO，当打开两个Tab时，exit关闭Term时这一句执行到了，但不生效 
+		call feedkeys("\<C-C>\<C-C>", 't')
 	endif
 	call s:LogMsg("调试结束,Debug over..")
 endfunction
@@ -496,8 +522,6 @@ endfunction
 
 " 输出 LogMsg
 function! s:LogMsg(msg)
-	echohl MoreMsg 
-	echom '>>> '. a:msg
-	echohl NONE
+	call debugger#util#LogMsg(a:msg)
 endfunction
 
