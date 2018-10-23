@@ -29,7 +29,7 @@ function! easydebugger#Enable()
 		return
 	endif
 
-	let g:None_Run_Msg = '请先启动 Debugger 再设置断点（<Shift-R>）, please run debuger first(<Shift-R>)..'
+	let g:None_Run_Msg = '请先启动 Debugger 再设置断点（<Shift-R>）, Please run debuger first(<Shift-R>)..'
 
 	call s:Bind_Map_Keys()
 endfunction
@@ -50,6 +50,7 @@ function! s:Bind_Map_Keys()
 	nnoremap <silent> <Plug>EasyDebuggerPause :call get(g:language_setup,'InspectPause')()<CR>
 	tnoremap <silent> <Plug>EasyDebuggerPause pause<CR>
 	exec "tnoremap <silent> <Plug>EasyDebuggerPause ".g:language_setup.ctrl_cmd_pause."<CR>"
+	" 设置断点
 	nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call get(g:language_setup,'InspectSetBreakPoint')()<CR>
 endfunction
 
@@ -59,7 +60,7 @@ function! easydebugger#WebInspectInit()
 		return ""
 	endif
 
-	if !s:Node_Command_Exists()
+	if !debugger#javascript#Command_Exists()
 		s:LogMsg("系统没有安装 Node！Please install node first.")
 		return ""
 	endif
@@ -83,8 +84,7 @@ function! easydebugger#InspectInit()
 		return ""
 	endif
 
-
-	if !s:Node_Command_Exists()
+	if !debugger#javascript#Command_Exists()
 		s:LogMsg("系统没有安装 Node！Please install node first.")
 		return ""
 	endif
@@ -201,14 +201,8 @@ function! s:Language_supported()
 	return exists('g:'. &filetype . '_setup')
 endfunction
 
-
 function! s:Echo_debugging_info(command)
 	call s:LogMsg(a:command . ' ' . " : 点击两次 <Ctrl-C> 终止调试, Press <Ctrl-C><Ctrl-C> to stop debugging..'")
-endfunction
-
-function! s:Node_Command_Exists()
-	let result =  system("node -v 2>/dev/null")
-	return len(matchstr(result,"^v\\d\\{1,}")) >=1 ? 1 : 0
 endfunction
 
 " 设置停住的行高亮样式
