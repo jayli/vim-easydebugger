@@ -22,6 +22,8 @@ function! easydebugger#Enable()
 
 	if index(g:Debug_Lang_Supported, &filetype) >= 0
 		call execute('let g:language_setup = debugger#'. &filetype .'#Setup()' )
+	else
+		return
 	endif
 
 	call s:Bind_Map_Keys()
@@ -67,9 +69,9 @@ function! easydebugger#WebInspectInit()
 	let l:command = get(g:language_setup,'WebDebuggerCommandPrefix') . ' ' . getbufinfo('%')[0].name
 	call s:Echo_debugging_info(l:command)
 	if version <= 800
-		call system(l:command . " 2>/dev/null")
+		call system(s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix")))
 	else 
-		call term_start(l:command . " 2>/dev/null",{ 
+		call term_start(s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix")),{ 
 						\ 'term_finish': 'close',
 						\ 'term_cols':s:Get_Term_Width(),
 						\ 'vertical':'1',
@@ -95,14 +97,14 @@ function! easydebugger#InspectInit()
 	endif
 
 	let l:command = get(g:language_setup,'LocalDebuggerCommandPrefix') . ' ' . getbufinfo('%')[0].name
-	call s:Echo_debugging_info(l:command)
 	" 创建 g:debugger ，最重要的一个全局变量
 	call s:Create_Debugger()
 	call easydebugger#Reset_Editor('silently')
 	if version <= 800
-		call system(l:command . " 2>/dev/null")
+		call system(s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix")))
 	else 
-		call term_start(l:command . " 2>/dev/null",{ 
+
+		call term_start(s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix")),{ 
 						\ 'term_finish': 'close',
 						\ 'term_name':get(g:debugger,'debugger_window_name') ,
 						\ 'term_cols':s:Get_Term_Width(),
@@ -121,7 +123,7 @@ function! easydebugger#InspectInit()
 
 		call s:Set_Debug_CursorLine()
 
-		if get(g:language_setup, "TermSetupScript")
+		if get(g:language_setup, "TermSetupScript") != 0
 			call get(g:language_setup,"TermSetupScript")()
 		endif
 	endif

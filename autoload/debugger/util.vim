@@ -31,7 +31,9 @@ endfunction
 " 相当于 trim，去掉首尾的空字符
 function! debugger#util#StringTrim(str)
 	if !empty(a:str)
-		return substitute(a:str, "^\\s\\+\\(.\\{\-}\\)\\s\\+$","\\1","g")
+		let a1 = substitute(a:str, "^\\s\\+\\(.\\{\-}\\)$","\\1","g")
+		let a1 = substitute(a:str, "^\\(.\\{\-}\\)\\s\\+$","\\1","g")
+		return a1
 	endif
 	return ""
 endfunction

@@ -34,6 +34,7 @@ function! debugger#javascript#Setup()
 				\	'DebuggerNotInstalled':       '系统没有安装 Node！Please install node first.',
 				\	'WebDebuggerCommandPrefix':   'node --inspect-brk',
 				\	'LocalDebuggerCommandPrefix': 'node inspect',
+				\	'LocalDebuggerCommandSufix':  '2>/dev/null',
 				\ }
 
 	return setup_options

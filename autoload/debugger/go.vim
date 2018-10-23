@@ -24,6 +24,9 @@ function! debugger#go#Setup()
 				\	'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
 				\	'WebDebuggerCommandPrefix':   'dlv debug',
 				\	'LocalDebuggerCommandPrefix': 'dlv debug',
+				\	'LocalDebuggerCommandSufix':  '',
+				\
+				\	'GoPkgName':debugger#go#Get_Package()
 				\ }
 	return setup_options
 endfunction
@@ -33,7 +36,7 @@ function! debugger#go#Command_Exists()
 endfunction
 
 function! debugger#go#TermSetupScript()
-	call term_sendkeys(get(g:debugger,'debugger_window_name'), "break " .debugger#go#Get_Package(). ".main\<CR>")
+	call term_sendkeys(get(g:debugger,'debugger_window_name'), "break " .get(g:language_setup,'GoPkgName'). ".main\<CR>")
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
 endfunction
 
