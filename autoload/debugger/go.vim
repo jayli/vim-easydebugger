@@ -10,15 +10,15 @@ function! debugger#go#Setup()
 				\	'ctrl_cmd_stepin':            'step',
 				\	'ctrl_cmd_stepout':           'stepout',
 				\	'ctrl_cmd_pause':             'doNothing',
-				\	'InspectInit':                function('easydebugger#InspectInit'),
-				\	'WebInspectInit':             function('easydebugger#WebInspectInit'),
-				\	'InspectCont':                function('easydebugger#InspectCont'),
-				\	'InspectNext':                function('easydebugger#InspectNext'),
-				\	'InspectStep':                function('easydebugger#InspectStep'),
-				\	'InspectOut':                 function('easydebugger#InspectOut'),
+				\	'InspectInit':                function('debugger#runtime#InspectInit'),
+				\	'WebInspectInit':             function('debugger#runtime#WebInspectInit'),
+				\	'InspectCont':                function('debugger#runtime#InspectCont'),
+				\	'InspectNext':                function('debugger#runtime#InspectNext'),
+				\	'InspectStep':                function('debugger#runtime#InspectStep'),
+				\	'InspectOut':                 function('debugger#runtime#InspectOut'),
 				\	'InspectPause':               function('debugger#go#InpectPause'),
-				\	'InspectSetBreakPoint':       function('easydebugger#InspectSetBreakPoint'),
-				\	'DebuggerTester':             function('debugger#go#Command_Exists'),
+				\	'InspectSetBreakPoint':       function('debugger#runtime#InspectSetBreakPoint'),
+				\	'DebuggerTester':             function('debugger#go#CommandExists'),
 				\	'TermSetupScript': function('debugger#go#TermSetupScript'),
 				\
 				\	'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
@@ -31,7 +31,7 @@ function! debugger#go#Setup()
 	return setup_options
 endfunction
 
-function! debugger#go#Command_Exists()
+function! debugger#go#CommandExists()
 	return 1
 endfunction
 
