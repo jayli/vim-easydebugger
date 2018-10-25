@@ -1,18 +1,4 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+" 语言全局配置
 function! debugger#javascript#Setup()
 	let setup_options = {
 				\	'ctrl_cmd_continue':          'cont',

@@ -67,7 +67,7 @@ function! debugger#runtime#InspectInit()
 						\ })
 		" 记录 Term 的 Winid
 		let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
-		" 监听 Terminal 模式里的回车键，这个会带来代码视窗的抖动 TODO
+		" 监听 Terminal 模式里的回车键
 		tnoremap <silent> <CR> <C-\><C-n>:call debugger#runtime#Special_Cmd_Handler()<CR>i<C-P><Down>
 		call term_wait(get(g:debugger,'debugger_window_name'))
 		call s:Debugger_Break_Action(g:debugger.log)
@@ -172,13 +172,9 @@ endfunction
 " 可传入单独的参数：
 " - silently: 不关闭Term
 function! debugger#runtime#Reset_Editor(...)
-	" 如果多个 Tab 存在，开启 Term 的时候会莫名其妙的调用到这里
-	" 不得不加一个保护
 	if !exists("g:debugger") 
-		" || !get(g:debugger, "term_winid")
 		return
 	endif
-	"call execute(g:debugger.term_winnr.'wincmd w','silent!')
 	call s:Goto_sourcecode_window()
 	" 短名长名都不等，当前所在buf不是原始buf的话，先切换到原始Buf
 	if g:debugger.original_bufname !=  bufname('%') &&
@@ -189,6 +185,7 @@ function! debugger#runtime#Reset_Editor(...)
 	if g:debugger.original_cursor_color
 		" 恢复 CursorLine 的高亮样式
 		call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
+		call s:LogMsg("调试结束，Debug Over.")
 	endif
 	" if winnr() != g:debugger.original_winnr 
 	"if g:debugger.original_buf[0].windows != getbufinfo(bufnr(""))[0].windows
@@ -198,6 +195,7 @@ function! debugger#runtime#Reset_Editor(...)
 		else
 			call s:Show_Close_Msg()
 		endif
+		call s:Show_Close_Msg()
 	endif
 	call s:Clear_All_Signs()
 	call execute('redraw','silent!')
@@ -381,10 +379,11 @@ function! s:Debugger_Stop(fname, line)
 		call s:Show_Close_Msg()
 	endif
 	call s:Sign_Set_BreakPoint(a:fname, a:line)
-	"sleep 40m
 	call cursor(a:line,1)
 	call execute('redraw','silent!')
 	call s:Goto_window(get(g:debugger,"term_winid"))
+	call s:LogMsg('程序执行到 '.a:fname.' 的第 '.a:line.' 行。 ' . 
+				\  '[Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
 endfunction
 
 " 重新设置 Break Point 的 Sign 标记的位置
@@ -460,9 +459,7 @@ endfunction
 function! s:Close_Term()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>\<C-C>\<C-C>")
 	call execute('redraw','silent!')
-	" if exists('g:debugger') && winnr() != g:debugger.original_winnr
 	if exists('g:debugger') && g:debugger.original_winid != bufwinid(bufnr(""))
-		call s:LogMsg("关闭窗口")
 		" TODO，当打开两个Tab时，exit关闭Term时这一句执行到了，但不生效 
 		call feedkeys("\<C-C>\<C-C>", 't')
 		unlet g:debugger.term_winid

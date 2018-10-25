@@ -1,6 +1,5 @@
 
-
-
+" 语言全局配置
 function! debugger#go#Setup()
 
 	" Delve 不支持 Pause 
@@ -28,8 +27,8 @@ function! debugger#go#Setup()
 				\	'LocalDebuggerCommandPrefix': 'dlv debug',
 				\	'LocalDebuggerCommandSufix':  '',
 				\	'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
-				\	'BreakFileNameRegex':         "\\(^>\\s\\S\\{-}\\s\\)\\@<=\\S\\{-}.go\\(:\\)\\@=",
-				\	'BreakLineNrRegex':           "\\(^>\\s\\S\\{-}\\s\\S\\{-}.go:\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
+				\	'BreakFileNameRegex':         "\\(>\\s\\S\\{-}\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
+				\	'BreakLineNrRegex':           "\\(>\\s\\S\\{-}\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
 				\
 				\	'_GoPkgName':                 debugger#go#Get_Package()
 				\ }
@@ -51,8 +50,7 @@ function! debugger#go#InpectPause()
 endfunction
 
 function! debugger#go#ClearBreakPoint(fname,line)
-	" TODO Go 的 清除断点用的是断点id，要先搞到断点 id
-	" https://github.com/derekparker/delve/blob/master/Documentation/cli/README.md#clear
+	return "clearall ".a:fname.":".a:line."\<CR>"
 endfunction
 
 function! debugger#go#SetBreakPoint(fname,line)
