@@ -17,6 +17,7 @@ function! easydebugger#Enable()
 	"							在debugger/[编程语言].vim中配置
 	" g:Debug_Lang_Supported	当前支持的debug语言种类
 	" g:None_Run_Msg			语言不支持时的提示语
+	" g:debugger_term_winnr		Term winnr
 	let g:Debug_Lang_Supported = ["javascript","go"]
 	let g:None_Run_Msg = '请先启动 Debugger 再设置断点（<Shift-R>）, Please run debuger first(<Shift-R>)..'
 
