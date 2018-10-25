@@ -8,7 +8,7 @@ VIM 的调试器插件（[演示](https://gw.alicdn.com/tfs/TB1OF9CkQvoK1RjSZFDX
 
 ### 一个精简的 VIM 调试器
 
-VIM 上一直缺少好用的断点跟踪调试插件，在命令行环境中 Debug 代码通常用打 Log 的方式。VIM 从 8.1 版本开始支持“终端”特性（Terminal），并内置了基于`c`语言的 GDB 调试器，强大的 Terminal 特性让 Debugger 插件开发难度大大降低，不用依赖其他代理嫁接在 Debug 服务 （GDB Server） 和调试器（Inspector）之间，从而避免重写 Debugger 协议（[Debugger Protocol](https://chromedevtools.github.io/debugger-protocol-viewer/v8/)），同时基于 Terminal 的原生命令行支持，也大大简化了 VIM 视窗的管理。Vim-Easydebugger 就是基于 Terminal 特性实现的调试器，只依赖 JS 运行环境（[node](https://nodejs.org)、Go 调试器 [Delve](https://github.com/derekparker/delve) 和 VimL，安装配置非常方便。
+VIM 上一直缺少好用的断点跟踪调试插件，在命令行环境中 Debug 代码通常用打 Log 的方式。VIM 从 8.1 版本开始支持“终端”特性（Terminal），并内置了基于`c`语言的 GDB 调试器，强大的 Terminal 特性让 Debugger 插件开发难度大大降低，不用依赖其他代理嫁接在 Debug 服务 （GDB Server） 和调试器（Inspector）之间，从而避免重写 Debugger 协议（[Debugger Protocol](https://chromedevtools.github.io/debugger-protocol-viewer/v8/)），同时基于 Terminal 的原生命令行支持，也大大简化了 VIM 视窗的管理。Vim-Easydebugger 就是基于 Terminal 特性实现的调试器，只依赖 JS 运行环境 [node](https://nodejs.org)、Go 调试器 [Delve](https://github.com/derekparker/delve) 和 VimL，安装配置非常方便。
 
 开源社区已有的 VIM 调试器现状：
 
