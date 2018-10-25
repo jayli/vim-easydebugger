@@ -149,7 +149,7 @@ NodeJS 提供了基于 Chrome DevTools 的调试：
 
 ### 关于 VIM Debugger Plugin 的一些思考
 
-VIM 的代码逐行调试能力一直被诟病，除了 VIM 8.1 原生支持的 GDB 之外还没有广泛流行的 Debugger 插件，包括对语言的支持也很吃力。主要原因是 VIM 在 8.0 以前，在视窗管理方面不够强大，尽管 Buffer 和 WinCmd 特性能够很好的接受定制，但涉及到视窗之间的命令传递，以及 Insert 和 Normal 模式之间的频繁切换的场景，缺少鼠标参与的情况下，需要极多的交互命令，命令的记忆成本较高，所以需要适当的简化 VIM Debugger 插件的设计，通常一个完整的调试器需要至少四个视窗，源码、Log、监视器、文件列表。所以简化交互的诉求，与基础功能完备之间往往难以两全。这也导致 VIM Debugger 开发难度大。我在实现 Vim-EasyDebugger 时干脆简化成两个视窗，以 node inspect 自有能力为主，外加一个代码跟踪视窗，跟踪 JavaScript 代码已经足够用了，较为复杂的代码跟踪则使用 VIM + Chrome DevTools 的方式，弥补 VIM 调试能力上的不足。
+VIM 的代码逐行调试能力一直被诟病，除了 VIM 8.1 原生支持的 GDB 之外还没有广泛流行的 Debugger 插件，包括对语言的支持也很吃力。主要原因是 VIM 在 8.0 以前，在视窗管理方面不够强大，尽管 Buffer 和 WinCmd 特性能够很好的接受定制，但涉及到视窗之间的命令传递，以及 Insert 和 Normal 模式之间的频繁切换的场景，缺少鼠标参与的情况下，需要极多的交互命令，命令的记忆成本较高，所以需要适当的简化 VIM Debugger 插件的设计，通常一个完整的调试器需要至少四个视窗，源码、Log、监视器、文件列表。所以简化交互的诉求，与基础功能完备之间往往难以两全。这也导致 VIM Debugger 开发难度大。我在实现 Vim-EasyDebugger 时干脆简化成两个视窗，以 node inspect 和 Delve 自有能力为主，外加一个代码跟踪视窗，跟踪 JavaScript 和 Go 代码已经足够用了，较为复杂的代码跟踪则使用 VIM + Chrome DevTools 的方式，弥补 VIM 调试能力上的不足。
 
 另外，VIM 8.1 所支持的 Terminal 是这个大版本最主要的特性，我个人非常喜欢，他让我很大程度抛弃了对 Python 和其他辅助工具的依赖，用纯净的 VimL 就能完成 Debugger 插件的开发，开发体验还是很赞的。目前只支持 NodeJS 和 Go，后续陆续添加更多语言支持。
 
