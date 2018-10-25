@@ -84,7 +84,7 @@ endfunction
 
 function! debugger#runtime#InspectCont()
 	if !exists('g:debugger')
-		call s:LogMsg(g:None_Run_Msg)
+		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
@@ -94,7 +94,7 @@ endfunction
 
 function! debugger#runtime#InspectNext()
 	if !exists('g:debugger')
-		call s:LogMsg(g:None_Run_Msg)
+		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
@@ -104,7 +104,7 @@ endfunction
 
 function! debugger#runtime#InspectStep()
 	if !exists('g:debugger')
-		call s:LogMsg(g:None_Run_Msg)
+		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
@@ -114,7 +114,7 @@ endfunction
 
 function! debugger#runtime#InspectOut()
 	if !exists('g:debugger')
-		call s:LogMsg(g:None_Run_Msg)
+		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
@@ -124,7 +124,7 @@ endfunction
 
 function! debugger#runtime#InspectPause()
 	if !exists('g:debugger')
-		call s:LogMsg(g:None_Run_Msg)
+		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
@@ -135,7 +135,7 @@ endfunction
 " 设置/取消断点，在当前行按 F12
 function! debugger#runtime#InspectSetBreakPoint()
 	if !exists('g:debugger') || term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
-		call s:LogMsg(g:None_Run_Msg)
+		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return ""
 	endif
 	" 如果是当前文件所在的 Buf 或者是临时加载的 Buf

@@ -12,14 +12,14 @@ function! easydebugger#Enable()
 	endif
 
 	" 全局对象
-	" g:debugger Debug			全局对象，运行 Term 时被初始化
+	" g:debugger				Debugger 全局对象，运行 Term 时被初始化
 	" g:language_setup			当前语言的 Debugger 配置，当支持当前语言的情况下随文件加载初始化
 	"							在debugger/[编程语言].vim中配置
 	" g:Debug_Lang_Supported	当前支持的debug语言种类
-	" g:None_Run_Msg			语言不支持时的提示语
-	" g:debugger_term_winnr		Term winnr
+	" g:None_Lang_Sp_Msg		当前代码不支持调试
+	
 	let g:Debug_Lang_Supported = ["javascript","go"]
-	let g:None_Run_Msg = '请先启动 Debugger 再设置断点（<Shift-R>）, Please run debuger first(<Shift-R>)..'
+	let g:None_Lang_Sp_Msg = "不支持该语言，或者需要将光标切换到调试窗口"
 
 	if index(g:Debug_Lang_Supported, &filetype) >= 0
 		call execute('let g:language_setup = debugger#'. &filetype .'#Setup()' )
@@ -60,7 +60,7 @@ endfunction
 
 function! easydebugger#InspectInit()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg("不支持当前语言的调试")
+		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectInit')()
@@ -68,7 +68,7 @@ endfunction
 
 function! easydebugger#WebInspectInit()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg("不支持当前语言的调试")
+		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'WebInspectInit')()
@@ -76,7 +76,7 @@ endfunction
 
 function! easydebugger#InspectCont()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg("不支持当前语言的调试")
+		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectCont')()
@@ -84,7 +84,7 @@ endfunction
 
 function! easydebugger#InspectNext()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg("不支持当前语言的调试")
+		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectNext')()
@@ -92,7 +92,7 @@ endfunction
 
 function! easydebugger#InspectStep()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg("不支持当前语言的调试")
+		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectStep')()
@@ -100,7 +100,7 @@ endfunction
 
 function! easydebugger#InspectOut()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg("不支持当前语言的调试")
+		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectOut')()
@@ -108,7 +108,7 @@ endfunction
 
 function! easydebugger#InspectPause()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg("不支持当前语言的调试")
+		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectPause')()
@@ -116,7 +116,7 @@ endfunction
 
 function! easydebugger#InspectSetBreakPoint()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg("不支持当前语言的调试")
+		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectSetBreakPoint')()
