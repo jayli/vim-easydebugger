@@ -19,29 +19,44 @@ function! debugger#go#Setup()
 				\	'InspectPause':               function('debugger#go#InpectPause'),
 				\	'InspectSetBreakPoint':       function('debugger#runtime#InspectSetBreakPoint'),
 				\	'DebuggerTester':             function('debugger#go#CommandExists'),
-				\	'TermSetupScript': function('debugger#go#TermSetupScript'),
+				\	'ClearBreakPoint':            function("debugger#go#ClearBreakPoint"),
+				\	'SetBreakPoint':              function("debugger#go#SetBreakPoint"),
+				\	'TermSetupScript':            function('debugger#go#TermSetupScript'),
 				\
 				\	'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
 				\	'WebDebuggerCommandPrefix':   'dlv debug',
 				\	'LocalDebuggerCommandPrefix': 'dlv debug',
 				\	'LocalDebuggerCommandSufix':  '',
+				\	'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
+				\	'BreakFileNameRegex':         "\\(^>\\s\\S\\{-}\\s\\)\\@<=\\S\\{-}.go\\(:\\)\\@=",
+				\	'BreakLineNrRegex':           "\\(^>\\s\\S\\{-}\\s\\S\\{-}.go:\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
 				\
-				\	'GoPkgName':debugger#go#Get_Package()
+				\	'_GoPkgName':                 debugger#go#Get_Package()
 				\ }
 	return setup_options
 endfunction
 
 function! debugger#go#CommandExists()
-	return 1
+	let result =  system("dlv version 2>/dev/null")
+	return empty(result) ? 0 : 1
 endfunction
 
 function! debugger#go#TermSetupScript()
-	call term_sendkeys(get(g:debugger,'debugger_window_name'), "break " .get(g:language_setup,'GoPkgName'). ".main\<CR>")
+	call term_sendkeys(get(g:debugger,'debugger_window_name'), "break " .get(g:language_setup,'_GoPkgName'). ".main\<CR>")
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
 endfunction
 
 function! debugger#go#InpectPause()
 	call debugger#util#LogMsg("Delve 不支持 Pause，'Pause' is not supported by Delve")
+endfunction
+
+function! debugger#go#ClearBreakPoint(fname,line)
+	" TODO Go 的 清除断点用的是断点id，要先搞到断点 id
+	" https://github.com/derekparker/delve/blob/master/Documentation/cli/README.md#clear
+endfunction
+
+function! debugger#go#SetBreakPoint(fname,line)
+	return "break ".a:fname.":".a:line."\<CR>"
 endfunction
 
 function! debugger#go#Get_Package()

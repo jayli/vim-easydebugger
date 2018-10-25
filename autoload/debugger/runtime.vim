@@ -15,16 +15,21 @@ function! debugger#runtime#WebInspectInit()
 	endif
 
 	let l:command = get(g:language_setup,'WebDebuggerCommandPrefix') . ' ' . getbufinfo('%')[0].name
-	call s:Echo_debugging_info(l:command)
+	if has_key(g:language_setup, "LocalDebuggerCommandSufix")
+		let l:full_command = s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix"))
+	else
+		let l:full_command = s:StringTrim(l:command)
+	endif
 	if version <= 800
-		call system(s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix")))
+		call system(l:full_command)
 	else 
-		call term_start(s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix")),{ 
+		call term_start(l:full_command,{ 
 						\ 'term_finish': 'close',
 						\ 'term_cols':s:Get_Term_Width(),
 						\ 'vertical':'1',
 						\ })
 	endif
+	call s:Echo_debugging_info(l:full_command)
 endfunction
 
 " VIM 调试模式
@@ -40,14 +45,19 @@ function! debugger#runtime#InspectInit()
 	endif
 
 	let l:command = get(g:language_setup,'LocalDebuggerCommandPrefix') . ' ' . getbufinfo('%')[0].name
+	if has_key(g:language_setup, "LocalDebuggerCommandSufix")
+		let l:full_command = s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix"))
+	else
+		let l:full_command = s:StringTrim(l:command)
+	endif
 	" 创建 g:debugger ，最重要的一个全局变量
 	call s:Create_Debugger()
 	call debugger#runtime#Reset_Editor('silently')
 	if version <= 800
-		call system(s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix")))
+		call system(l:full_command)
 	else 
 
-		call term_start(s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix")),{ 
+		call term_start(l:full_command,{ 
 						\ 'term_finish': 'close',
 						\ 'term_name':get(g:debugger,'debugger_window_name') ,
 						\ 'term_cols':s:Get_Term_Width(),
@@ -59,7 +69,7 @@ function! debugger#runtime#InspectInit()
 			let g:debugger_term_winnr = bufnr(get(g:debugger,'debugger_window_name'))
 		endif
 		let g:debugger.term_winnr = string(g:debugger_term_winnr)
-		" 监听 Terminal 模式里的回车键
+		" 监听 Terminal 模式里的回车键，这个会带来代码视窗的抖动 TODO
 		tnoremap <silent> <CR> <C-\><C-n>:call debugger#runtime#Special_Cmd_Handler()<CR>i<C-P><Down>
 		call term_wait(get(g:debugger,'debugger_window_name'))
 		call s:Debugger_Break_Action(g:debugger.log)
@@ -67,11 +77,10 @@ function! debugger#runtime#InspectInit()
 		call s:Set_Debug_CursorLine()
 
 		" 启动调试器后执行需要运行的脚本，有的调试器是需要的（比如go）
-		if get(g:language_setup, "TermSetupScript") != 0
+		if has_key(g:language_setup, "TermSetupScript")
 			call get(g:language_setup,"TermSetupScript")()
 		endif
-		call s:LogMsg(s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix")) .
-					\ " Debugger 正在运行, 两次<Ctrl-C>或者输入'exit'回车关闭调试，<C-C><C-C> or 'exit<CR>' to quit debug")
+		call s:Echo_debugging_info(l:full_command)
 	endif
 endfunction
 
@@ -138,19 +147,27 @@ function! debugger#runtime#InspectSetBreakPoint()
 		let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
 		if breakpoint_contained >= 0
 			" 已经存在 BreakPoint，则清除掉 BreakPoint
-			call term_sendkeys(get(g:debugger,'debugger_window_name'),"clearBreakpoint('".fname."', ".line.")\<CR>")
+			call term_sendkeys(get(g:debugger,'debugger_window_name'),debugger#runtime#clearBreakpoint(fname,line))
 			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
 			exec ":sign unplace ".sid." file=".fname
 			call remove(g:debugger.break_points, breakpoint_contained)
 		else
 			" 如果不存在 BreakPoint，则新增 BreakPoint
-			call term_sendkeys(get(g:debugger,'debugger_window_name'),"setBreakpoint('".fname."', ".line.");list(1)\<CR>")
+			call term_sendkeys(get(g:debugger,'debugger_window_name'),debugger#runtime#setBreakpoint(fname,line))
 			call add(g:debugger.break_points, fname."|".line)
 			let g:debugger.break_points =  uniq(g:debugger.break_points)
 			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
 			exec ":sign place ".sid." line=".line." name=break_point file=".fname
 		endif
 	endif
+endfunction
+
+function! debugger#runtime#clearBreakpoint(fname,line)
+	return get(g:language_setup, "ClearBreakPoint")(a:fname,a:line)
+endfunction
+
+function! debugger#runtime#setBreakpoint(fname,line)
+	return get(g:language_setup, "SetBreakPoint")(a:fname,a:line)
 endfunction
 
 " 退出 Terminal 时重置编辑器
@@ -198,7 +215,8 @@ function! debugger#runtime#Term_callback(channel, msg)
 	let g:debugger.log += g:msgs
 	let g:debugger.log += [""]
 
-	if a:msg =~ 'Waiting for the debugger to disconnect'
+	if has_key(g:language_setup, "ExecutionTerminatedMsg") && 
+				\ a:msg =~ get(g:language_setup, "ExecutionTerminatedMsg")
 		call s:Show_Close_Msg()
 		call debugger#runtime#Reset_Editor('silently')
 		" 调试终止之后应该将光标停止在 Term 内
@@ -208,7 +226,6 @@ function! debugger#runtime#Term_callback(channel, msg)
 	else
 		call s:Debugger_Break_Action(g:debugger.log)
 	endif
-	
 endfunction
 
 function! s:Echo_debugging_info(command)
@@ -271,10 +288,12 @@ function! s:Get_Term_Break_Msg(log)
 	endif
 	let break_line = 0
 	let fname = ''
+	let fn_regex = get(g:language_setup, "BreakFileNameRegex")
+	let nr_regex = get(g:language_setup, "BreakLineNrRegex")
 	if len(a:log) > 0 
 		for line in a:log
-			let fn = matchstr(line, "\\(\\(break in\\|Break on start in\\)\\s\\)\\@<=.\\{\-}\\(:\\)\\@=")
-			let nr =  matchstr(line, "\\(^>\\s\\|^>\\)\\@<=\\(\\d\\{1,10000}\\)\\(\\s\\)\\@=")
+			let fn = matchstr(line, fn_regex)
+			let nr =  matchstr(line, nr_regex)
 			if s:StringTrim(fn) != ''
 				let fname = fn
 			endif

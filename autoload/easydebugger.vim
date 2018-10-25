@@ -33,15 +33,15 @@ function! s:Bind_Map_Keys()
 	nnoremap <silent> <Plug>EasyDebuggerWebInspect :call easydebugger#WebInspectInit()<CR>
 	" 调试快捷键映射
 	nnoremap <silent> <Plug>EasyDebuggerContinue :call easydebugger#InspectCont()<CR>
-	exec "tnoremap <silent> <Plug>EasyDebuggerContinue ".easydebugger#GetCtrlCmd('ctrl_cmd_continue')."<CR>"
+	exec "tnoremap <silent> <Plug>EasyDebuggerContinue ".easydebugger#GetCtrlCmd('ctrl_cmd_continue')
 	nnoremap <silent> <Plug>EasyDebuggerNext :call easydebugger#InspectNext()<CR>
-	exec "tnoremap <silent> <Plug>EasyDebuggerNext ".easydebugger#GetCtrlCmd('ctrl_cmd_next')."<CR>"
+	exec "tnoremap <silent> <Plug>EasyDebuggerNext ".easydebugger#GetCtrlCmd('ctrl_cmd_next')
 	nnoremap <silent> <Plug>EasyDebuggerStepIn :call easydebugger#InspectStep()<CR>
-	exec "tnoremap <silent> <Plug>EasyDebuggerStepIn ".easydebugger#GetCtrlCmd('ctrl_cmd_stepin')."<CR>"
+	exec "tnoremap <silent> <Plug>EasyDebuggerStepIn ".easydebugger#GetCtrlCmd('ctrl_cmd_stepin')
 	nnoremap <silent> <Plug>EasyDebuggerStepOut :call easydebugger#InspectOut()<CR>
-	exec "tnoremap <silent> <Plug>EasyDebuggerStepOut ".easydebugger#GetCtrlCmd('ctrl_cmd_stepout')."<CR>"
+	exec "tnoremap <silent> <Plug>EasyDebuggerStepOut ".easydebugger#GetCtrlCmd('ctrl_cmd_stepout')
 	nnoremap <silent> <Plug>EasyDebuggerPause :call easydebugger#InspectPause()<CR>
-	exec "tnoremap <silent> <Plug>EasyDebuggerPause ".easydebugger#GetCtrlCmd('ctrl_cmd_pause')."<CR>"
+	exec "tnoremap <silent> <Plug>EasyDebuggerPause ".easydebugger#GetCtrlCmd('ctrl_cmd_pause')
 	" 设置断点快捷键映射
 	nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#InspectSetBreakPoint()<CR>
 endfunction
@@ -50,7 +50,11 @@ function! easydebugger#GetCtrlCmd(cmd)
 	if !s:Language_supported() || !exists('g:language_setup')
 		return ""
 	endif
-	return get(g:language_setup, a:cmd)
+	if has_key(g:language_setup, a:cmd)
+		return get(g:language_setup, a:cmd) . "<CR>"
+	else
+		return ""
+	endif
 endfunction
 
 function! easydebugger#InspectInit()
