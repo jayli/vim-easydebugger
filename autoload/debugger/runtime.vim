@@ -5,7 +5,7 @@
 " 启动Chrome DevTools 模式的调试服务
 function! debugger#runtime#WebInspectInit()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call s:LogMsg("请先关掉正在运行的调试器")
+		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
 		return ""
 	endif
 
@@ -35,7 +35,7 @@ endfunction
 " VIM 调试模式
 function! debugger#runtime#InspectInit()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call s:LogMsg("请先关掉正在运行的调试器")
+		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
 		return ""
 	endif
 
@@ -185,15 +185,10 @@ function! debugger#runtime#Reset_Editor(...)
 	if g:debugger.original_cursor_color
 		" 恢复 CursorLine 的高亮样式
 		call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
-		call s:LogMsg("调试结束，Debug Over.")
 	endif
-	" if winnr() != g:debugger.original_winnr 
-	"if g:debugger.original_buf[0].windows != getbufinfo(bufnr(""))[0].windows
 	if g:debugger.original_winid != bufwinid(bufnr(""))
 		if !(type(a:1) == type('string') && a:1 == 'silently')
 			call feedkeys("\<S-ZZ>")
-		else
-			call s:Show_Close_Msg()
 		endif
 		call s:Show_Close_Msg()
 	endif
@@ -201,6 +196,7 @@ function! debugger#runtime#Reset_Editor(...)
 	call execute('redraw','silent!')
 	" 最后清空本次 Terminal 里的 log
 	let g:debugger.log = []
+	call s:LogMsg("调试结束,Debug over..")
 endfunction
 
 " Terminal 消息回传
@@ -219,7 +215,6 @@ function! debugger#runtime#Term_callback(channel, msg)
 		call debugger#runtime#Reset_Editor('silently')
 		" 调试终止之后应该将光标停止在 Term 内
 		if winnr() != get(g:debugger, 'original_winnr')
-			" call execute(get(g:debugger, 'original_winnr').'wincmd w','silent!')
 			call s:Goto_window(get(g:debugger,"term_winid"))
 		endif
 	else
@@ -228,7 +223,7 @@ function! debugger#runtime#Term_callback(channel, msg)
 endfunction
 
 function! s:Echo_debugging_info(command)
-	call s:LogMsg(a:command . ' ' . " : 点击两次 <Ctrl-C> 终止调试, Press <Ctrl-C><Ctrl-C> to stop debugging..'")
+	call s:LogMsg(a:command . ' ' . ' : [Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
 endfunction
 
 " 设置停住的行高亮样式
@@ -346,7 +341,9 @@ function! s:Create_Debugger()
 	" break_points 里的索引作为 sign id
 	let g:debugger.break_points= []
 	let g:debugger.original_cursor_color = debugger#util#Get_CursorLine_bgColor()
-	call add(g:debugger.bufs, g:debugger.original_bufname)
+	" 这句话没用其实
+	call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
+	call s:LogMsg('xxx '.string(g:debugger.bufs))
 	exec "hi DebuggerBreakPoint ctermfg=197 cterm=bold ctermbg=". debugger#util#Get_BgColor('SignColumn')
 	" 语句执行位置标记 id=100
 	exec 'sign define stop_point text=>> texthl=SignColumn linehl=CursorLine'
@@ -361,16 +358,17 @@ function! s:Debugger_Stop(fname, line)
 	"	let g:debugger = s:Create_Debugger()
 	"endif
 
-	if a:fname == get(g:debugger,'stop_fname') && a:line == get(g:debugger,'stop_line')
-		call s:Sign_Set_BreakPoint(a:fname, a:line)
+	let fname = s:Get_Fullname(a:fname)
+	if fname == get(g:debugger,'stop_fname') && a:line == get(g:debugger,'stop_line')
+		call s:Sign_Set_BreakPoint(fname, a:line)
 		return
 	else
-		let g:debugger.stop_fname = a:fname
+		let g:debugger.stop_fname = fname
 		let g:debugger.stop_line = a:line
 	endif
 
 	call s:Goto_sourcecode_window()
-	let fname = s:Debugger_get_filebuf(a:fname)
+	let fname = s:Debugger_get_filebuf(fname)
 	" 如果读到一个不存在的文件，认为进入到了 Node Native 部分 Debugging
 	" 这时 node inspect 没有给出完整路径，调试不得不中断
 	if type(fname) == type(0)  && fname == 0
@@ -378,12 +376,12 @@ function! s:Debugger_Stop(fname, line)
 		call debugger#runtime#Reset_Editor('silently')
 		call s:Show_Close_Msg()
 	endif
-	call s:Sign_Set_BreakPoint(a:fname, a:line)
+	call s:Sign_Set_BreakPoint(fname, a:line)
 	call cursor(a:line,1)
 	call execute('redraw','silent!')
-	call s:Goto_window(get(g:debugger,"term_winid"))
-	call s:LogMsg('程序执行到 '.a:fname.' 的第 '.a:line.' 行。 ' . 
+	call s:LogMsg('程序执行到 '.fname.' 的第 '.a:line.' 行。 ' . 
 				\  '[Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
+	call s:Goto_window(get(g:debugger,"term_winid"))
 endfunction
 
 " 重新设置 Break Point 的 Sign 标记的位置
@@ -403,7 +401,7 @@ function! s:Goto_winnr(winnr) abort
 endfunction
 
 " 跳转到原始源码所在的窗口
-function! s:Goto_sourcecode_window() abort
+function! s:Goto_sourcecode_window()
 	call s:Goto_window(g:debugger.original_winid)
 endfunction
 
@@ -420,6 +418,7 @@ function! s:Goto_window(winid) abort
 endfunction
 
 " 如果跳转到一个新文件，新增一个 Buffer
+" fname 是文件绝对地址
 function! s:Debugger_add_filebuf(fname)
 	exec ":badd ". a:fname
 	exec ":!b ". a:fname
@@ -432,7 +431,7 @@ function! s:Debugger_del_tmpbuf()
 	for t_buf in tmp_bufs
 		" 如果 Buf 短名不是原始值，长名也不是原始值
 		if t_buf != g:debugger.original_bufname && 
-					\ fnameescape(fnamemodify(g:debugger.original_bufname,':p')) != fnameescape(fnamemodify(t_buf,':p'))
+					\ s:Get_Fullname(g:debugger.original_bufname) != s:Get_Fullname(t_buf)
 			call execute('bdelete! '.t_buf,'silent!')
 		endif
 	endfor
@@ -441,18 +440,24 @@ endfunction
 
 " 获得当前Buffer里的文件名字
 function! s:Debugger_get_filebuf(fname)
-	" TODO bufname用的相对路径需要改为绝对路径，
-	" 我现将这个功能屏蔽掉了
-	if !filereadable(fnameescape(fnamemodify(a:fname,':p')))
+	" TODO bufname用的相对路径需要改为绝对路径:fixed
+	let fname = s:Get_Fullname(a:fname)
+	if !filereadable(fname)
 		return 0
 	endif
-	if index(g:debugger.bufs , a:fname) < 0 
-		call s:Debugger_add_filebuf(a:fname)
+	if index(g:debugger.bufs , fname) < 0 
+		call s:Debugger_add_filebuf(fname)
 	endif
-	" TODO debugger 里只能获得 文件名，怎么获得文件路径
-	" 比如跟踪到 modules.js 里，怎么也能buffer进来？
-	call execute('buffer '.a:fname,'silent!')
-	return a:fname
+	if fname != s:Get_Fullname(bufname("%"))
+		call execute('redraw','silent!')
+		call execute('buffer '.a:fname)
+	endif
+	return fname
+endfunction
+
+" 获得完整路径
+function! s:Get_Fullname(fname)
+	return fnameescape(fnamemodify(a:fname,':p'))
 endfunction
 
 " 关闭 Terminal
@@ -460,7 +465,6 @@ function! s:Close_Term()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>\<C-C>\<C-C>")
 	call execute('redraw','silent!')
 	if exists('g:debugger') && g:debugger.original_winid != bufwinid(bufnr(""))
-		" TODO，当打开两个Tab时，exit关闭Term时这一句执行到了，但不生效 
 		call feedkeys("\<C-C>\<C-C>", 't')
 		unlet g:debugger.term_winid
 	endif

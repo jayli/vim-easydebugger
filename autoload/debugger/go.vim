@@ -27,8 +27,8 @@ function! debugger#go#Setup()
 				\	'LocalDebuggerCommandPrefix': 'dlv debug',
 				\	'LocalDebuggerCommandSufix':  '',
 				\	'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
-				\	'BreakFileNameRegex':         "\\(>\\s\\S\\{-}\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
-				\	'BreakLineNrRegex':           "\\(>\\s\\S\\{-}\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
+				\	'BreakFileNameRegex':         "\\(>\\s\\S\\+\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
+				\	'BreakLineNrRegex':           "\\(>\\s\\S\\+\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
 				\
 				\	'_GoPkgName':                 debugger#go#Get_Package()
 				\ }
