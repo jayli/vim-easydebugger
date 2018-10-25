@@ -2,9 +2,9 @@
 
 ![Vim](https://img.shields.io/badge/vim-awesome-brightgreen.svg) [![Gitter](https://img.shields.io/badge/gitter-join%20chat-yellowgreen.svg)](https://gitter.im/jayli/vim-easycomplete) [![Join the chat at https://gitter.im/jayli/vim-easydebugger](https://badges.gitter.im/jayli/vim-easydebugger.svg)](https://gitter.im/jayli/vim-easydebugger?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![](https://img.shields.io/badge/Linux-available-brightgreen.svg) ![](https://img.shields.io/badge/MacOS-available-brightgreen.svg) ![](https://img.shields.io/badge/:%20h-easycomplete-orange.svg) ![](https://img.shields.io/badge/license-MIT-blue.svg)
 
-VIM 的 NodeJS 调试器插件（[演示](https://gw.alicdn.com/tfs/TB1DQVHhwHqK1RjSZFPXXcwapXa-850-482.gif)） @author：[Jayli](http://jayli.github.io/)
+VIM 的调试器插件（[演示](https://gw.alicdn.com/tfs/TB1OF9CkQvoK1RjSZFDXXXY3pXa-990-602.gif)，以 Go 语言为例） @author：[Jayli](http://jayli.github.io/)
 
-![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger.gif?t=1)
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger.gif?t=2)
 
 ### 一个精简的 VIM 调试器
 
@@ -22,27 +22,35 @@ VIM 上一直缺少好用的断点跟踪调试插件，在命令行环境中 Deb
 
 ### Vim-EasyDebugger 特性
 
-Vim-EasyDebugger 即是基于 Terminal 实现的一个精简的 NodeJS 调试器，剔除掉了复杂的配置，只基于 `node inspect` 实现基础功能，目前支持的功能有：
+Vim-EasyDebugger 即是基于 Terminal 实现的一个精简的调试器，目前支持 NodeJS 和 Go 的调试，无需复杂的配置，目前支持的功能有：
 
 1. 断点逐行跟踪
 2. 变量监听
-3. 支持 VIM 调试和 Chrome DevTool 调试两种方法
+3. 支持 VIM 调试和 WebServer 连接外部调试器两种方法
 
-更多调试用法请参照 [node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html)。
+NodeJS 调试基于 [Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html)，Go 的调试基于 [Delve](https://github.com/derekparker/delve)。
 
 ### 安装
 
-Vim-EasyDebugger 依赖 VIM 8.1 及以上，如果是编译安装，需要开启 `+terminal` 选项，可以通过下面命令查看是否开启了 `+terminal` 选项：
+**Vim 版本说明**：Vim-EasyDebugger 依赖 VIM 8.1 及以上，如果是编译安装，需要开启 `+terminal` 选项，可以通过下面命令查看是否开启了 `+terminal` 选项：
 
 	vim --version | grep terminal
 
-Node 需要携带 `node inspect` 调试器（通常是 v8.x 及以上）。执行下面命令，如果输出 `Useage:...` 命令的用法，说明支持 Node Inspector：
+**NodeJS 调试器**：
+
+NodeJS 调试基于 `node inspect`（通常 v8.x 及以上的 node 都自带了）。执行下面命令，如果输出 `Useage:...` 命令的用法，说明支持 Node Inspector：
 
 	node inspect
 	
 > 注意旧版的 Node 的调试器的启动命令是 node debug，则需要升级 node 到新版。
+	
+**Go 调试器**：
 
-安装该 VIM 插件，可选 Pathogen、Vundle 等很棒的插件管理器：
+Go 语言的调试基于 Delve，[参考官方文档安装](https://github.com/derekparker/delve)。
+
+**安装该 VIM 插件**：
+
+可选 Pathogen、Vundle 等很棒的插件管理器：
 
 > Vim-EasyDebugger 兼容 Linux 和 MacOS，暂不支持 CygWin
 
@@ -107,25 +115,28 @@ Done!
 
 #### - VIM 调试模式
 
-在 normal 模式下按下 <kbd>Shift-R</kbd> 会进入 VIM 调试模式，自动打开 Debugger 命令窗口，执行 `node inspect {filename}` 并停留在当前代码第一行，右侧代码窗口对应行高亮，这时可以逐行跟踪代码了。
+在 normal 模式下按下 <kbd>Shift-R</kbd> 会进入 VIM 调试模式，自动打开 Debugger 命令窗口，执行 `node inspect {filename}` 并停留在当前代码第一行（Go 调试器执行`dlv debug {filename}`），右侧代码窗口对应行高亮，这时可以逐行跟踪代码了。
 
 ![](https://gw.alicdn.com/tfs/TB1cvSZhmzqK1RjSZPxXXc4tVXa-2536-1396.jpg)
 
-左侧终端窗口内等待输入调试器命令。比如输入 `next` + <kbd>Enter</kbd> 表示执行下一行代码。更多命令可参照[官网文档](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html)。同样可以使用快捷键来跟踪调试。敲击两次 <kbd>Ctrl-C</kbd> 终止调试。
+左侧终端窗口内等待输入调试器命令。比如调试 NodeJS 时可输入 `next` + <kbd>Enter</kbd> 表示执行下一行代码。NodeJS Debugger 更多命令可参照[官网文档](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html)。Go Delve 更多命令可参照[官网文档](https://github.com/derekparker/delve/tree/master/Documentation/cli)。另外可以使用快捷键来跟踪调试。敲击两次 <kbd>Ctrl-C</kbd> 终止调试。
 
-如果要查看当前变量，需要进入“[Read-Eval-Print-Loop](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html#debugger_information)”（repl）模式，在左侧终端内输入 `repl`，输入变量名字即可查看。需要退出 Repl 模式才能继续逐行跟踪，输入 <kbd>Ctrl-C</kbd> 退出 Repl 模式。
+如果要查看当前变量，NodeJS 需要进入“[Read-Eval-Print-Loop](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html#debugger_information)”（repl）模式，在左侧终端内输入 `repl`，输入变量名字即可查看。需要退出 Repl 模式才能继续逐行跟踪，输入 <kbd>Ctrl-C</kbd> 退出 Repl 模式。Go 则直接输命令即可，比如`vars`输出当前包内的变量。
 
 <img src="https://gw.alicdn.com/tfs/TB1qfi7hmzqK1RjSZFjXXblCFXa-620-227.png" width=350>
 
 在左侧终端内敲入`exit` + <kbd>Enter</kbd> 退出调试模式。
 
-> 方便起见，Debugger 调试器启动总是会停留在首行。此外，由于 Node Inspector 会将 JS 源码包一层外壳，因此调试器中所示行数通常比源文件多出一到两行，但行号跟源码是一一对应的，基本不影响调试。
+> - 对于 NodeJS 来说，方便起见，Debugger 调试器启动总是会停留在首行。此外，由于 Node Inspector 会将 JS 源码包一层外壳，因此调试器中所示行数通常比源文件多出一到两行，但行号跟源码是一一对应的，基本不影响调试。
+> - 对于 Go 来说，调试器启动后会停留在 main() 函数处。
 
 **断点调试**：Debuger 启动之后，在右侧源码窗口中，光标停留在需要打断点的行，按下 <kbd>F12</kbd>，打断点成功，取消断点也是 <kbd>F12</kbd>
 
 ![](https://gw.alicdn.com/tfs/TB1CgKpihnaK1RjSZFtXXbC2VXa-1944-926.jpg)
 
-#### - Chrome DevTools 调试模式
+#### - NodeJS 的 Chrome DevTools 调试模式
+
+NodeJS 提供了基于 Chrome DevTools 的调试：
 
 ![](https://gw.alicdn.com/tfs/TB1ci.QegHqK1RjSZJnXXbNLpXa-1414-797.png)
 
@@ -140,7 +151,7 @@ Done!
 
 VIM 的代码逐行调试能力一直被诟病，除了 VIM 8.1 原生支持的 GDB 之外还没有广泛流行的 Debugger 插件，包括对语言的支持也很吃力。主要原因是 VIM 在 8.0 以前，在视窗管理方面不够强大，尽管 Buffer 和 WinCmd 特性能够很好的接受定制，但涉及到视窗之间的命令传递，以及 Insert 和 Normal 模式之间的频繁切换的场景，缺少鼠标参与的情况下，需要极多的交互命令，命令的记忆成本较高，所以需要适当的简化 VIM Debugger 插件的设计，通常一个完整的调试器需要至少四个视窗，源码、Log、监视器、文件列表。所以简化交互的诉求，与基础功能完备之间往往难以两全。这也导致 VIM Debugger 开发难度大。我在实现 Vim-EasyDebugger 时干脆简化成两个视窗，以 node inspect 自有能力为主，外加一个代码跟踪视窗，跟踪 JavaScript 代码已经足够用了，较为复杂的代码跟踪则使用 VIM + Chrome DevTools 的方式，弥补 VIM 调试能力上的不足。
 
-另外，VIM 8.1 所支持的 Terminal 是这个大版本最主要的特性，我个人非常喜欢，他让我很大程度抛弃了对 Python 和其他辅助工具的依赖，用纯净的 VimL 就能完成 Debugger 插件的开发，开发体验还是很赞的。后续会陆续补全其他语言的支持。
+另外，VIM 8.1 所支持的 Terminal 是这个大版本最主要的特性，我个人非常喜欢，他让我很大程度抛弃了对 Python 和其他辅助工具的依赖，用纯净的 VimL 就能完成 Debugger 插件的开发，开发体验还是很赞的。目前只支持 NodeJS 和 Go，后续陆续添加更多语言支持。
 
 ### For Help！？需要帮助
 
@@ -153,4 +164,5 @@ VIM 的代码逐行调试能力一直被诟病，除了 VIM 8.1 原生支持的 
 - v1.0：
 	- 支持 Unix 和 MacOS，Windows 平台暂未支持
 	- 支持语言种类：NodeJS
+- v1.1：支持 Go、NodeJS 调试
 
