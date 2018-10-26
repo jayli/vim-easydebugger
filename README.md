@@ -4,7 +4,7 @@
 
 ![Vim](https://img.shields.io/badge/vim-awesome-brightgreen.svg) [![Gitter](https://img.shields.io/badge/gitter-join%20chat-yellowgreen.svg)](https://gitter.im/jayli/vim-easydebugger) [![Join the chat at https://gitter.im/jayli/vim-easydebugger](https://badges.gitter.im/jayli/vim-easydebugger.svg)](https://gitter.im/jayli/vim-easydebugger?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![](https://img.shields.io/badge/Linux-available-brightgreen.svg) ![](https://img.shields.io/badge/MacOS-available-brightgreen.svg) ![](https://img.shields.io/badge/:%20h-easycomplete-orange.svg) ![](https://img.shields.io/badge/license-MIT-blue.svg) 
 
-![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger.gif?t=4)
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger.gif?t=5)
 
 ## Introduction
 
@@ -39,18 +39,17 @@ With [Vundle.vim](https://github.com/VundleVim/Vundle.vim): add the following co
 
 Put these code in your `~/.vimrc`
 
-
 	nmap <S-R>   <Plug>EasyDebuggerInspect
 	nmap <S-W>   <Plug>EasyDebuggerWebInspect
 	" pause
 	nmap <F7>    <Plug>EasyDebuggerPause
 	tmap <F7>    <Plug>EasyDebuggerPause
 	" stepinto
-	nmap <F8>   <Plug>EasyDebuggerStepIn
-	tmap <F8>   <Plug>EasyDebuggerStepIn
+	nmap <F8>    <Plug>EasyDebuggerStepIn
+	tmap <F8>    <Plug>EasyDebuggerStepIn
 	" stepout
-	nmap <S-F8> <Plug>EasyDebuggerStepOut
-	tmap <S-F8> <Plug>EasyDebuggerStepOut
+	nmap <S-F8>  <Plug>EasyDebuggerStepOut
+	tmap <S-F8>  <Plug>EasyDebuggerStepOut
 	" step by step
 	nmap <F9>    <Plug>EasyDebuggerNext
 	tmap <F9>    <Plug>EasyDebuggerNext
