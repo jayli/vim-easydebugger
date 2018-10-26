@@ -6,7 +6,7 @@
 
 VIM 的调试器插件（[演示](https://gw.alicdn.com/tfs/TB1OF9CkQvoK1RjSZFDXXXY3pXa-990-602.gif)，以 Go 语言为例） @author：[Jayli](http://jayli.github.io/)
 
-![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger.gif?t=3)
+![](https://gw.alicdn.com/tfs/TB1w7Njk3HqK1RjSZFkXXX.WFXa-1257-735.gif)
 
 ### 一个精简的 VIM 调试器
 
