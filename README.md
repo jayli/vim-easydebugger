@@ -13,7 +13,7 @@
 [Vim-EasyDebugger](https://github.com/jayli/vim-easydebugger) has a nicer interface to be easily extended. You can add your favourite debugger toolkit.  By default EasyDebugger currently support:
 
 - Tracking in the source code
-- Debugger flow commands - step-in, set-over, set-out and continue
+- Debugger flow commands - step-in, step-over, step-out and continue...
 - Breakpoints management
 - Evaluating expressions in the current context, watch expression and variable values while debugging.
 
