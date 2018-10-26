@@ -82,7 +82,7 @@ Type `next` + <kbd>Enter</kbd> in Terminal means step over. Get more useage here
 
 Press <kbd>F12</kbd> to set break points:
 
-![](https://gw.alicdn.com/tfs/TB1jqjWkNTpK1RjSZFGXXcHqFXa-900-500.gif)
+![](https://gw.alicdn.com/tfs/TB1jqjWkNTpK1RjSZFGXXcHqFXa-900-500.gif?t=1)
 
 ### Chrome DevTools Debug for NodeJS
 
