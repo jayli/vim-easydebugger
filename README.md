@@ -104,9 +104,9 @@ Done!
 
 - <kbd>Shift-R</kbd> ：启动 VIM 调试器
 - <kbd>Shift-W</kbd> ：启动 Chrome DevTools 调试服务
-- <kbd>F7</kbd> ：进入函数
+- <kbd>F7</kbd> ：暂停执行
 - <kbd>Shift-F7</kbd> ：跳出函数
-- <kbd>F8</kbd> ：暂停执行
+- <kbd>F8</kbd> ：单步进入
 - <kbd>F9</kbd> ：单步执行
 - <kbd>F10</kbd> ：继续执行
 - <kbd>F12</kbd> ：给当前行设置断点 
