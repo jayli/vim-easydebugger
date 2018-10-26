@@ -2,18 +2,20 @@
 
 [中文](README.md) | [English](README-en.md)
 
-![Vim](https://img.shields.io/badge/vim-awesome-brightgreen.svg) [![Gitter](https://img.shields.io/badge/gitter-join%20chat-yellowgreen.svg)](https://gitter.im/jayli/vim-easycomplete) [![Join the chat at https://gitter.im/jayli/vim-easydebugger](https://badges.gitter.im/jayli/vim-easydebugger.svg)](https://gitter.im/jayli/vim-easydebugger?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![](https://img.shields.io/badge/Linux-available-brightgreen.svg) ![](https://img.shields.io/badge/MacOS-available-brightgreen.svg) ![](https://img.shields.io/badge/:%20h-easycomplete-orange.svg) ![](https://img.shields.io/badge/license-MIT-blue.svg)
+![Vim](https://img.shields.io/badge/vim-awesome-brightgreen.svg) [![Gitter](https://img.shields.io/badge/gitter-join%20chat-yellowgreen.svg)](https://gitter.im/jayli/vim-easycomplete) [![Join the chat at https://gitter.im/jayli/vim-easydebugger](https://badges.gitter.im/jayli/vim-easydebugger.svg)](https://gitter.im/jayli/vim-easydebugger?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![](https://img.shields.io/badge/Linux-available-brightgreen.svg) ![](https://img.shields.io/badge/MacOS-available-brightgreen.svg) ![](https://img.shields.io/badge/:%20h-easycomplete-orange.svg) ![](https://img.shields.io/badge/license-MIT-blue.svg) 
 
-EasyDebugger is yet another debugger frontend plugin for Vim. It's based on VIM 8.1. EasyDebugger support multi-language, and has been tested with NodeJS and Go([Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html)，and [Delve](https://github.com/derekparker/delve)). Some other debugger plugins are somehow complicated and not easy to config. So I give a simplified design for this plugin with only two windows, the terminal window and the source code. I did'nt use any DBGP protocol such as Xdebug. I think it not easy to accomplish minimalist experience that I want. Of course, Terminal features is powerful enough for me.
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger.gif?t=3)
 
-VIM-EasyDebugger has a nicer interface to be easily extended. You can add your favourite debugger toolkit.  By default EasyDebugger currently support:
+## Introduction
+
+[Vim-EasyDebugger](https://github.com/jayli/vim-easydebugger) is yet another debugger frontend plugin for Vim. It's based on VIM 8.1 and support multi-language. It has been tested with NodeJS and Go ([Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html), and [Delve](https://github.com/derekparker/delve)). Some other debugger plugins are somehow complicated and not easy to config. So I give a simplified design for this plugin with only two windows, the terminal window and the source code. I did'nt use any DBGP protocol such as Xdebug. I think it not easy to accomplish minimalist experience that I want. Of course, Terminal features is powerful enough for me.
+
+[Vim-EasyDebugger](https://github.com/jayli/vim-easydebugger) has a nicer interface to be easily extended. You can add your favourite debugger toolkit.  By default EasyDebugger currently support:
 
 - Tracking in the source code
 - Debugger flow commands - step-in, set-over, set-out and continue
 - Breakpoints management
 - Evaluating expressions in the current context, watch expression and variable values while debugging.
-
-![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger.gif?t=3)
 
 ## Installation
 
@@ -58,9 +60,7 @@ Put these code in your `~/.vimrc`
 	" set break points
 	nmap <F12>   <Plug>EasyDebuggerSetBreakPoint
 
-keys:
-
-快捷键说明：
+Keys:
 
 - <kbd>Shift-R</kbd> ：startup debugger
 - <kbd>Shift-W</kbd> ：startup Chrome DevTools debug service
@@ -73,7 +73,7 @@ keys:
 
 ## Useage
 
-#### debug mode
+### debug mode
 
 Press <kbd>Shift-R</kbd> to startup debugger with `node inspect {filename}` (`dlv debug {filename}` for golang) running in terminal.
 
@@ -85,12 +85,15 @@ Type `next` + <kbd>Enter</kbd> in Terminal means step over. Learn more command f
 
 ![](https://gw.alicdn.com/tfs/TB1jqjWkNTpK1RjSZFGXXcHqFXa-900-500.gif)
 
-## ChangeLog
+### Chrome DevTools Debug for NodeJS
 
-- v1.0：
-	- 支持 Unix 和 MacOS，Windows 平台暂未支持
-	- 支持语言种类：NodeJS
-- v1.1：支持 Go、NodeJS 调试 
+You can use chrome devtool for nodejs debug. Press <kbd>Shift-W</kbd> . Then connect it to chrome devtool like this:
+
+![](https://gw.alicdn.com/tfs/TB1ci.QegHqK1RjSZJnXXbNLpXa-1414-797.png)
+
+## Licence
+
+This plugin is released under the [MIT License](https://github.com/jayli/vim-easydebugger/blob/master/LICENSE).
 
 
 
