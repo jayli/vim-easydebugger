@@ -57,7 +57,7 @@ Put these code in your `~/.vimrc`
 	" Continue
 	nmap <F10>   <Plug>EasyDebuggerContinue
 	tmap <F10>   <Plug>EasyDebuggerContinue
-	" set break points
+	" toggle line break points
 	nmap <F12>   <Plug>EasyDebuggerSetBreakPoint
 
 Keys:
@@ -69,7 +69,7 @@ Keys:
 - <kbd>F8</kbd> ：stepin
 - <kbd>F9</kbd> ：stepover
 - <kbd>F10</kbd> ：continue
-- <kbd>F12</kbd> ：set break point
+- <kbd>F12</kbd> ：toggle line breakpoint
 
 ## Useage
 
