@@ -79,17 +79,15 @@ Press <kbd>Shift-R</kbd> to startup debugger with `node inspect {filename}` (`dl
 
 ![](https://gw.alicdn.com/tfs/TB1V9P0kHPpK1RjSZFFXXa5PpXa-2084-1240.jpg)
 
-Type `next` + <kbd>Enter</kbd> in Terminal means step over. Learn more command from [node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html) and [go delve](https://github.com/derekparker/delve/tree/master/Documentation/cli). Quit debug with twice <kbd>Ctrl-C</kbd>, or input `exit` + <kbd>Enter</kbd> in Terminal.
+Type `next` + <kbd>Enter</kbd> in Terminal means step over. Get more useage here: [node inspect document](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html) and [go delve document](https://github.com/derekparker/delve/tree/master/Documentation/cli). Quit debug with twice <kbd>Ctrl-C</kbd>, or input `exit` + <kbd>Enter</kbd> in Terminal.
 
-<kbd>F12</kbd> to set break points:
+Press <kbd>F12</kbd> to set break points:
 
 ![](https://gw.alicdn.com/tfs/TB1jqjWkNTpK1RjSZFGXXcHqFXa-900-500.gif)
 
 ### Chrome DevTools Debug for NodeJS
 
-You can use chrome devtool for nodejs debug. Press <kbd>Shift-W</kbd> . Then connect it to chrome devtool like this:
-
-![](https://gw.alicdn.com/tfs/TB1ci.QegHqK1RjSZJnXXbNLpXa-1414-797.png)
+You can use chrome devtool for nodejs debug. Press <kbd>Shift-W</kbd> . Then connect it to chrome devtool [like this](https://gw.alicdn.com/tfs/TB1ci.QegHqK1RjSZJnXXbNLpXa-1414-797.png).
 
 ## Licence
 
