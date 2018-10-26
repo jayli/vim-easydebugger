@@ -343,7 +343,6 @@ function! s:Create_Debugger()
 	let g:debugger.original_cursor_color = debugger#util#Get_CursorLine_bgColor()
 	" 这句话没用其实
 	call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
-	call s:LogMsg('xxx '.string(g:debugger.bufs))
 	exec "hi DebuggerBreakPoint ctermfg=197 cterm=bold ctermbg=". debugger#util#Get_BgColor('SignColumn')
 	" 语句执行位置标记 id=100
 	exec 'sign define stop_point text=>> texthl=SignColumn linehl=CursorLine'
@@ -354,10 +353,6 @@ endfunction
 
 " 执行到什么文件的什么行
 function! s:Debugger_Stop(fname, line)
-	"if !exists("g:debugger")
-	"	let g:debugger = s:Create_Debugger()
-	"endif
-
 	let fname = s:Get_Fullname(a:fname)
 	if fname == get(g:debugger,'stop_fname') && a:line == get(g:debugger,'stop_line')
 		call s:Sign_Set_BreakPoint(fname, a:line)
