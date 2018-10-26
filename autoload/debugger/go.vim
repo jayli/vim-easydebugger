@@ -4,34 +4,34 @@ function! debugger#go#Setup()
 
 	" Delve 不支持 Pause 
 	let setup_options = {
-				\	'ctrl_cmd_continue':          'continue',
-				\	'ctrl_cmd_next':              'next',
-				\	'ctrl_cmd_stepin':            'step',
-				\	'ctrl_cmd_stepout':           'stepout',
-				\	'ctrl_cmd_pause':             'doNothing',
-				\	'InspectInit':                function('debugger#runtime#InspectInit'),
-				\	'WebInspectInit':             function('debugger#runtime#WebInspectInit'),
-				\	'InspectCont':                function('debugger#runtime#InspectCont'),
-				\	'InspectNext':                function('debugger#runtime#InspectNext'),
-				\	'InspectStep':                function('debugger#runtime#InspectStep'),
-				\	'InspectOut':                 function('debugger#runtime#InspectOut'),
-				\	'InspectPause':               function('debugger#go#InpectPause'),
-				\	'InspectSetBreakPoint':       function('debugger#runtime#InspectSetBreakPoint'),
-				\	'DebuggerTester':             function('debugger#go#CommandExists'),
-				\	'ClearBreakPoint':            function("debugger#go#ClearBreakPoint"),
-				\	'SetBreakPoint':              function("debugger#go#SetBreakPoint"),
-				\	'TermSetupScript':            function('debugger#go#TermSetupScript'),
-				\
-				\	'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
-				\	'WebDebuggerCommandPrefix':   'dlv debug',
-				\	'LocalDebuggerCommandPrefix': 'dlv debug',
-				\	'LocalDebuggerCommandSufix':  '',
-				\	'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
-				\	'BreakFileNameRegex':         "\\(>\\s\\S\\+\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
-				\	'BreakLineNrRegex':           "\\(>\\s\\S\\+\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
-				\
-				\	'_GoPkgName':                 debugger#go#Get_Package()
-				\ }
+		\	'ctrl_cmd_continue':          'continue',
+		\	'ctrl_cmd_next':              'next',
+		\	'ctrl_cmd_stepin':            'step',
+		\	'ctrl_cmd_stepout':           'stepout',
+		\	'ctrl_cmd_pause':             'doNothing',
+		\	'InspectInit':                function('debugger#runtime#InspectInit'),
+		\	'WebInspectInit':             function('debugger#runtime#WebInspectInit'),
+		\	'InspectCont':                function('debugger#runtime#InspectCont'),
+		\	'InspectNext':                function('debugger#runtime#InspectNext'),
+		\	'InspectStep':                function('debugger#runtime#InspectStep'),
+		\	'InspectOut':                 function('debugger#runtime#InspectOut'),
+		\	'InspectPause':               function('debugger#go#InpectPause'),
+		\	'InspectSetBreakPoint':       function('debugger#runtime#InspectSetBreakPoint'),
+		\	'DebuggerTester':             function('debugger#go#CommandExists'),
+		\	'ClearBreakPoint':            function("debugger#go#ClearBreakPoint"),
+		\	'SetBreakPoint':              function("debugger#go#SetBreakPoint"),
+		\	'TermSetupScript':            function('debugger#go#TermSetupScript'),
+		\
+		\	'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
+		\	'WebDebuggerCommandPrefix':   'dlv debug',
+		\	'LocalDebuggerCommandPrefix': 'dlv debug',
+		\	'LocalDebuggerCommandSufix':  '',
+		\	'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
+		\	'BreakFileNameRegex':         "\\(>\\s\\S\\+\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
+		\	'BreakLineNrRegex':           "\\(>\\s\\S\\+\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
+		\
+		\	'_GoPkgName':                 debugger#go#Get_Package()
+		\ }
 	return setup_options
 endfunction
 
