@@ -117,7 +117,7 @@ Done!
 
 在 normal 模式下按下 <kbd>Shift-R</kbd> 会进入 VIM 调试模式，自动打开 Debugger 命令窗口，执行 `node inspect {filename}` 并停留在当前代码第一行（Go 调试器执行`dlv debug {filename}`），右侧代码窗口对应行高亮，这时可以逐行跟踪代码了。
 
-![](https://gw.alicdn.com/tfs/TB1cvSZhmzqK1RjSZPxXXc4tVXa-2536-1396.jpg)
+![](https://gw.alicdn.com/tfs/TB1V9P0kHPpK1RjSZFFXXa5PpXa-2084-1240.jpg)
 
 左侧终端窗口内等待输入调试器命令。比如调试 NodeJS 时可输入 `next` + <kbd>Enter</kbd> 表示执行下一行代码。NodeJS Debugger 更多命令可参照[官网文档](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html)。Go Delve 更多命令可参照[官网文档](https://github.com/derekparker/delve/tree/master/Documentation/cli)。另外可以使用快捷键来跟踪调试。敲击两次 <kbd>Ctrl-C</kbd> 终止调试。
 
@@ -130,13 +130,13 @@ Done!
 > - 对于 NodeJS 来说，方便起见，Debugger 调试器启动总是会停留在首行。此外，由于 Node Inspector 会将 JS 源码包一层外壳，因此调试器中所示行数通常比源文件多出一到两行，但行号跟源码是一一对应的，基本不影响调试。
 > - 对于 Go 来说，调试器启动后会停留在 main() 函数处。
 
-**断点调试**：Debuger 启动之后，在右侧源码窗口中，光标停留在需要打断点的行，按下 <kbd>F12</kbd>，打断点成功，取消断点也是 <kbd>F12</kbd>
+**断点调试**：Debuger 启动之后，在右侧源码窗口中，光标停留在需要打断点的行，按下 <kbd>F12</kbd>，打断点成功，取消断点也是 <kbd>F12</kbd>（[例子](https://gw.alicdn.com/tfs/TB1CgKpihnaK1RjSZFtXXbC2VXa-1944-926.jpg)）
 
-![](https://gw.alicdn.com/tfs/TB1CgKpihnaK1RjSZFtXXbC2VXa-1944-926.jpg)
+![](https://gw.alicdn.com/tfs/TB1jqjWkNTpK1RjSZFGXXcHqFXa-900-500.gif)
 
 #### - NodeJS 的 Chrome DevTools 调试模式
 
-NodeJS 提供了基于 Chrome DevTools 的调试：
+NodeJS 提供了基于 Chrome DevTools 的调试，我也封装了进来：
 
 ![](https://gw.alicdn.com/tfs/TB1ci.QegHqK1RjSZJnXXbNLpXa-1414-797.png)
 
