@@ -1,5 +1,7 @@
 # Vim-Easydebugger
 
+[中文](README.md) | [English](README-en.md)
+
 ![Vim](https://img.shields.io/badge/vim-awesome-brightgreen.svg) [![Gitter](https://img.shields.io/badge/gitter-join%20chat-yellowgreen.svg)](https://gitter.im/jayli/vim-easycomplete) [![Join the chat at https://gitter.im/jayli/vim-easydebugger](https://badges.gitter.im/jayli/vim-easydebugger.svg)](https://gitter.im/jayli/vim-easydebugger?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![](https://img.shields.io/badge/Linux-available-brightgreen.svg) ![](https://img.shields.io/badge/MacOS-available-brightgreen.svg) ![](https://img.shields.io/badge/:%20h-easycomplete-orange.svg) ![](https://img.shields.io/badge/license-MIT-blue.svg)
 
 VIM 的调试器插件（[演示](https://gw.alicdn.com/tfs/TB1OF9CkQvoK1RjSZFDXXXY3pXa-990-602.gif)，以 Go 语言为例） @author：[Jayli](http://jayli.github.io/)
