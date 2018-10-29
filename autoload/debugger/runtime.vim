@@ -182,7 +182,7 @@ function! debugger#runtime#Reset_Editor(...)
 	call s:Debugger_del_tmpbuf()
 	if g:debugger.original_cursor_color
 		" 恢复 CursorLine 的高亮样式
-		call execute("set cursorline","silent!")
+		call execute("setlocal cursorline","silent!")
 		call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
 	endif
 	if g:debugger.original_winid != bufwinid(bufnr(""))
@@ -344,9 +344,9 @@ function! s:Create_Debugger()
 	let g:debugger.original_cursor_color = debugger#util#Get_CursorLine_bgColor()
 	" 这句话没用其实
 	call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
-	exec "hi DebuggerBreakPoint ctermfg=197 cterm=bold ctermbg=". debugger#util#Get_BgColor('SignColumn')
+	exec "hi DebuggerBreakPoint ctermfg=197 ctermbg=". debugger#util#Get_BgColor('SignColumn')
 	" 语句执行位置标记 id=100
-	exec 'sign define stop_point text=>> texthl=SignColumn linehl=Cursor'
+	exec 'sign define stop_point text=>> texthl=Title linehl=Cursor'
 	" 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
 	exec 'sign define break_point text=** texthl=DebuggerBreakPoint'
 	return g:debugger
@@ -355,26 +355,28 @@ endfunction
 " 执行到什么文件的什么行
 function! s:Debugger_Stop(fname, line)
 	let fname = s:Get_Fullname(a:fname)
-	if fname == get(g:debugger,'stop_fname') && a:line == get(g:debugger,'stop_line')
-		call s:Sign_Set_BreakPoint(fname, a:line)
-		return
-	else
-		let g:debugger.stop_fname = fname
-		let g:debugger.stop_line = a:line
-	endif
+	" if fname == get(g:debugger,'stop_fname') && a:line == get(g:debugger,'stop_line')
+	" 	call s:Sign_Set_BreakPoint(fname, a:line)
+	" endif
+
+	let g:debugger.stop_fname = fname
+	let g:debugger.stop_line = a:line
 
 	call s:Goto_sourcecode_window()
 	let fname = s:Debugger_get_filebuf(fname)
 	" 如果读到一个不存在的文件，认为进入到了 Node Native 部分 Debugging
 	" 这时 node inspect 没有给出完整路径，调试不得不中断
-	if type(fname) == type(0)  && fname == 0
+	" jayli
+	if (type(fname) == type(0) && fname == 0) || (type(fname) == type('string') && fname == '0')
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"kill\<CR>")
 		call debugger#runtime#Reset_Editor('silently')
 		call s:Show_Close_Msg()
+		return
 	endif
+	" call term_wait(get(g:debugger,'debugger_window_name'))
+	call execute('setlocal nocursorline','silent!')
 	call s:Sign_Set_BreakPoint(fname, a:line)
 	call cursor(a:line,1)
-	call execute('setlocal nocursorline','silent!')
 	call execute('redraw','silent!')
 	call s:LogMsg('程序执行到 '.fname.' 的第 '.a:line.' 行。 ' . 
 				\  '[Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
