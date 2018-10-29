@@ -56,7 +56,7 @@ function! debugger#runtime#InspectInit()
 	if version <= 800
 		call system(l:full_command)
 	else 
-
+		call s:Set_Debug_CursorLine()
 		call term_start(l:full_command,{ 
 						\ 'term_finish': 'close',
 						\ 'term_name':get(g:debugger,'debugger_window_name') ,
@@ -71,8 +71,6 @@ function! debugger#runtime#InspectInit()
 		tnoremap <silent> <CR> <C-\><C-n>:call debugger#runtime#Special_Cmd_Handler()<CR>i<C-P><Down>
 		call term_wait(get(g:debugger,'debugger_window_name'))
 		call s:Debugger_Break_Action(g:debugger.log)
-
-		call s:Set_Debug_CursorLine()
 
 		" 启动调试器后执行需要运行的脚本，有的调试器是需要的（比如go）
 		if has_key(g:language_setup, "TermSetupScript")
@@ -184,6 +182,7 @@ function! debugger#runtime#Reset_Editor(...)
 	call s:Debugger_del_tmpbuf()
 	if g:debugger.original_cursor_color
 		" 恢复 CursorLine 的高亮样式
+		call execute("set cursorline","silent!")
 		call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
 	endif
 	if g:debugger.original_winid != bufwinid(bufnr(""))
@@ -226,12 +225,13 @@ function! s:Echo_debugging_info(command)
 	call s:LogMsg(a:command . ' ' . ' : [Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
 endfunction
 
-" 设置停住的行高亮样式
+" 设置停驻的行高亮样式
 function! s:Set_Debug_CursorLine()
-	if g:debugger.original_cursor_color
-		call execute("hi CursorLine ctermbg=18","silent!")
-		call execute('redraw','silent!')
-	endif
+	" Do Nothing
+	" 停驻行的跳转使用 cursor() 完成
+	" 停驻行的样式使用 setlocal nocursorline 清除掉，以免光标样式覆盖 sign linehl 样式
+	" 清除样式的时机在 Debugger_Break_Action() 函数内
+	" 调试结束后恢复默认 cursorline 样式： setlocal cursorline
 endfunction
 
 " 获得 term 宽度
@@ -340,12 +340,13 @@ function! s:Create_Debugger()
 	" break_points: ['a.js|3','t/b.js|34']
 	" break_points 里的索引作为 sign id
 	let g:debugger.break_points= []
+	" 原始的光标行背景色
 	let g:debugger.original_cursor_color = debugger#util#Get_CursorLine_bgColor()
 	" 这句话没用其实
 	call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
 	exec "hi DebuggerBreakPoint ctermfg=197 cterm=bold ctermbg=". debugger#util#Get_BgColor('SignColumn')
 	" 语句执行位置标记 id=100
-	exec 'sign define stop_point text=>> texthl=SignColumn linehl=CursorLine'
+	exec 'sign define stop_point text=>> texthl=SignColumn linehl=Cursor'
 	" 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
 	exec 'sign define break_point text=** texthl=DebuggerBreakPoint'
 	return g:debugger
@@ -373,6 +374,7 @@ function! s:Debugger_Stop(fname, line)
 	endif
 	call s:Sign_Set_BreakPoint(fname, a:line)
 	call cursor(a:line,1)
+	call execute('setlocal nocursorline','silent!')
 	call execute('redraw','silent!')
 	call s:LogMsg('程序执行到 '.fname.' 的第 '.a:line.' 行。 ' . 
 				\  '[Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
@@ -398,6 +400,14 @@ endfunction
 " 跳转到原始源码所在的窗口
 function! s:Goto_sourcecode_window()
 	call s:Goto_window(g:debugger.original_winid)
+endfunction
+
+" 跳转到 Term 所在的窗口
+function! s:Goto_terminal_window()
+	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		" call s:Goto_window(bufwinid(bufnr(get(g:debugger, 'debugger_window_name'))))
+		call s:Goto_window(get(g:debugger,'term_winid'))
+	endif
 endfunction
 
 function! s:Goto_window(winid) abort
