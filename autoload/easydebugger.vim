@@ -1,7 +1,6 @@
 " TODO:
-" - 基于 NetBeans 的重构
 " - 调试窗口启动位置可配置，比如在底部打开
-" - 进入命令的自定义
+" - Quickfix：执行到某一行，打印出当前行所在所有变量的值，以及 watch 变量的值
 
 " 插件初始化入口
 function! easydebugger#Enable()
