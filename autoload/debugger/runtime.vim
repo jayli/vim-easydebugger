@@ -346,7 +346,7 @@ function! s:Create_Debugger()
 	call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
 	exec "hi DebuggerBreakPoint ctermfg=197 ctermbg=". debugger#util#Get_BgColor('SignColumn')
 	" 语句执行位置标记 id=100
-	exec 'hi MyDefine ctermbg=39 ctermfg=black'
+	exec 'hi MyDefine ctermbg=237 ctermfg=none'
 	exec 'sign define stop_point text=>> texthl=Title linehl=MyDefine'
 	" 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
 	exec 'sign define break_point text=** texthl=DebuggerBreakPoint'
