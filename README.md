@@ -8,7 +8,7 @@
 
 ## Introduction
 
-[Vim-EasyDebugger](https://github.com/jayli/vim-easydebugger) is yet another debugger frontend plugin for Vim. It's based on VIM 8.1 and support multi-language. It has been tested with NodeJS and Go ([Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html), and [Delve](https://github.com/derekparker/delve)). Some other debugger plugins are too difficult to configure and most of them are not maintained today. So I give a simplified design for this plugin with only two windows, the terminal window and the source code. I did'nt use any DBGP protocol such as Xdebug because I think it's not easy to accomplish minimalist experience that I want. Anyway, Terminal features is powerful enough for me.
+[Vim-EasyDebugger](https://github.com/jayli/vim-easydebugger) is yet another debugger frontend plugin for Vim. It's based on VIM 8.1 and support multi-language. It has been tested with NodeJS and Go ([Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html), and [Delve](https://github.com/derekparker/delve)). Some other debugger plugins are too difficult to configure and most of them are no longer maintained today. So I simplified the design for this plugin with only two windows, the terminal window and the source code. I did'nt use any DBGP protocol such as Xdebug because I think it's not easy to accomplish minimalist experience that I want. Anyway, Thanks for VIM 8.1, Terminal features is powerful enough for me and the development experience is cool.
 
 [Vim-EasyDebugger](https://github.com/jayli/vim-easydebugger) has a nicer interface to be easily extended. You can add your favourite debugger toolkit.  By default EasyDebugger currently support:
 
@@ -87,6 +87,14 @@ Press <kbd>F12</kbd> to set break points:
 ### Chrome DevTools Debug for NodeJS
 
 You can use chrome devtool for nodejs debug. Press <kbd>Shift-W</kbd> . Then connect it to chrome devtool [like this](https://gw.alicdn.com/tfs/TB1ci.QegHqK1RjSZJnXXbNLpXa-1414-797.png).
+
+### TODO
+
+Only two window is really not enough for user to inspect local vars value and function backtraces.... The following feature will be added soon:
+
+- QuickFix Window：for local vars and backtrace.
+- File List Window：for a entire project with a lot of source files, I want a convenient changing buffer operation.
+- Errlog：Errlog is necessary. `:echom` is good, but there is no more space available to show multiline message. Besides, I don't want to type `:message` everytime.
 
 ## Licence
 

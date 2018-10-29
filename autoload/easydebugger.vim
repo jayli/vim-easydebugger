@@ -1,7 +1,8 @@
 " TODO:
 " - 调试窗口启动位置可配置，比如在底部打开
 " - Quickfix：执行到某一行，打印出当前行所在所有变量的值，以及 watch 变量的值
-"   参照：https://github.com/huawenyu/neogdb.vim
+"   参照：https://github.com/cpiger/NeoDebug
+"   https://github.com/huawenyu/neogdb.vim
 
 " 插件初始化入口
 function! easydebugger#Enable()
