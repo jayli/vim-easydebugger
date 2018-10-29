@@ -88,6 +88,14 @@ Press <kbd>F12</kbd> to set break points:
 
 You can use chrome devtool for nodejs debug. Press <kbd>Shift-W</kbd> . Then connect it to chrome devtool [like this](https://gw.alicdn.com/tfs/TB1ci.QegHqK1RjSZJnXXbNLpXa-1414-797.png).
 
+### TODO
+
+Only two window is really not enough for user to inspect local vars value and function backtraces.... The following feature will be added soon:
+
+- QuickFix Window：for local vars and backtrace.
+- File List Window：for a entire project with a lot of source files, I want a convenient changing buffer operation.
+- Errlog：Errlog is necessary. `:echom` is good, but there is no more space available to show multiline message. Besides, I don't want to type `:message` everytime.
+
 ## Licence
 
 This plugin is released under the [MIT License](https://github.com/jayli/vim-easydebugger/blob/master/LICENSE).
