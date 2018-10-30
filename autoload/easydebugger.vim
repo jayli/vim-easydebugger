@@ -125,5 +125,6 @@ endfunction
 
 " 判断语言是否支持
 function! s:Language_supported()
-	return index(g:Debug_Lang_Supported, &filetype) >= 0 ? 1 : 0
+	" 如果是 quickfix window 和 tagbar 时忽略
+	return index(extend(g:Debug_Lang_Supported,['qf','tagbar']), &filetype) >= 0 ? 1 : 0
 endfunction

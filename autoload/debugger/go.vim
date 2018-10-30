@@ -5,7 +5,7 @@ function! debugger#go#Setup()
 	" Delve 不支持 Pause 
 	let setup_options = {
 		\	'ctrl_cmd_continue':          'continue',
-		\	'ctrl_cmd_next':              'next',
+		\	'ctrl_cmd_next':              'next<CR>stack',
 		\	'ctrl_cmd_stepin':            'step',
 		\	'ctrl_cmd_stepout':           'stepout',
 		\	'ctrl_cmd_pause':             'doNothing',
@@ -21,6 +21,7 @@ function! debugger#go#Setup()
 		\	'ClearBreakPoint':            function("debugger#go#ClearBreakPoint"),
 		\	'SetBreakPoint':              function("debugger#go#SetBreakPoint"),
 		\	'TermSetupScript':            function('debugger#go#TermSetupScript'),
+		\	'TermCallbackHandler':        function('debugger#go#TermCallbackHandler'),
 		\
 		\	'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
 		\	'WebDebuggerCommandPrefix':   'dlv debug',
@@ -35,6 +36,20 @@ function! debugger#go#Setup()
 	return setup_options
 endfunction
 
+function! debugger#go#TermCallbackHandler(msg)
+
+endfunction
+
+function! debugger#go#Get_Stack(msg)
+	let stacks = []
+	" jayli TODO here
+	for line in msg
+		if line =~ '(dlv) stack' 
+		endif
+	endfor
+endfunction
+
+
 function! debugger#go#CommandExists()
 	let result =  system("dlv version 2>/dev/null")
 	return empty(result) ? 0 : 1
@@ -42,7 +57,7 @@ endfunction
 
 function! debugger#go#TermSetupScript()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "break " .get(g:language_setup,'_GoPkgName'). ".main\<CR>")
-	call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
+	call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>stack\<CR>")
 endfunction
 
 function! debugger#go#InpectPause()

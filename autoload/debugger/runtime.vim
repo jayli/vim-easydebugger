@@ -77,6 +77,7 @@ function! debugger#runtime#InspectInit()
 			call get(g:language_setup,"TermSetupScript")()
 		endif
 		call s:Echo_debugging_info(l:full_command)
+		call s:Open_qfwindow()
 	endif
 endfunction
 
@@ -196,6 +197,7 @@ function! debugger#runtime#Reset_Editor(...)
 	" 最后清空本次 Terminal 里的 log
 	let g:debugger.log = []
 	call s:LogMsg("调试结束,Debug over..")
+	call s:Close_qfwidow()
 endfunction
 
 " Terminal 消息回传
@@ -219,6 +221,11 @@ function! debugger#runtime#Term_callback(channel, msg)
 	else
 		call s:Debugger_Break_Action(g:debugger.log)
 	endif
+
+	if exists('g:language_setup.Term_callback_handler')
+		call g:language_setup.TermCallbackHandler(g:debugger.log)
+	endif
+
 endfunction
 
 function! s:Echo_debugging_info(command)
@@ -269,6 +276,9 @@ endfunction
 " 设置停留的代码行
 function! s:Debugger_Break_Action(log)
 	let break_msg = s:Get_Term_Break_Msg(a:log)
+	" TODO 如果仅仅是碎片输出，就不应该再执行这里，保持停驻样式的原貌即可，不
+	" 然Term里会有较多的闪烁，因为每敲入一个字符都要执行以下 Debugger_Stop，太
+	" 消耗了
 	if type(break_msg) == type({})
 		call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'break_line'))
 	endif
@@ -345,9 +355,13 @@ function! s:Create_Debugger()
 	" 这句话没用其实
 	call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
 	exec "hi DebuggerBreakPoint ctermfg=197 ctermbg=". debugger#util#Get_BgColor('SignColumn')
+	" 定义一个占位符，防止 sigin 切换时的抖动, id 为 9999
+	exec 'hi PlaceHolder ctermfg='. debugger#util#Get_BgColor('SignColumn') . 
+				\ ' ctermbg='. debugger#util#Get_BgColor('SignColumn')
+	exec 'sign define place_holder text=>> texthl=PlaceHolder'
 	" 语句执行位置标记 id=100
-	exec 'hi MyDefine ctermbg=19 ctermfg=none'
-	exec 'sign define stop_point text=>> texthl=Title linehl=MyDefine'
+	exec 'hi StopPointStyle ctermbg=19 ctermfg=none'
+	exec 'sign define stop_point text=>> texthl=Title linehl=StopPointStyle'
 	" 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
 	exec 'sign define break_point text=** texthl=DebuggerBreakPoint'
 	return g:debugger
@@ -356,9 +370,6 @@ endfunction
 " 执行到什么文件的什么行
 function! s:Debugger_Stop(fname, line)
 	let fname = s:Get_Fullname(a:fname)
-	" if fname == get(g:debugger,'stop_fname') && a:line == get(g:debugger,'stop_line')
-	" 	call s:Sign_Set_BreakPoint(fname, a:line)
-	" endif
 
 	let g:debugger.stop_fname = fname
 	let g:debugger.stop_line = a:line
@@ -367,7 +378,6 @@ function! s:Debugger_Stop(fname, line)
 	let fname = s:Debugger_get_filebuf(fname)
 	" 如果读到一个不存在的文件，认为进入到了 Node Native 部分 Debugging
 	" 这时 node inspect 没有给出完整路径，调试不得不中断
-	" jayli
 	if (type(fname) == type(0) && fname == 0) || (type(fname) == type('string') && fname == '0')
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"kill\<CR>")
 		call debugger#runtime#Reset_Editor('silently')
@@ -387,8 +397,11 @@ endfunction
 " 重新设置 Break Point 的 Sign 标记的位置
 function! s:Sign_Set_BreakPoint(fname, line)
 	try
+		" sign 9999 是为了防止界面抖动
+		exec ":sign place 9999 line=1 name=place_holder file=".a:fname
 		exec ":sign unplace 100 file=".a:fname
 		exec ":sign place 100 line=".string(a:line)." name=stop_point file=".a:fname
+		exec ":sign unplace 9999 file=".a:fname
 	catch
 	endtry
 endfunction
@@ -411,6 +424,23 @@ function! s:Goto_terminal_window()
 		" call s:Goto_window(bufwinid(bufnr(get(g:debugger, 'debugger_window_name'))))
 		call s:Goto_window(get(g:debugger,'term_winid'))
 	endif
+endfunction
+
+" qflist
+" call setqflist([],'r') | call setqflist([{'bufnr':1,'lnum':12,'text':'dbFileName=23'}], 'a')
+function! s:Open_qfwindow()
+	call s:Goto_sourcecode_window()
+	call execute('below copen','silent!')
+	" if exists('g:debugger')
+	" 	g:debugger.quickfix_winid = bufwinid(bufnr(""))
+	" endif
+endfunction
+
+function! s:Close_qfwidow()
+	call execute('cclose','silent!')
+	" if exists('g:debugger') && exists('g:debugger.quickfix_winid')
+	" 	unlet g:debugger.quickfix_winid
+	" endif
 endfunction
 
 function! s:Goto_window(winid) abort
