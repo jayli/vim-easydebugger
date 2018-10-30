@@ -76,8 +76,12 @@ function! debugger#runtime#InspectInit()
 		if has_key(g:language_setup, "TermSetupScript")
 			call get(g:language_setup,"TermSetupScript")()
 		endif
+		" 如果定义了 Quickfix Window 的输出日志的逻辑，则打开 Quickfix Window
+		if has_key(g:language_setup,"TermCallbackHandler")
+			call s:Open_qfwindow()
+		endif
+
 		call s:Echo_debugging_info(l:full_command)
-		call s:Open_qfwindow()
 	endif
 endfunction
 
@@ -222,7 +226,7 @@ function! debugger#runtime#Term_callback(channel, msg)
 		call s:Debugger_Break_Action(g:debugger.log)
 	endif
 
-	if exists('g:language_setup.Term_callback_handler')
+	if has_key(g:language_setup,"TermCallbackHandler")
 		call g:language_setup.TermCallbackHandler(g:debugger.log)
 	endif
 

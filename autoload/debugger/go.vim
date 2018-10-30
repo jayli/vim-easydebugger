@@ -21,7 +21,7 @@ function! debugger#go#Setup()
 		\	'ClearBreakPoint':            function("debugger#go#ClearBreakPoint"),
 		\	'SetBreakPoint':              function("debugger#go#SetBreakPoint"),
 		\	'TermSetupScript':            function('debugger#go#TermSetupScript'),
-		\	'TermCallbackHandler':        function('debugger#go#TermCallbackHandler'),
+		\	'__TermCallbackHandler':        function('debugger#go#TermCallbackHandler'),
 		\
 		\	'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
 		\	'WebDebuggerCommandPrefix':   'dlv debug',
@@ -36,17 +36,98 @@ function! debugger#go#Setup()
 	return setup_options
 endfunction
 
-function! debugger#go#TermCallbackHandler(msg)
+" TODO Pattern not found: debugger.go_stacks = stacks
+" Jayli
 
+function! debugger#go#TermCallbackHandler(msg)
+	let stacks = s:Get_Stack(a:msg)
+	if type(stacks) == type(0) && stacks == 0
+		return
+	endif
+	if !exists('g:debugger.go_stacks')
+		let g:debugger.go_stacks = stacks
+		call s:Set_qflist(stacks)
+	elseif !s:Stack_is_equal(g:debugger.go_stacks, stacks)
+		call s:Set_qflist(stacks)
+		g:debugger.go_stacks = stacks
+	endif
 endfunction
 
-function! debugger#go#Get_Stack(msg)
-	let stacks = []
-	" jayli TODO here
-	for line in msg
-		if line =~ '(dlv) stack' 
-		endif
+function! s:Set_qflist(stacks)
+	call setqflist([],'r')  
+	for item in a:stacks
+		call setqflist([{'filename':item.filename,
+					\ 'lnum':str2nr(item.linnr),
+					\ 'text':item.callstack.' | '. item.pointer}], 'a')
 	endfor
+endfunction
+
+function! s:Stack_is_equal(old,new)
+	" jayli stack 是数组
+	if len(a:old) != len(a:new)
+		return 0
+	endif
+
+	let equal = 1
+	let i = 0
+
+	while i < len(a:new)
+		let old = a:old[i]
+		let new = a:new[i]
+		if old.filename == new.filename &&
+					\ get(old,'linnr') == get(new,'linnr') &&
+					\ get(old,'callstack') == get(new,'callstack') &&
+					\ get(old,'pointer') == get(new,'pointer')
+			continue
+		else
+			let equal = 0
+			break
+		endif
+		let i = i + 1
+	endwhile
+
+	return equal
+endfunction
+
+function! s:Get_Stack(msg)
+	let stacks = []
+	let startline = 0
+	let endline = len(a:msg) - 1
+	let cnt = 0
+	let i = endline
+	" jayli TODO here
+	while i > startline
+		if a:msg[i] =~ '^(dlv)' 
+			let cnt = cnt + 1
+		endif
+		if cnt == 2
+			let startline = i
+			break
+		endif
+		let i = i - 1
+	endwhile
+
+	if !(a:msg[startline + 1] =~ "^\\d\\{-}\\s\\{-}0x\\w\\{-}\\s\\{-}in\\s\\{-}")
+		call debugger#util#LogMsg(a:msg[startline + 1])
+		return 0
+	endif
+
+	let j = startline + 1
+
+	while j < endline - 2
+		let pointer = debugger#util#StringTrim(matchstr(a:msg[j],"0x\\S\\+"))
+		let callstack = debugger#util#StringTrim(matchstr(a:msg[j],"\\(in\\s\\{-}\\)\\@<=\\w.\\+"))
+		let filename = debugger#util#StringTrim(matchstr(a:msg[j+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
+		let linnr = debugger#util#StringTrim(matchstr(a:msg[j+1],"\\(:\\)\\@<=\\d\\{-}$"))
+		call add(stacks, {
+					\	'filename': filename,
+					\	'linnr': linnr,
+					\	'callstack':callstack,
+					\	'pointer':pointer
+					\ })
+		let j = j + 2
+	endwhile
+	return stacks
 endfunction
 
 
