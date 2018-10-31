@@ -6,7 +6,7 @@
 
 VIM 的调试器插件（[演示](https://gw.alicdn.com/tfs/TB1OF9CkQvoK1RjSZFDXXXY3pXa-990-602.gif)，以 Go 语言为例） @author：[Jayli](http://jayli.github.io/)
 
-![](https://gw.alicdn.com/tfs/TB1w7Njk3HqK1RjSZFkXXX.WFXa-1257-735.gif)
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger.gif?t=1)
 
 ### 一个精简的 VIM 调试器
 
@@ -134,7 +134,7 @@ Done!
 
 **断点调试**：Debuger 启动之后，在右侧源码窗口中，光标停留在需要打断点的行，按下 <kbd>F12</kbd>，打断点成功，取消断点也是 <kbd>F12</kbd>（[例子](https://gw.alicdn.com/tfs/TB1CgKpihnaK1RjSZFtXXbC2VXa-1944-926.jpg)）
 
-![](https://gw.alicdn.com/tfs/TB1jqjWkNTpK1RjSZFGXXcHqFXa-900-500.gif)
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger-breakpoint.gif)
 
 #### - NodeJS 的 Chrome DevTools 调试模式
 
