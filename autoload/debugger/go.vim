@@ -5,7 +5,7 @@ function! debugger#go#Setup()
 	" Delve 不支持 Pause 
 	let setup_options = {
 		\	'ctrl_cmd_continue':          'continue',
-		\	'ctrl_cmd_next':              'next<CR>stack<CR>',
+		\	'ctrl_cmd_next':              'next<CR>stack',
 		\	'ctrl_cmd_stepin':            'step',
 		\	'ctrl_cmd_stepout':           'stepout',
 		\	'ctrl_cmd_pause':             'doNothing',
@@ -21,7 +21,7 @@ function! debugger#go#Setup()
 		\	'ClearBreakPoint':            function("debugger#go#ClearBreakPoint"),
 		\	'SetBreakPoint':              function("debugger#go#SetBreakPoint"),
 		\	'TermSetupScript':            function('debugger#go#TermSetupScript'),
-		\	'__TermCallbackHandler':        function('debugger#go#TermCallbackHandler'),
+		\	'TermCallbackHandler':        function('debugger#go#TermCallbackHandler'),
 		\
 		\	'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
 		\	'WebDebuggerCommandPrefix':   'dlv debug',
@@ -63,6 +63,7 @@ function! s:Set_qflist(stacks)
 endfunction
 
 function! s:Stack_is_equal(old,new)
+	return 0
 	" jayli stack 是数组
 	if len(a:old) != len(a:new)
 		return 0
@@ -108,7 +109,7 @@ function! s:Get_Stack(msg)
 		let i = i - 1
 	endwhile
 
-	if !(a:msg[startline + 1] =~ "^\\d\\{-}\\s\\{-}0x\\w\\{-}\\s\\{-}in\\s\\{-}")
+	if len(a:msg) > startline + 1  && !(a:msg[startline + 1] =~ "^\\d\\{-}\\s\\{-}0x\\w\\{-}\\s\\{-}in\\s\\{-}")
 		" call debugger#util#LogMsg(a:msg[startline + 1])
 		return 0
 	endif
@@ -119,9 +120,11 @@ function! s:Get_Stack(msg)
 		" TODO jayli，这里的正则提取的有问题，main.main 这个字段如果是 url 这
 		" 种形态就提取不出来了
 		let pointer = debugger#util#StringTrim(matchstr(a:msg[j],"0x\\S\\+"))
-		let callstack = debugger#util#StringTrim(matchstr(a:msg[j],"\\(in\\s\\{-}\\)\\@<=\\.\\+$"))
-		let filename = debugger#util#StringTrim(matchstr(a:msg[j+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
-		let linnr = debugger#util#StringTrim(matchstr(a:msg[j+1],"\\(:\\)\\@<=\\d\\{-}$"))
+		let callstack = debugger#util#StringTrim(matchstr(a:msg[j],"\\(in\\s\\)\\@<=.\\+$"))
+		if len(a:msg) >= j + 1
+			let filename = debugger#util#StringTrim(matchstr(a:msg[j+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
+			let linnr = debugger#util#StringTrim(matchstr(a:msg[j+1],"\\(:\\)\\@<=\\d\\{-}$"))
+		endif
 		call add(stacks, {
 					\	'filename': filename,
 					\	'linnr': linnr,
@@ -141,7 +144,9 @@ endfunction
 
 function! debugger#go#TermSetupScript()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "break " .get(g:language_setup,'_GoPkgName'). ".main\<CR>")
-	call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>stack\<CR>")
+	call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
+	" call term_wait(get(g:debugger,'debugger_window_name'))
+	call term_sendkeys(get(g:debugger,'debugger_window_name'), "stack\<CR>")
 endfunction
 
 function! debugger#go#InpectPause()

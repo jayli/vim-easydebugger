@@ -72,13 +72,14 @@ function! debugger#runtime#InspectInit()
 		call term_wait(get(g:debugger,'debugger_window_name'))
 		call s:Debugger_Break_Action(g:debugger.log)
 
-		" 启动调试器后执行需要运行的脚本，有的调试器是需要的（比如go）
-		if has_key(g:language_setup, "TermSetupScript")
-			call get(g:language_setup,"TermSetupScript")()
-		endif
 		" 如果定义了 Quickfix Window 的输出日志的逻辑，则打开 Quickfix Window
 		if has_key(g:language_setup,"TermCallbackHandler")
 			call s:Open_qfwindow()
+		endif
+
+		" 启动调试器后执行需要运行的脚本，有的调试器是需要的（比如go）
+		if has_key(g:language_setup, "TermSetupScript")
+			call get(g:language_setup,"TermSetupScript")()
 		endif
 
 		call s:Echo_debugging_info(l:full_command)
@@ -202,13 +203,28 @@ function! debugger#runtime#Reset_Editor(...)
 	let g:debugger.log = []
 	call s:LogMsg("调试结束,Debug over..")
 	call s:Close_qfwidow()
+	if exists('g:debugger._prev_msg')
+		unlet g:debugger._prev_msg
+	endif
 endfunction
 
 " Terminal 消息回传
 function! debugger#runtime#Term_callback(channel, msg)
-	if !exists('g:debugger') || empty(a:msg) || len(a:msg) == 1
+	" 如果消息为空
+	" 如果消息长度为1，说明正在敲入字符
+	" 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符，TODO 这
+	" 句话不精确
+	"call s:LogMsg("--- " . a:msg)
+	if !exists('g:debugger._prev_msg')
+		let g:debugger._prev_msg = a:msg
+	endif
+	if !exists('g:debugger') || empty(a:msg) || 
+				\ len(a:msg) == 1 || 
+				\ (!s:Is_Ascii_Visiable(a:msg) && len(a:msg) == len(g:debugger._prev_msg) - 1) 
+		"call s:LogMsg("=== 被拦截了, 首字母iscii码是: ". char2nr(a:msg))
 		return
 	endif
+	let g:debugger._prev_msg = a:msg
 	let m = substitute(a:msg,"\\W\\[\\d\\{-}[a-zA-Z]","","g")
 	let g:msgs = split(m,"\r\n")
 	let g:debugger.log += g:msgs
@@ -230,6 +246,14 @@ function! debugger#runtime#Term_callback(channel, msg)
 		call g:language_setup.TermCallbackHandler(g:debugger.log)
 	endif
 
+endfunction
+
+function! s:Is_Ascii_Visiable(c)
+	if char2nr(a:c) >= 32 && char2nr(a:c) <= 126
+		return 1
+	else
+		return 0
+	endif
 endfunction
 
 function! s:Echo_debugging_info(command)
@@ -392,10 +416,10 @@ function! s:Debugger_Stop(fname, line)
 	call execute('setlocal nocursorline','silent!')
 	call s:Sign_Set_BreakPoint(fname, a:line)
 	call cursor(a:line,1)
-	call s:Goto_window(get(g:debugger,"term_winid"))
 	call s:LogMsg('程序执行到 '.fname.' 的第 '.a:line.' 行。 ' . 
 				\  '[Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
 	call execute('redraw','silent!')
+	call s:Goto_window(get(g:debugger,"term_winid"))
 endfunction
 
 " 重新设置 Break Point 的 Sign 标记的位置
@@ -415,6 +439,9 @@ function! s:Goto_winnr(winnr) abort
     let cmd = type(a:winnr) == type(0) ? a:winnr . 'wincmd w'
                                      \ : 'wincmd ' . a:winnr
 	noautocmd execute cmd
+	" 这句话会带来一次闪烁，原因不明，不加这句话，启动时光标不停留在Term里，不
+	" 执行 out_cb ，TODO
+	call execute('redraw','silent!')
 endfunction
 
 " 跳转到原始源码所在的窗口
@@ -505,11 +532,11 @@ endfunction
 " 关闭 Terminal
 function! s:Close_Term()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>\<C-C>\<C-C>")
-	call execute('redraw','silent!')
 	if exists('g:debugger') && g:debugger.original_winid != bufwinid(bufnr(""))
 		call feedkeys("\<C-C>\<C-C>", 't')
 		unlet g:debugger.term_winid
 	endif
+	call execute('redraw','silent!')
 	call s:LogMsg("调试结束,Debug over..")
 endfunction
 
