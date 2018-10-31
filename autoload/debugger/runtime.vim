@@ -82,7 +82,7 @@ function! debugger#runtime#InspectInit()
 			call get(g:language_setup,"TermSetupScript")()
 		endif
 
-		call s:Echo_debugging_info(l:full_command)
+		" call s:Echo_debugging_info(l:full_command)
 	endif
 endfunction
 
@@ -304,9 +304,6 @@ endfunction
 " 设置停留的代码行
 function! s:Debugger_Break_Action(log)
 	let break_msg = s:Get_Term_Break_Msg(a:log)
-	" TODO 如果仅仅是碎片输出，就不应该再执行这里，保持停驻样式的原貌即可，不
-	" 然Term里会有较多的闪烁，因为每敲入一个字符都要执行以下 Debugger_Stop，太
-	" 消耗了
 	if type(break_msg) == type({})
 		call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'break_line'))
 	endif
@@ -418,7 +415,7 @@ function! s:Debugger_Stop(fname, line)
 	call cursor(a:line,1)
 	call s:LogMsg('程序执行到 '.fname.' 的第 '.a:line.' 行。 ' . 
 				\  '[Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
-	call execute('redraw','silent!')
+	" call execute('redraw','silent!')
 	call s:Goto_window(get(g:debugger,"term_winid"))
 endfunction
 
@@ -452,19 +449,14 @@ endfunction
 " 跳转到 Term 所在的窗口
 function! s:Goto_terminal_window()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		" call s:Goto_window(bufwinid(bufnr(get(g:debugger, 'debugger_window_name'))))
 		call s:Goto_window(get(g:debugger,'term_winid'))
 	endif
 endfunction
 
 " qflist
-" call setqflist([],'r') | call setqflist([{'bufnr':1,'lnum':12,'text':'dbFileName=23'}], 'a')
 function! s:Open_qfwindow()
 	call s:Goto_sourcecode_window()
 	call execute('below copen','silent!')
-	" if exists('g:debugger')
-	" 	g:debugger.quickfix_winid = bufwinid(bufnr(""))
-	" endif
 endfunction
 
 function! s:Close_qfwidow()
@@ -490,7 +482,7 @@ endfunction
 " fname 是文件绝对地址
 function! s:Debugger_add_filebuf(fname)
 	exec ":badd ". a:fname
-	exec ":!b ". a:fname
+	exec ":b ". a:fname
 	call add(g:debugger.bufs, a:fname)
 endfunction
 
@@ -509,7 +501,7 @@ endfunction
 
 " 获得当前Buffer里的文件名字
 function! s:Debugger_get_filebuf(fname)
-	" TODO bufname用的相对路径需要改为绝对路径:fixed
+	" bufname用的相对路径为绝对路径:fixed
 	let fname = s:Get_Fullname(a:fname)
 	if !filereadable(fname)
 		return 0
@@ -518,7 +510,7 @@ function! s:Debugger_get_filebuf(fname)
 		call s:Debugger_add_filebuf(fname)
 	endif
 	if fname != s:Get_Fullname(bufname("%"))
-		call execute('redraw','silent!')
+		" call execute('redraw','silent!')
 		call execute('buffer '.a:fname)
 	endif
 	return fname

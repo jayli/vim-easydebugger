@@ -4,10 +4,10 @@ function! debugger#go#Setup()
 
 	" Delve 不支持 Pause 
 	let setup_options = {
-		\	'ctrl_cmd_continue':          'continue',
+		\	'ctrl_cmd_continue':          'continue<CR>stack',
 		\	'ctrl_cmd_next':              'next<CR>stack',
-		\	'ctrl_cmd_stepin':            'step',
-		\	'ctrl_cmd_stepout':           'stepout',
+		\	'ctrl_cmd_stepin':            'step<CR>stack',
+		\	'ctrl_cmd_stepout':           'stepout<CR>stack',
 		\	'ctrl_cmd_pause':             'doNothing',
 		\	'InspectInit':                function('debugger#runtime#InspectInit'),
 		\	'WebInspectInit':             function('debugger#runtime#WebInspectInit'),
@@ -36,30 +36,30 @@ function! debugger#go#Setup()
 	return setup_options
 endfunction
 
-" TODO Pattern not found: debugger.go_stacks = stacks
-" Jayli
-
 function! debugger#go#TermCallbackHandler(msg)
 	let stacks = s:Get_Stack(a:msg)
 	if type(stacks) == type(0) && stacks == 0
 		return
 	endif
-	if !exists('g:debugger.go_stacks')
-		let g:debugger.go_stacks = stacks
+	if !has_key(g:debugger,'go_stacks')
 		call s:Set_qflist(stacks)
+		let g:debugger.go_stacks = stacks
 	elseif !s:Stack_is_equal(g:debugger.go_stacks, stacks)
 		call s:Set_qflist(stacks)
-		g:debugger.go_stacks = stacks
+		let g:debugger.go_stacks = stacks
 	endif
 endfunction
 
 function! s:Set_qflist(stacks)
-	call setqflist([],'r')  
+	let fullstacks = []
 	for item in a:stacks
-		call setqflist([{'filename':item.filename,
+		call add(fullstacks, {
+					\ 'filename':item.filename,
 					\ 'lnum':str2nr(item.linnr),
-					\ 'text':item.callstack.' | '. item.pointer}], 'a')
+					\ 'text':item.callstack.' | '. item.pointer
+					\ })
 	endfor
+	call setqflist(fullstacks, 'r')
 endfunction
 
 function! s:Stack_is_equal(old,new)
@@ -125,17 +125,21 @@ function! s:Get_Stack(msg)
 			let filename = debugger#util#StringTrim(matchstr(a:msg[j+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
 			let linnr = debugger#util#StringTrim(matchstr(a:msg[j+1],"\\(:\\)\\@<=\\d\\{-}$"))
 		endif
+
+		let j = j + 2
+
+		if pointer == '' || callstack == ''
+			continue
+		endif
 		call add(stacks, {
 					\	'filename': filename,
 					\	'linnr': linnr,
 					\	'callstack':callstack,
 					\	'pointer':pointer
 					\ })
-		let j = j + 2
 	endwhile
 	return stacks
 endfunction
-
 
 function! debugger#go#CommandExists()
 	let result =  system("dlv version 2>/dev/null")
