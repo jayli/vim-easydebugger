@@ -5,7 +5,7 @@ function! debugger#go#Setup()
 	" Delve 不支持 Pause 
 	let setup_options = {
 		\	'ctrl_cmd_continue':          'continue',
-		\	'ctrl_cmd_next':              'next<CR>stack',
+		\	'ctrl_cmd_next':              'next<CR>stack<CR>',
 		\	'ctrl_cmd_stepin':            'step',
 		\	'ctrl_cmd_stepout':           'stepout',
 		\	'ctrl_cmd_pause':             'doNothing',
@@ -90,12 +90,13 @@ function! s:Stack_is_equal(old,new)
 endfunction
 
 function! s:Get_Stack(msg)
+	"call debugger#util#LogMsg(a:msg[0])
 	let stacks = []
 	let startline = 0
 	let endline = len(a:msg) - 1
 	let cnt = 0
 	let i = endline
-	" jayli TODO here
+	" jayli TODO here 卡顿太严重
 	while i > startline
 		if a:msg[i] =~ '^(dlv)' 
 			let cnt = cnt + 1
@@ -108,15 +109,17 @@ function! s:Get_Stack(msg)
 	endwhile
 
 	if !(a:msg[startline + 1] =~ "^\\d\\{-}\\s\\{-}0x\\w\\{-}\\s\\{-}in\\s\\{-}")
-		call debugger#util#LogMsg(a:msg[startline + 1])
+		" call debugger#util#LogMsg(a:msg[startline + 1])
 		return 0
 	endif
 
 	let j = startline + 1
 
 	while j < endline - 2
+		" TODO jayli，这里的正则提取的有问题，main.main 这个字段如果是 url 这
+		" 种形态就提取不出来了
 		let pointer = debugger#util#StringTrim(matchstr(a:msg[j],"0x\\S\\+"))
-		let callstack = debugger#util#StringTrim(matchstr(a:msg[j],"\\(in\\s\\{-}\\)\\@<=\\w.\\+"))
+		let callstack = debugger#util#StringTrim(matchstr(a:msg[j],"\\(in\\s\\{-}\\)\\@<=\\.\\+$"))
 		let filename = debugger#util#StringTrim(matchstr(a:msg[j+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
 		let linnr = debugger#util#StringTrim(matchstr(a:msg[j+1],"\\(:\\)\\@<=\\d\\{-}$"))
 		call add(stacks, {

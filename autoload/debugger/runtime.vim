@@ -206,7 +206,7 @@ endfunction
 
 " Terminal 消息回传
 function! debugger#runtime#Term_callback(channel, msg)
-	if !exists('g:debugger') || empty(a:msg)
+	if !exists('g:debugger') || empty(a:msg) || len(a:msg) == 1
 		return
 	endif
 	let m = substitute(a:msg,"\\W\\[\\d\\{-}[a-zA-Z]","","g")
@@ -392,10 +392,10 @@ function! s:Debugger_Stop(fname, line)
 	call execute('setlocal nocursorline','silent!')
 	call s:Sign_Set_BreakPoint(fname, a:line)
 	call cursor(a:line,1)
-	call execute('redraw','silent!')
+	call s:Goto_window(get(g:debugger,"term_winid"))
 	call s:LogMsg('程序执行到 '.fname.' 的第 '.a:line.' 行。 ' . 
 				\  '[Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
-	call s:Goto_window(get(g:debugger,"term_winid"))
+	call execute('redraw','silent!')
 endfunction
 
 " 重新设置 Break Point 的 Sign 标记的位置
