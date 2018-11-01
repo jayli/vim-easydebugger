@@ -19,7 +19,7 @@ function! debugger#javascript#Setup()
 		\	'SetBreakPoint':              function("debugger#javascript#SetBreakPoint"),
 		\	'TermSetupScript':            function('debugger#javascript#TermSetupScript'),
 		\	'AfterStopScript':            function('debugger#javascript#AfterStopScript'),
-		\	'__TermCallbackHandler':        function('debugger#javascript#TermCallbackHandler'),
+		\	'TermCallbackHandler':        function('debugger#javascript#TermCallbackHandler'),
 		\
 		\	'DebuggerNotInstalled':       '系统没有安装 Node！Please install node first.',
 		\	'WebDebuggerCommandPrefix':   'node --inspect-brk',
@@ -47,11 +47,21 @@ function! debugger#javascript#SetBreakPoint(fname,line)
 endfunction
 
 function! debugger#javascript#TermCallbackHandler(msg)
+	call s:Fillup_Quickfix_window(a:msg)
+endfunction
+
+function! s:Fillup_Quickfix_window(msg)
+	if len(a:msg) < 2
+		return
+	endif
+
 	let stacks = reverse(s:Get_Stack(a:msg))
-	if type(stacks) == type(0) && stacks == 0
+	if len(stacks) == 0
 		return
 	endif
 	call s:Set_qflist(stacks)
+	" 清空log很重要
+	let g:debugger.log = []
 	let g:debugger.javascript_stacks = stacks
 endfunction
 
@@ -71,39 +81,24 @@ endfunction
 function! s:Get_Stack(msg)
 	let stacks = []
 	let js_stack_regx = "#\\d\\{-}\\s.\\+:\\d\\{-}:\\d\\{-}"
-	let startline = 0
 	let msg = reverse(a:msg)
 	let endline = len(a:msg) - 1
 	let i = 0
-	
-	if len(a:msg) < 2
-		return 0
-	endif
 
 	" find startline
-	while i < endline - 1
-		"#7 startup bootstrap_node.js:191:15
-		if msg[i] =~ "^debug>" && msg[i+1] =~ js_stack_regx
-			let startline = i + 1
-			let j = 0
-			while startline + j < endline - 1 
-				if msg[startline + j] =~ js_stack_regx
-					let filename = debugger#util#StringTrim(matchstr(msg[startline + j],"\\(\\s\\)\\@<=\\S\\{-}\\(:\\d\\)\\@="))
-					let linnr = debugger#util#StringTrim(matchstr(msg[startline + j],"\\(js:\\)\\@<=\\d\\{-}\\(:\\d\\)\\@="))
-					let callstack = debugger#util#StringTrim(matchstr(msg[startline + j],"\\(#\\d\\{-}\\s\\)\\@<=\\S\\{-}\\(\\s\\)\\@="))
-					let pointer = debugger#util#StringTrim(matchstr(msg[startline + j],"\\(#\\)\\@<=\\d\\{-}\\(\\s\\)\\@="))
-					call add(stacks, {
-								\	'filename': filename,
-								\	'linnr': linnr,
-								\	'callstack':callstack,
-								\	'pointer':pointer
-								\ })
-					let j = j + 1
-				else
-					break
-				endif
-			endwhile
-			break
+	"#7 startup bootstrap_node.js:191:15
+	while i <= endline
+		if msg[i] =~ js_stack_regx
+			let filename = debugger#util#StringTrim(matchstr(msg[i],"\\(\\s\\)\\@<=\\S\\{-}\\(:\\d\\)\\@="))
+			let linnr = debugger#util#StringTrim(matchstr(msg[i],"\\(js:\\)\\@<=\\d\\{-}\\(:\\d\\)\\@="))
+			let callstack = debugger#util#StringTrim(matchstr(msg[i],"\\(#\\d\\{-}\\s\\)\\@<=\\S\\{-}\\(\\s\\)\\@="))
+			let pointer = debugger#util#StringTrim(matchstr(msg[i],"\\(#\\)\\@<=\\d\\{-}\\(\\s\\)\\@="))
+			call add(stacks, {
+						\	'filename': filename,
+						\	'linnr': linnr,
+						\	'callstack':callstack,
+						\	'pointer':pointer
+						\ })
 		endif
 		let i = i + 1
 	endwhile
@@ -112,9 +107,14 @@ function! s:Get_Stack(msg)
 endfunction
 
 function! debugger#javascript#TermSetupScript()
+	" Do Nothing
+endfunction
+
+function! debugger#javascript#AfterStopScript(msg)
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "backtrace\<CR>")
 endfunction
 
-function! debugger#javascript#AfterStopScript()
-	call term_sendkeys(get(g:debugger,'debugger_window_name'), "backtrace\<CR>")
+" 输出 LogMsg
+function! s:LogMsg(msg)
+	call debugger#util#LogMsg(a:msg)
 endfunction

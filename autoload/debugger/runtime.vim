@@ -73,7 +73,7 @@ function! debugger#runtime#InspectInit()
 		call s:Debugger_Stop_Action(g:debugger.log)
 
 		" 如果定义了 Quickfix Window 的输出日志的逻辑，则打开 Quickfix Window
-		if has_key(g:language_setup,"TermCallbackHandler")
+		if has_key(g:language_setup,"AfterStopScript")
 			call s:Open_qfwindow()
 		endif
 
@@ -230,6 +230,7 @@ function! debugger#runtime#Term_callback(channel, msg)
 	let msgslist = split(m,"\r\n")
 	let g:debugger.log += msgslist
 	let g:debugger.log += [""]
+	let full_log = deepcopy(g:debugger.log)
 
 	if has_key(g:language_setup, "ExecutionTerminatedMsg") && 
 				\ a:msg =~ get(g:language_setup, "ExecutionTerminatedMsg")
@@ -243,12 +244,12 @@ function! debugger#runtime#Term_callback(channel, msg)
 		" jayli
 	else
 		" JS 这里执行了两次 TODO
-		call s:LogMsg('sssss')
 		call s:Debugger_Stop_Action(g:debugger.log)
 	endif
 
+	" 因为 Term 的碎片输出，这一行会被多次执行，通过合理清空 log 来提高性能
 	if has_key(g:language_setup,"TermCallbackHandler")
-		call g:language_setup.TermCallbackHandler(g:debugger.log)
+		call g:language_setup.TermCallbackHandler(full_log)
 	endif
 
 endfunction
@@ -309,38 +310,35 @@ endfunction
 " 设置停留的代码行
 function! s:Debugger_Stop_Action(log)
 	let break_msg = s:Get_Term_Stop_Msg(a:log)
-	" TODO 这里每次执行为什么会执行两次
 	if type(break_msg) == type({})
-		" 这里跟踪调试，调用两次
-		call s:LogMsg(break_msg.fname)
-		call s:LogMsg(break_msg.breakline)
 		call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'breakline'))
 	endif
 endfunction
 
-" 处理Termnal里的log
+" 处理Termnal里的log,这里的 log 是 g:debugger.log
 " 这里比较奇怪，Log 不是整片输出的，是碎片输出的
 function! s:Get_Term_Stop_Msg(log)
 	if len(a:log) == 0
 		return 0
 	endif
+
+	" 因为碎片输出，这里会被执行很多次
 	let break_line = 0
 	let fname = ''
 	let fn_regex = get(g:language_setup, "BreakFileNameRegex")
 	let nr_regex = get(g:language_setup, "BreakLineNrRegex")
-	if len(a:log) > 0 
-		for line in a:log
-			let fn = matchstr(line, fn_regex)
-			let nr =  matchstr(line, nr_regex)
-			if s:StringTrim(fn) != ''
-				let fname = fn
-			endif
-			if s:StringTrim(nr) != ''
-				let break_line = str2nr(nr)
-			endif
-		endfor
-	endif
 
+	for line in a:log
+		let fn = matchstr(line, fn_regex)
+		let nr = matchstr(line, nr_regex)
+		if s:StringTrim(fn) != ''
+			let fname = fn
+		endif
+		if s:StringTrim(nr) != ''
+			let break_line = str2nr(nr)
+		endif
+	endfor
+	
 	if break_line != 0 && fname != ''
 		return {"fname":fname, "breakline":break_line}
 	else 
@@ -430,11 +428,13 @@ function! s:Debugger_Stop(fname, line)
 	call cursor(a:line,1)
 	call s:LogMsg('程序执行到 '.fname.' 的第 '.a:line.' 行。 ' . 
 				\  '[Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
-	" if has_key(g:language_setup, 'AfterStopScript')
-	" 	call get(g:language_setup, 'AfterStopScript')()
-	" endif
+	if has_key(g:language_setup, 'AfterStopScript')
+		call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
+	endif
 	" 凡是执行完停驻行跳转的动作，都重新定位到 Term 里，方便用户直接输入命令
 	call s:Goto_terminal_window()
+	" 只要重新停驻到新行，这一阶段的解析就完成了，log清空
+	let g:debugger.log = []
 endfunction
 
 " 重新设置 Break Point 的 Sign 标记的位置

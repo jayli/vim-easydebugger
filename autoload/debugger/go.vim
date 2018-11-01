@@ -3,6 +3,7 @@
 function! debugger#go#Setup()
 
 	" Delve 不支持 Pause 
+	" TODO ，这里需要将 命令行里的 stack 去掉
 	let setup_options = {
 		\	'ctrl_cmd_continue':          "continue\<CR>stack\<CR>",
 		\	'ctrl_cmd_next':              "next\<CR>stack\<CR>",
@@ -21,6 +22,7 @@ function! debugger#go#Setup()
 		\	'ClearBreakPoint':            function("debugger#go#ClearBreakPoint"),
 		\	'SetBreakPoint':              function("debugger#go#SetBreakPoint"),
 		\	'TermSetupScript':            function('debugger#go#TermSetupScript'),
+		\	'AfterStopScript':            function('debugger#go#AfterStopScript'),
 		\	'TermCallbackHandler':        function('debugger#go#TermCallbackHandler'),
 		\
 		\	'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
@@ -36,13 +38,18 @@ function! debugger#go#Setup()
 	return setup_options
 endfunction
 
-" TODO 如果源码跟踪到s文件里，执行这里没反应
 function! debugger#go#TermCallbackHandler(msg)
+	call s:Fillup_Quickfix_window(a:msg)
+endfunction
+
+" TODO 如果源码跟踪到s文件里，执行这里没反应
+function! s:Fillup_Quickfix_window(msg)
 	let stacks = s:Get_Stack(a:msg)
 	if type(stacks) == type(0) && stacks == 0
 		return
 	endif
 	call s:Set_qflist(stacks)
+	let g:debugger.log = []
 	let g:debugger.go_stacks = stacks
 endfunction
 
@@ -115,6 +122,10 @@ endfunction
 function! debugger#go#TermSetupScript()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "break " .get(g:language_setup,'_GoPkgName'). ".main\<CR>")
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
+	call term_sendkeys(get(g:debugger,'debugger_window_name'), "stack\<CR>")
+endfunction
+
+function! debugger#go#AfterStopScript(msg)
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "stack\<CR>")
 endfunction
 
