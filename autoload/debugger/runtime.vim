@@ -214,13 +214,14 @@ function! debugger#runtime#Term_callback(channel, msg)
 	" 如果消息长度为1，说明正在敲入字符
 	" 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符，TODO 这
 	" 句话不精确
-	"call s:LogMsg("--- " . a:msg)
+	"call s:LogMsg("--- " . a:msg . " --- 首字母 Ascii 码是: ". char2nr(a:msg))
 	if !exists('g:debugger._prev_msg')
 		let g:debugger._prev_msg = a:msg
 	endif
 	if !exists('g:debugger') || empty(a:msg) || 
 				\ len(a:msg) == 1 || 
-				\ (!s:Is_Ascii_Visiable(a:msg) && len(a:msg) == len(g:debugger._prev_msg) - 1) 
+				\ (!s:Is_Ascii_Visiable(a:msg) && len(a:msg) == len(g:debugger._prev_msg) - 1)
+				"\ char2nr(a:msg) == 13"
 		"call s:LogMsg("=== 被拦截了, 首字母iscii码是: ". char2nr(a:msg))
 		return
 	endif
@@ -241,6 +242,8 @@ function! debugger#runtime#Term_callback(channel, msg)
 		endif
 		" jayli
 	else
+		" JS 这里执行了两次 TODO
+		call s:LogMsg('sssss')
 		call s:Debugger_Stop_Action(g:debugger.log)
 	endif
 
@@ -306,7 +309,11 @@ endfunction
 " 设置停留的代码行
 function! s:Debugger_Stop_Action(log)
 	let break_msg = s:Get_Term_Stop_Msg(a:log)
+	" TODO 这里每次执行为什么会执行两次
 	if type(break_msg) == type({})
+		" 这里跟踪调试，调用两次
+		call s:LogMsg(break_msg.fname)
+		call s:LogMsg(break_msg.breakline)
 		call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'breakline'))
 	endif
 endfunction
@@ -334,10 +341,8 @@ function! s:Get_Term_Stop_Msg(log)
 		endfor
 	endif
 
-
-
 	if break_line != 0 && fname != ''
-		return {"fname":fname, "breakline":break_line,"fname_updated":1,"breakline_updated":1}
+		return {"fname":fname, "breakline":break_line}
 	else 
 		return 0
 	endif
@@ -425,6 +430,9 @@ function! s:Debugger_Stop(fname, line)
 	call cursor(a:line,1)
 	call s:LogMsg('程序执行到 '.fname.' 的第 '.a:line.' 行。 ' . 
 				\  '[Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
+	" if has_key(g:language_setup, 'AfterStopScript')
+	" 	call get(g:language_setup, 'AfterStopScript')()
+	" endif
 	" 凡是执行完停驻行跳转的动作，都重新定位到 Term 里，方便用户直接输入命令
 	call s:Goto_terminal_window()
 endfunction

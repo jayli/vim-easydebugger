@@ -42,13 +42,8 @@ function! debugger#go#TermCallbackHandler(msg)
 	if type(stacks) == type(0) && stacks == 0
 		return
 	endif
-	if !has_key(g:debugger,'go_stacks')
-		call s:Set_qflist(stacks)
-		let g:debugger.go_stacks = stacks
-	elseif !s:Stack_is_equal(g:debugger.go_stacks, stacks)
-		call s:Set_qflist(stacks)
-		let g:debugger.go_stacks = stacks
-	endif
+	call s:Set_qflist(stacks)
+	let g:debugger.go_stacks = stacks
 endfunction
 
 function! s:Set_qflist(stacks)
@@ -57,42 +52,14 @@ function! s:Set_qflist(stacks)
 		call add(fullstacks, {
 					\ 'filename':item.filename,
 					\ 'lnum':str2nr(item.linnr),
-					\ 'text':item.callstack.' | '. item.pointer
+					\ 'text':item.callstack.' | '. item.pointer,
+					\ 'valid':1
 					\ })
 	endfor
 	call setqflist(fullstacks, 'r')
 endfunction
 
-function! s:Stack_is_equal(old,new)
-	return 0
-	" jayli stack 是数组
-	if len(a:old) != len(a:new)
-		return 0
-	endif
-
-	let equal = 1
-	let i = 0
-
-	while i < len(a:new)
-		let old = a:old[i]
-		let new = a:new[i]
-		if old.filename == new.filename &&
-					\ get(old,'linnr') == get(new,'linnr') &&
-					\ get(old,'callstack') == get(new,'callstack') &&
-					\ get(old,'pointer') == get(new,'pointer')
-			continue
-		else
-			let equal = 0
-			break
-		endif
-		let i = i + 1
-	endwhile
-
-	return equal
-endfunction
-
 function! s:Get_Stack(msg)
-	"call debugger#util#LogMsg(a:msg[0])
 	let stacks = []
 	let startline = 0
 	let endline = len(a:msg) - 1
