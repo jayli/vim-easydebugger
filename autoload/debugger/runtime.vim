@@ -70,7 +70,7 @@ function! debugger#runtime#InspectInit()
 		" 监听 Terminal 模式里的回车键
 		tnoremap <silent> <CR> <C-\><C-n>:call debugger#runtime#Special_Cmd_Handler()<CR>i<C-P><Down>
 		call term_wait(get(g:debugger,'debugger_window_name'))
-		call s:Debugger_Break_Action(g:debugger.log)
+		call s:Debugger_Stop_Action(g:debugger.log)
 
 		" 如果定义了 Quickfix Window 的输出日志的逻辑，则打开 Quickfix Window
 		if has_key(g:language_setup,"TermCallbackHandler")
@@ -200,9 +200,9 @@ function! debugger#runtime#Reset_Editor(...)
 	call s:Clear_All_Signs()
 	call execute('redraw','silent!')
 	" 最后清空本次 Terminal 里的 log
-	let g:debugger.log = []
 	call s:LogMsg("调试结束,Debug over..")
 	call s:Close_qfwidow()
+	let g:debugger.log = []
 	if exists('g:debugger._prev_msg')
 		unlet g:debugger._prev_msg
 	endif
@@ -226,8 +226,8 @@ function! debugger#runtime#Term_callback(channel, msg)
 	endif
 	let g:debugger._prev_msg = a:msg
 	let m = substitute(a:msg,"\\W\\[\\d\\{-}[a-zA-Z]","","g")
-	let g:msgs = split(m,"\r\n")
-	let g:debugger.log += g:msgs
+	let msgslist = split(m,"\r\n")
+	let g:debugger.log += msgslist
 	let g:debugger.log += [""]
 
 	if has_key(g:language_setup, "ExecutionTerminatedMsg") && 
@@ -236,10 +236,12 @@ function! debugger#runtime#Term_callback(channel, msg)
 		call debugger#runtime#Reset_Editor('silently')
 		" 调试终止之后应该将光标停止在 Term 内
 		if winnr() != get(g:debugger, 'original_winnr')
-			call s:Goto_window(get(g:debugger,"term_winid"))
+			" call s:Goto_window(get(g:debugger,"term_winid"))
+			call s:Goto_terminal_window()
 		endif
+		" jayli
 	else
-		call s:Debugger_Break_Action(g:debugger.log)
+		call s:Debugger_Stop_Action(g:debugger.log)
 	endif
 
 	if has_key(g:language_setup,"TermCallbackHandler")
@@ -265,7 +267,7 @@ function! s:Set_Debug_CursorLine()
 	" Do Nothing
 	" 停驻行的跳转使用 cursor() 完成
 	" 停驻行的样式使用 setlocal nocursorline 清除掉，以免光标样式覆盖 sign linehl 样式
-	" 清除样式的时机在 Debugger_Break_Action() 函数内
+	" 清除样式的时机在 Debugger_Stop_Action() 函数内
 	" 调试结束后恢复默认 cursorline 样式： setlocal cursorline
 endfunction
 
@@ -302,16 +304,16 @@ function! s:Show_Close_Msg()
 endfunction
 
 " 设置停留的代码行
-function! s:Debugger_Break_Action(log)
-	let break_msg = s:Get_Term_Break_Msg(a:log)
+function! s:Debugger_Stop_Action(log)
+	let break_msg = s:Get_Term_Stop_Msg(a:log)
 	if type(break_msg) == type({})
-		call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'break_line'))
+		call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'breakline'))
 	endif
 endfunction
 
 " 处理Termnal里的log
 " 这里比较奇怪，Log 不是整片输出的，是碎片输出的
-function! s:Get_Term_Break_Msg(log)
+function! s:Get_Term_Stop_Msg(log)
 	if len(a:log) == 0
 		return 0
 	endif
@@ -331,8 +333,11 @@ function! s:Get_Term_Break_Msg(log)
 			endif
 		endfor
 	endif
+
+
+
 	if break_line != 0 && fname != ''
-		return {"fname":fname, "break_line":break_line}
+		return {"fname":fname, "breakline":break_line,"fname_updated":1,"breakline_updated":1}
 	else 
 		return 0
 	endif
@@ -396,31 +401,36 @@ endfunction
 function! s:Debugger_Stop(fname, line)
 	let fname = s:Get_Fullname(a:fname)
 
+	" 如果当前停驻行和文件较上次没变化，则什么也不做
+	if fname == g:debugger.stop_fname && a:line == g:debugger.stop_line
+		return
+	endif
+
 	let g:debugger.stop_fname = fname
 	let g:debugger.stop_line = a:line
 
 	call s:Goto_sourcecode_window()
 	let fname = s:Debugger_get_filebuf(fname)
-	" 如果读到一个不存在的文件，认为进入到了 Node Native 部分 Debugging
-	" 这时 node inspect 没有给出完整路径，调试不得不中断
+	" 如果读到一个不存在的文件，认为进入到 Native 部分的 Debugging，
+	" 比如进入到了 Node Native 部分 Debugging, node inspect 没有给
+	" 出完整路径，调试不得不中断
 	if (type(fname) == type(0) && fname == 0) || (type(fname) == type('string') && fname == '0')
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"kill\<CR>")
 		call debugger#runtime#Reset_Editor('silently')
 		call s:Show_Close_Msg()
 		return
 	endif
-	" call term_wait(get(g:debugger,'debugger_window_name'))
 	call execute('setlocal nocursorline','silent!')
-	call s:Sign_Set_BreakPoint(fname, a:line)
+	call s:Sign_Set_StopPoint(fname, a:line)
 	call cursor(a:line,1)
 	call s:LogMsg('程序执行到 '.fname.' 的第 '.a:line.' 行。 ' . 
 				\  '[Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
-	" call execute('redraw','silent!')
-	call s:Goto_window(get(g:debugger,"term_winid"))
+	" 凡是执行完停驻行跳转的动作，都重新定位到 Term 里，方便用户直接输入命令
+	call s:Goto_terminal_window()
 endfunction
 
 " 重新设置 Break Point 的 Sign 标记的位置
-function! s:Sign_Set_BreakPoint(fname, line)
+function! s:Sign_Set_StopPoint(fname, line)
 	try
 		" sign 9999 是为了防止界面抖动
 		exec ":sign place 9999 line=1 name=place_holder file=".a:fname

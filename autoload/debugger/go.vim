@@ -4,11 +4,11 @@ function! debugger#go#Setup()
 
 	" Delve 不支持 Pause 
 	let setup_options = {
-		\	'ctrl_cmd_continue':          'continue<CR>stack',
-		\	'ctrl_cmd_next':              'next<CR>stack',
-		\	'ctrl_cmd_stepin':            'step<CR>stack',
-		\	'ctrl_cmd_stepout':           'stepout<CR>stack',
-		\	'ctrl_cmd_pause':             'doNothing',
+		\	'ctrl_cmd_continue':          "continue\<CR>stack\<CR>",
+		\	'ctrl_cmd_next':              "next\<CR>stack\<CR>",
+		\	'ctrl_cmd_stepin':            "step\<CR>stack\<CR>",
+		\	'ctrl_cmd_stepout':           "stepout\<CR>stack\<CR>",
+		\	'ctrl_cmd_pause':             "doNothing",
 		\	'InspectInit':                function('debugger#runtime#InspectInit'),
 		\	'WebInspectInit':             function('debugger#runtime#WebInspectInit'),
 		\	'InspectCont':                function('debugger#runtime#InspectCont'),
@@ -36,6 +36,7 @@ function! debugger#go#Setup()
 	return setup_options
 endfunction
 
+" TODO 如果源码跟踪到s文件里，执行这里没反应
 function! debugger#go#TermCallbackHandler(msg)
 	let stacks = s:Get_Stack(a:msg)
 	if type(stacks) == type(0) && stacks == 0
@@ -117,8 +118,6 @@ function! s:Get_Stack(msg)
 	let j = startline + 1
 
 	while j < endline - 2
-		" TODO jayli，这里的正则提取的有问题，main.main 这个字段如果是 url 这
-		" 种形态就提取不出来了
 		let pointer = debugger#util#StringTrim(matchstr(a:msg[j],"0x\\S\\+"))
 		let callstack = debugger#util#StringTrim(matchstr(a:msg[j],"\\(in\\s\\)\\@<=.\\+$"))
 		if len(a:msg) >= j + 1
@@ -149,7 +148,6 @@ endfunction
 function! debugger#go#TermSetupScript()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "break " .get(g:language_setup,'_GoPkgName'). ".main\<CR>")
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
-	" call term_wait(get(g:debugger,'debugger_window_name'))
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "stack\<CR>")
 endfunction
 
