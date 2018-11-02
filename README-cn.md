@@ -177,4 +177,5 @@ VIM 的代码逐行调试能力一直被诟病，除了 VIM 8.1 原生支持的 
 	- 支持 Unix 和 MacOS，Windows 平台暂未支持
 	- 支持语言种类：NodeJS
 - v1.1：支持 Go、NodeJS 调试
+- v1.2：支持 Quickfix 窗口显示回调堆栈
 
