@@ -101,7 +101,7 @@ Done!
 	tmap <F10>   <Plug>EasyDebuggerContinue
 	" 设置断点
 	nmap <F12>   <Plug>EasyDebuggerSetBreakPoint
-	
+
 快捷键说明：
 
 - <kbd>Shift-R</kbd> ：启动 VIM 调试器
@@ -112,6 +112,16 @@ Done!
 - <kbd>F9</kbd> ：单步执行
 - <kbd>F10</kbd> ：继续执行
 - <kbd>F12</kbd> ：给当前行设置断点 
+
+命令列表：
+
+- InspectInit：启动 VIM 调试器
+- WebInspectInit：启动 Chrome DevTools 调试服务
+- InspectCont：继续执行
+- InspectNext：单步执行
+- InspectStep：单步进入
+- InspectOut：跳出函数
+- InspectPause：暂停执行
 
 ### 使用
 

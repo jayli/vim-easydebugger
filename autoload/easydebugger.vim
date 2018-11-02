@@ -46,6 +46,14 @@ function! s:Bind_Map_Keys()
 	exec "tnoremap <silent> <Plug>EasyDebuggerPause ".easydebugger#GetCtrlCmd('ctrl_cmd_pause')
 	" 设置断点快捷键映射
 	nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#InspectSetBreakPoint()<CR>
+
+	command! -nargs=0 -complete=command -buffer InspectInit call easydebugger#InspectInit()
+	command! -nargs=0 -complete=command -buffer WebInspectInit call easydebugger#WebInspectInit()
+	command! -nargs=0 -complete=command InspectCont call easydebugger#InspectCont()
+	command! -nargs=0 -complete=command InspectNext call easydebugger#InspectNext()
+	command! -nargs=0 -complete=command InspectStep call easydebugger#InspectStep()
+	command! -nargs=0 -complete=command InspectOut  call easydebugger#InspectOut()
+	command! -nargs=0 -complete=command InspectPause call easydebugger#InspectPause()
 endfunction
 
 function! easydebugger#GetCtrlCmd(cmd)

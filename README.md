@@ -8,7 +8,7 @@
 
 ## Introduction
 
-[Vim-EasyDebugger](https://github.com/jayli/vim-easydebugger) is yet another debugger frontend plugin for Vim. It's based on VIM 8.1 and support multi-language. It has been tested with NodeJS and Go ([Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html), and [Delve](https://github.com/derekparker/delve)). Some other debugger plugins are too difficult to configure and most of them are no longer maintained today. So I simplified the design for this plugin with only three windows, the terminal window, the source code and the callback stack. I did'nt use any DBGP protocol such as Xdebug because I think it's not easy to accomplish minimalist experience that I want. Anyway, Thanks for VIM 8.1, Terminal features is powerful enough for me and the development experience is cool.
+[Vim-EasyDebugger](https://github.com/jayli/vim-easydebugger) is yet another debugger frontend plugin for Vim. It's based on VIM 8.1 and support multi-language. It has been tested with NodeJS and Go ([Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html), and [Delve](https://github.com/derekparker/delve)). Some other debugger plugins are too difficult to configure and most of them are no longer maintained today. So I simplified the design for this plugin with only three windows, the terminal window, the source code and the backtraces stack. I did'nt use any DBGP protocol such as Xdebug because I think it's not easy to accomplish minimalist experience that I want. Anyway, Thanks for VIM 8.1, Terminal features is powerful enough for me and the development experience is cool.
 
 [Vim-EasyDebugger](https://github.com/jayli/vim-easydebugger) has a nicer interface to be easily extended. You can add your favourite debugger toolkit.  By default EasyDebugger currently support:
 
@@ -59,16 +59,26 @@ Put these code in your `~/.vimrc`
 	" toggle line break points
 	nmap <F12>   <Plug>EasyDebuggerSetBreakPoint
 
-Keys:
+Key-Maps:
 
 - <kbd>Shift-R</kbd> ：startup debugger
 - <kbd>Shift-W</kbd> ：startup Chrome DevTools debug service
-- <kbd>F7</kbd> ：stop
+- <kbd>F7</kbd> ：pause
 - <kbd>Shift-F7</kbd> ：stepout
 - <kbd>F8</kbd> ：stepin
 - <kbd>F9</kbd> ：stepover
 - <kbd>F10</kbd> ：continue
 - <kbd>F12</kbd> ：toggle line breakpoint
+
+Commands：
+
+- InspectInit: startup debugger
+- WebInspectInit: startup Chrome DevTools debug service
+- InspectCont: continue
+- InspectNext: stepover
+- InspectStep: stepin
+- InspectOut: stepout
+- InspectPause: pause
 
 ## Useage
 
@@ -90,9 +100,9 @@ You can use chrome devtool for nodejs debug. Press <kbd>Shift-W</kbd> . Then con
 
 ### TODO
 
-Only two window is really not enough for user to inspect local vars value and function backtraces.... The following feature will be added soon:
+Only three window is really not enough for user to inspect local vars value and function backtraces.... The following feature will be added soon:
 
-- QuickFix Window：for local vars and backtrace.
+- QuickFix Window：for local vars and backtrace. Done!
 - File List Window：for a entire project with a lot of source files, I want a convenient changing buffer operation.
 - Errlog：Errlog is necessary. `:echom` is good, but there is no more space available to show multiline message. Besides, I don't want to type `:message` everytime.
 
@@ -101,6 +111,5 @@ Only two window is really not enough for user to inspect local vars value and fu
 This plugin is released under the [MIT License](https://github.com/jayli/vim-easydebugger/blob/master/LICENSE).
 
 Author: [Jayli](http://jayli.github.io/)
-
 
 

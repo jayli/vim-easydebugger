@@ -10,7 +10,9 @@ function! debugger#runtime#WebInspectInit()
 	endif
 
 	if !get(g:language_setup,'DebuggerTester')()
-		call s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
+		if has_key(g:language_setup, 'DebuggerNotInstalled')
+			call s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
+		endif
 		return ""
 	endif
 
@@ -40,7 +42,9 @@ function! debugger#runtime#InspectInit()
 	endif
 
 	if !get(g:language_setup,'DebuggerTester')()
-		call s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
+		if has_key(g:language_setup, 'DebuggerNotInstalled')
+			call s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
+		endif
 		return ""
 	endif
 
@@ -81,8 +85,6 @@ function! debugger#runtime#InspectInit()
 		if has_key(g:language_setup, "TermSetupScript")
 			call get(g:language_setup,"TermSetupScript")()
 		endif
-
-		" call s:Echo_debugging_info(l:full_command)
 	endif
 endfunction
 
@@ -240,12 +242,10 @@ function! debugger#runtime#Term_callback(channel, msg)
 		if winnr() != get(g:debugger, 'original_winnr')
 			call s:Goto_terminal_window()
 		endif
-		" jayli
 	else
 		call s:Debugger_Stop_Action(g:debugger.log)
 	endif
 
-	" 因为 Term 的碎片输出，这一行会被多次执行，通过合理清空 log 来提高性能
 	if has_key(g:language_setup,"TermCallbackHandler")
 		call g:language_setup.TermCallbackHandler(full_log)
 	endif
