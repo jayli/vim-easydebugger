@@ -85,7 +85,7 @@ function! s:Get_Stack(msg)
 	let endline = len(a:msg) - 1
 	let i = 0
 
-	" find startline
+	"stack 信息样例:
 	"#7 startup bootstrap_node.js:191:15
 	while i <= endline
 		if msg[i] =~ js_stack_regx

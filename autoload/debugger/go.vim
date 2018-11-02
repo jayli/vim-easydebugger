@@ -5,10 +5,10 @@ function! debugger#go#Setup()
 	" Delve 不支持 Pause 
 	" TODO ，这里需要将 命令行里的 stack 去掉
 	let setup_options = {
-		\	'ctrl_cmd_continue':          "continue\<CR>stack\<CR>",
-		\	'ctrl_cmd_next':              "next\<CR>stack\<CR>",
-		\	'ctrl_cmd_stepin':            "step\<CR>stack\<CR>",
-		\	'ctrl_cmd_stepout':           "stepout\<CR>stack\<CR>",
+		\	'ctrl_cmd_continue':          "continue",
+		\	'ctrl_cmd_next':              "next",
+		\	'ctrl_cmd_stepin':            "step",
+		\	'ctrl_cmd_stepout':           "stepout",
 		\	'ctrl_cmd_pause':             "doNothing",
 		\	'InspectInit':                function('debugger#runtime#InspectInit'),
 		\	'WebInspectInit':             function('debugger#runtime#WebInspectInit'),
@@ -45,7 +45,7 @@ endfunction
 " TODO 如果源码跟踪到s文件里，执行这里没反应
 function! s:Fillup_Quickfix_window(msg)
 	let stacks = s:Get_Stack(a:msg)
-	if type(stacks) == type(0) && stacks == 0
+	if len(stacks) == 0
 		return
 	endif
 	call s:Set_qflist(stacks)
@@ -68,49 +68,39 @@ endfunction
 
 function! s:Get_Stack(msg)
 	let stacks = []
-	let startline = 0
+	let go_stack_regx = "^\\d\\{-}\\s\\{-}0x\\w\\{-}\\s\\{-}in\\s\\{-}"
 	let endline = len(a:msg) - 1
-	let cnt = 0
-	let i = endline
-	" jayli TODO here 卡顿太严重
-	while i > startline
-		if a:msg[i] =~ '^(dlv)' 
-			let cnt = cnt + 1
+	let i = 0
+
+	"stack 信息样例:
+	"2  0x000000000105e7c1 in runtime.goexit
+	"   at /usr/local/go/src/runtime/asm_amd64.s:1333
+	while i <= endline
+		if a:msg[i] =~ go_stack_regx
+			let pointer = debugger#util#StringTrim(matchstr(a:msg[i],"0x\\S\\+"))
+			let callstack = debugger#util#StringTrim(matchstr(a:msg[i],"\\(in\\s\\)\\@<=.\\+$"))
+			if i == endline
+				break
+			endif
+			let filename = debugger#util#StringTrim(matchstr(a:msg[i+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
+			let linnr = debugger#util#StringTrim(matchstr(a:msg[i+1],"\\(:\\)\\@<=\\d\\{-}$"))
+			if filename == "" || linnr == "" || callstack == "" || pointer == ""
+				let i = i + 1
+				continue
+			else
+				call add(stacks, {
+							\	'filename': filename,
+							\	'linnr': linnr,
+							\	'callstack':callstack,
+							\	'pointer':pointer
+							\ })
+				let i = i + 2
+			endif
+		else
+			let i = i + 1
 		endif
-		if cnt == 2
-			let startline = i
-			break
-		endif
-		let i = i - 1
 	endwhile
 
-	if len(a:msg) > startline + 1  && !(a:msg[startline + 1] =~ "^\\d\\{-}\\s\\{-}0x\\w\\{-}\\s\\{-}in\\s\\{-}")
-		" call debugger#util#LogMsg(a:msg[startline + 1])
-		return 0
-	endif
-
-	let j = startline + 1
-
-	while j < endline - 2
-		let pointer = debugger#util#StringTrim(matchstr(a:msg[j],"0x\\S\\+"))
-		let callstack = debugger#util#StringTrim(matchstr(a:msg[j],"\\(in\\s\\)\\@<=.\\+$"))
-		if len(a:msg) >= j + 1
-			let filename = debugger#util#StringTrim(matchstr(a:msg[j+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
-			let linnr = debugger#util#StringTrim(matchstr(a:msg[j+1],"\\(:\\)\\@<=\\d\\{-}$"))
-		endif
-
-		let j = j + 2
-
-		if pointer == '' || callstack == ''
-			continue
-		endif
-		call add(stacks, {
-					\	'filename': filename,
-					\	'linnr': linnr,
-					\	'callstack':callstack,
-					\	'pointer':pointer
-					\ })
-	endwhile
 	return stacks
 endfunction
 
@@ -122,7 +112,6 @@ endfunction
 function! debugger#go#TermSetupScript()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "break " .get(g:language_setup,'_GoPkgName'). ".main\<CR>")
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
-	call term_sendkeys(get(g:debugger,'debugger_window_name'), "stack\<CR>")
 endfunction
 
 function! debugger#go#AfterStopScript(msg)
@@ -151,4 +140,9 @@ function! debugger#go#Get_Package()
 		endif
 	endfor
 	return pkg
+endfunction
+
+" 输出 LogMsg
+function! s:LogMsg(msg)
+	call debugger#util#LogMsg(a:msg)
 endfunction

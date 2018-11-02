@@ -229,7 +229,7 @@ function! debugger#runtime#Term_callback(channel, msg)
 	let m = substitute(a:msg,"\\W\\[\\d\\{-}[a-zA-Z]","","g")
 	let msgslist = split(m,"\r\n")
 	let g:debugger.log += msgslist
-	let g:debugger.log += [""]
+	" let g:debugger.log += [""]
 	let full_log = deepcopy(g:debugger.log)
 
 	if has_key(g:language_setup, "ExecutionTerminatedMsg") && 
@@ -238,12 +238,10 @@ function! debugger#runtime#Term_callback(channel, msg)
 		call debugger#runtime#Reset_Editor('silently')
 		" 调试终止之后应该将光标停止在 Term 内
 		if winnr() != get(g:debugger, 'original_winnr')
-			" call s:Goto_window(get(g:debugger,"term_winid"))
 			call s:Goto_terminal_window()
 		endif
 		" jayli
 	else
-		" JS 这里执行了两次 TODO
 		call s:Debugger_Stop_Action(g:debugger.log)
 	endif
 
@@ -387,16 +385,17 @@ function! s:Create_Debugger()
 	let g:debugger.original_cursor_color = debugger#util#Get_CursorLine_bgColor()
 	" 这句话没用其实
 	call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
-	exec "hi DebuggerBreakPoint ctermfg=197 ctermbg=". debugger#util#Get_BgColor('SignColumn')
+	exec "hi BreakPointStyle ctermfg=197 ctermbg=". debugger#util#Get_BgColor('SignColumn')
+	exec "hi StopPointLineStyle ctermbg=19"
+	exec "hi StopPointTextStyle cterm=bold ctermfg=green ctermbg=".debugger#util#Get_BgColor('SignColumn')
 	" 定义一个占位符，防止 sigin 切换时的抖动, id 为 9999
 	exec 'hi PlaceHolder ctermfg='. debugger#util#Get_BgColor('SignColumn') . 
 				\ ' ctermbg='. debugger#util#Get_BgColor('SignColumn')
 	exec 'sign define place_holder text=>> texthl=PlaceHolder'
 	" 语句执行位置标记 id=100
-	exec 'hi StopPointStyle ctermbg=19 ctermfg=none'
-	exec 'sign define stop_point text=>> texthl=Title linehl=StopPointStyle'
+	exec 'sign define stop_point text=>> texthl=StopPointTextStyle linehl=StopPointLineStyle'
 	" 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
-	exec 'sign define break_point text=** texthl=DebuggerBreakPoint'
+	exec 'sign define break_point text=** texthl=BreakPointStyle'
 	return g:debugger
 endfunction
 
