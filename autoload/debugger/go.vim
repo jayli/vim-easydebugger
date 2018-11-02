@@ -10,14 +10,14 @@ function! debugger#go#Setup()
 		\	'ctrl_cmd_stepin':            "step",
 		\	'ctrl_cmd_stepout':           "stepout",
 		\	'ctrl_cmd_pause':             "doNothing",
-		\	'InspectInit':                function('debugger#runtime#InspectInit'),
-		\	'WebInspectInit':             function('debugger#runtime#WebInspectInit'),
-		\	'InspectCont':                function('debugger#runtime#InspectCont'),
-		\	'InspectNext':                function('debugger#runtime#InspectNext'),
-		\	'InspectStep':                function('debugger#runtime#InspectStep'),
-		\	'InspectOut':                 function('debugger#runtime#InspectOut'),
+		\	'InspectInit':                function('lib#runtime#InspectInit'),
+		\	'WebInspectInit':             function('lib#runtime#WebInspectInit'),
+		\	'InspectCont':                function('lib#runtime#InspectCont'),
+		\	'InspectNext':                function('lib#runtime#InspectNext'),
+		\	'InspectStep':                function('lib#runtime#InspectStep'),
+		\	'InspectOut':                 function('lib#runtime#InspectOut'),
 		\	'InspectPause':               function('debugger#go#InpectPause'),
-		\	'InspectSetBreakPoint':       function('debugger#runtime#InspectSetBreakPoint'),
+		\	'InspectSetBreakPoint':       function('lib#runtime#InspectSetBreakPoint'),
 		\	'DebuggerTester':             function('debugger#go#CommandExists'),
 		\	'ClearBreakPoint':            function("debugger#go#ClearBreakPoint"),
 		\	'SetBreakPoint':              function("debugger#go#SetBreakPoint"),
@@ -77,13 +77,13 @@ function! s:Get_Stack(msg)
 	"   at /usr/local/go/src/runtime/asm_amd64.s:1333
 	while i <= endline
 		if a:msg[i] =~ go_stack_regx
-			let pointer = debugger#util#StringTrim(matchstr(a:msg[i],"0x\\S\\+"))
-			let callstack = debugger#util#StringTrim(matchstr(a:msg[i],"\\(in\\s\\)\\@<=.\\+$"))
+			let pointer = lib#util#StringTrim(matchstr(a:msg[i],"0x\\S\\+"))
+			let callstack = lib#util#StringTrim(matchstr(a:msg[i],"\\(in\\s\\)\\@<=.\\+$"))
 			if i == endline
 				break
 			endif
-			let filename = debugger#util#StringTrim(matchstr(a:msg[i+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
-			let linnr = debugger#util#StringTrim(matchstr(a:msg[i+1],"\\(:\\)\\@<=\\d\\{-}$"))
+			let filename = lib#util#StringTrim(matchstr(a:msg[i+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
+			let linnr = lib#util#StringTrim(matchstr(a:msg[i+1],"\\(:\\)\\@<=\\d\\{-}$"))
 			if filename == "" || linnr == "" || callstack == "" || pointer == ""
 				let i = i + 1
 				continue
@@ -120,7 +120,7 @@ function! debugger#go#AfterStopScript(msg)
 endfunction
 
 function! debugger#go#InpectPause()
-	call debugger#util#LogMsg("Delve 不支持 Pause，'Pause' is not supported by Delve")
+	call lib#util#LogMsg("Delve 不支持 Pause，'Pause' is not supported by Delve")
 endfunction
 
 function! debugger#go#ClearBreakPoint(fname,line)
@@ -145,5 +145,5 @@ endfunction
 
 " 输出 LogMsg
 function! s:LogMsg(msg)
-	call debugger#util#LogMsg(a:msg)
+	call lib#util#LogMsg(a:msg)
 endfunction

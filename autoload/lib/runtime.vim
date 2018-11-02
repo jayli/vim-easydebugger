@@ -38,7 +38,7 @@
 "   - BreakLineNrRegex : {regex} : 获得程序停驻行号的正则
 
 " 启动 Chrome DevTools 模式的调试服务
-function! debugger#runtime#WebInspectInit()
+function! lib#runtime#WebInspectInit()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
 		return ""
@@ -70,7 +70,7 @@ function! debugger#runtime#WebInspectInit()
 endfunction
 
 " VIM 调试模式
-function! debugger#runtime#InspectInit()
+function! lib#runtime#InspectInit()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
 		return ""
@@ -91,7 +91,7 @@ function! debugger#runtime#InspectInit()
 	endif
 	" 创建 g:debugger ，最重要的一个全局变量
 	call s:Create_Debugger()
-	call debugger#runtime#Reset_Editor('silently')
+	call lib#runtime#Reset_Editor('silently')
 	if version <= 800
 		call system(l:full_command)
 	else 
@@ -101,13 +101,13 @@ function! debugger#runtime#InspectInit()
 			\ 'term_name':get(g:debugger,'debugger_window_name') ,
 			\ 'term_cols':s:Get_Term_Width(),
 			\ 'vertical':'1',
-			\ 'out_cb':'debugger#runtime#Term_callback',
-			\ 'close_cb':'debugger#runtime#Reset_Editor',
+			\ 'out_cb':'lib#runtime#Term_callback',
+			\ 'close_cb':'lib#runtime#Reset_Editor',
 			\ })
 		" 记录 Term 的 Winid
 		let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
 		" 监听 Terminal 模式里的回车键
-		tnoremap <silent> <CR> <C-\><C-n>:call debugger#runtime#Special_Cmd_Handler()<CR>i<C-P><Down>
+		tnoremap <silent> <CR> <C-\><C-n>:call lib#runtime#Special_Cmd_Handler()<CR>i<C-P><Down>
 		call term_wait(get(g:debugger,'debugger_window_name'))
 		call s:Debugger_Stop_Action(g:debugger.log)
 
@@ -123,7 +123,7 @@ function! debugger#runtime#InspectInit()
 	endif
 endfunction
 
-function! debugger#runtime#InspectCont()
+function! lib#runtime#InspectCont()
 	if !exists('g:debugger')
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
@@ -133,7 +133,7 @@ function! debugger#runtime#InspectCont()
 	endif
 endfunction
 
-function! debugger#runtime#InspectNext()
+function! lib#runtime#InspectNext()
 	if !exists('g:debugger')
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
@@ -143,7 +143,7 @@ function! debugger#runtime#InspectNext()
 	endif
 endfunction
 
-function! debugger#runtime#InspectStep()
+function! lib#runtime#InspectStep()
 	if !exists('g:debugger')
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
@@ -153,7 +153,7 @@ function! debugger#runtime#InspectStep()
 	endif
 endfunction
 
-function! debugger#runtime#InspectOut()
+function! lib#runtime#InspectOut()
 	if !exists('g:debugger')
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
@@ -163,7 +163,7 @@ function! debugger#runtime#InspectOut()
 	endif
 endfunction
 
-function! debugger#runtime#InspectPause()
+function! lib#runtime#InspectPause()
 	if !exists('g:debugger')
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
@@ -174,7 +174,7 @@ function! debugger#runtime#InspectPause()
 endfunction
 
 " 设置/取消断点，在当前行按 F12
-function! debugger#runtime#InspectSetBreakPoint()
+function! lib#runtime#InspectSetBreakPoint()
 	if !exists('g:debugger') || term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return ""
@@ -186,13 +186,13 @@ function! debugger#runtime#InspectSetBreakPoint()
 		let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
 		if breakpoint_contained >= 0
 			" 已经存在 BreakPoint，则清除掉 BreakPoint
-			call term_sendkeys(get(g:debugger,'debugger_window_name'),debugger#runtime#clearBreakpoint(fname,line))
+			call term_sendkeys(get(g:debugger,'debugger_window_name'),lib#runtime#clearBreakpoint(fname,line))
 			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
 			exec ":sign unplace ".sid." file=".fname
 			call remove(g:debugger.break_points, breakpoint_contained)
 		else
 			" 如果不存在 BreakPoint，则新增 BreakPoint
-			call term_sendkeys(get(g:debugger,'debugger_window_name'),debugger#runtime#setBreakpoint(fname,line))
+			call term_sendkeys(get(g:debugger,'debugger_window_name'),lib#runtime#setBreakpoint(fname,line))
 			call add(g:debugger.break_points, fname."|".line)
 			let g:debugger.break_points =  uniq(g:debugger.break_points)
 			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
@@ -202,19 +202,19 @@ function! debugger#runtime#InspectSetBreakPoint()
 endfunction
 
 " 清除断点
-function! debugger#runtime#clearBreakpoint(fname,line)
+function! lib#runtime#clearBreakpoint(fname,line)
 	return get(g:language_setup, "ClearBreakPoint")(a:fname,a:line)
 endfunction
 
 " 设置断点
-function! debugger#runtime#setBreakpoint(fname,line)
+function! lib#runtime#setBreakpoint(fname,line)
 	return get(g:language_setup, "SetBreakPoint")(a:fname,a:line)
 endfunction
 
 " 退出 Terminal 时重置编辑器
 " 可传入单独的参数：
 " - silently: 不关闭Term
-function! debugger#runtime#Reset_Editor(...)
+function! lib#runtime#Reset_Editor(...)
 	if !exists("g:debugger") 
 		return
 	endif
@@ -248,7 +248,7 @@ function! debugger#runtime#Reset_Editor(...)
 endfunction
 
 " Terminal 消息回传
-function! debugger#runtime#Term_callback(channel, msg)
+function! lib#runtime#Term_callback(channel, msg)
 	" 如果消息为空
 	" 如果消息长度为1，说明正在敲入字符
 	" 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符，TODO 这
@@ -274,7 +274,7 @@ function! debugger#runtime#Term_callback(channel, msg)
 	if has_key(g:language_setup, "ExecutionTerminatedMsg") && 
 				\ a:msg =~ get(g:language_setup, "ExecutionTerminatedMsg")
 		call s:Show_Close_Msg()
-		call debugger#runtime#Reset_Editor('silently')
+		call lib#runtime#Reset_Editor('silently')
 		" 调试终止之后应该将光标停止在 Term 内
 		if winnr() != get(g:debugger, 'original_winnr')
 			call s:Goto_terminal_window()
@@ -386,7 +386,7 @@ endfunction
 
 " 相当于 trim，去掉首尾的空字符
 function! s:StringTrim(str)
-	return debugger#util#StringTrim(a:str)
+	return lib#util#StringTrim(a:str)
 endfunction
 
 " 创建全局 g:debugger 对象
@@ -422,15 +422,15 @@ function! s:Create_Debugger()
 	" break_points 里的索引作为 sign id
 	let g:debugger.break_points= []
 	" 原始的光标行背景色
-	let g:debugger.original_cursor_color = debugger#util#Get_CursorLine_bgColor()
+	let g:debugger.original_cursor_color = lib#util#Get_CursorLine_bgColor()
 	" 这句话没用其实
 	call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
-	exec "hi BreakPointStyle ctermfg=197 ctermbg=". debugger#util#Get_BgColor('SignColumn')
+	exec "hi BreakPointStyle ctermfg=197 ctermbg=". lib#util#Get_BgColor('SignColumn')
 	exec "hi StopPointLineStyle ctermbg=19"
-	exec "hi StopPointTextStyle cterm=bold ctermfg=green ctermbg=".debugger#util#Get_BgColor('SignColumn')
+	exec "hi StopPointTextStyle cterm=bold ctermfg=green ctermbg=".lib#util#Get_BgColor('SignColumn')
 	" 定义一个占位符，防止 sigin 切换时的抖动, id 为 9999
-	exec 'hi PlaceHolder ctermfg='. debugger#util#Get_BgColor('SignColumn') . 
-				\ ' ctermbg='. debugger#util#Get_BgColor('SignColumn')
+	exec 'hi PlaceHolder ctermfg='. lib#util#Get_BgColor('SignColumn') . 
+				\ ' ctermbg='. lib#util#Get_BgColor('SignColumn')
 	exec 'sign define place_holder text=>> texthl=PlaceHolder'
 	" 语句执行位置标记 id=100
 	exec 'sign define stop_point text=>> texthl=StopPointTextStyle linehl=StopPointLineStyle'
@@ -458,7 +458,7 @@ function! s:Debugger_Stop(fname, line)
 	" 出完整路径，调试不得不中断
 	if (type(fname) == type(0) && fname == 0) || (type(fname) == type('string') && fname == '0')
 		call term_sendkeys(get(g:debugger,'debugger_window_name'),"kill\<CR>")
-		call debugger#runtime#Reset_Editor('silently')
+		call lib#runtime#Reset_Editor('silently')
 		call s:Show_Close_Msg()
 		return
 	endif
@@ -587,7 +587,7 @@ function! s:Close_Term()
 endfunction
 
 " 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal
-function! debugger#runtime#Special_Cmd_Handler()
+function! lib#runtime#Special_Cmd_Handler()
 	let cmd = getline('.')[0 : col('.')-1]
 	let cmd = s:StringTrim(substitute(cmd,"^.*debug>\\s","","g"))
 	if cmd == 'exit'
@@ -602,6 +602,6 @@ endfunction
 
 " 输出 LogMsg
 function! s:LogMsg(msg)
-	call debugger#util#LogMsg(a:msg)
+	call lib#util#LogMsg(a:msg)
 endfunction
 

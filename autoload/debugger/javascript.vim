@@ -6,14 +6,14 @@ function! debugger#javascript#Setup()
 		\	'ctrl_cmd_stepin':            "step",
 		\	'ctrl_cmd_stepout':           "out",
 		\	'ctrl_cmd_pause':             "pause",
-		\	'InspectInit':                function('debugger#runtime#InspectInit'),
-		\	'WebInspectInit':             function('debugger#runtime#WebInspectInit'),
-		\	'InspectCont':                function('debugger#runtime#InspectCont'),
-		\	'InspectNext':                function('debugger#runtime#InspectNext'),
-		\	'InspectStep':                function('debugger#runtime#InspectStep'),
-		\	'InspectOut':                 function('debugger#runtime#InspectOut'),
-		\	'InspectPause':               function('debugger#runtime#InspectPause'),
-		\	'InspectSetBreakPoint':       function('debugger#runtime#InspectSetBreakPoint'),
+		\	'InspectInit':                function('lib#runtime#InspectInit'),
+		\	'WebInspectInit':             function('lib#runtime#WebInspectInit'),
+		\	'InspectCont':                function('lib#runtime#InspectCont'),
+		\	'InspectNext':                function('lib#runtime#InspectNext'),
+		\	'InspectStep':                function('lib#runtime#InspectStep'),
+		\	'InspectOut':                 function('lib#runtime#InspectOut'),
+		\	'InspectPause':               function('lib#runtime#InspectPause'),
+		\	'InspectSetBreakPoint':       function('lib#runtime#InspectSetBreakPoint'),
 		\	'DebuggerTester':             function('debugger#javascript#CommandExists'),
 		\	'ClearBreakPoint':            function("debugger#javascript#ClearBreakPoint"),
 		\	'SetBreakPoint':              function("debugger#javascript#SetBreakPoint"),
@@ -89,10 +89,10 @@ function! s:Get_Stack(msg)
 	"#7 startup bootstrap_node.js:191:15
 	while i <= endline
 		if msg[i] =~ js_stack_regx
-			let filename = debugger#util#StringTrim(matchstr(msg[i],"\\(\\s\\)\\@<=\\S\\{-}\\(:\\d\\)\\@="))
-			let linnr = debugger#util#StringTrim(matchstr(msg[i],"\\(js:\\)\\@<=\\d\\{-}\\(:\\d\\)\\@="))
-			let callstack = debugger#util#StringTrim(matchstr(msg[i],"\\(#\\d\\{-}\\s\\)\\@<=\\S\\{-}\\(\\s\\)\\@="))
-			let pointer = debugger#util#StringTrim(matchstr(msg[i],"\\(#\\)\\@<=\\d\\{-}\\(\\s\\)\\@="))
+			let filename = lib#util#StringTrim(matchstr(msg[i],"\\(\\s\\)\\@<=\\S\\{-}\\(:\\d\\)\\@="))
+			let linnr = lib#util#StringTrim(matchstr(msg[i],"\\(js:\\)\\@<=\\d\\{-}\\(:\\d\\)\\@="))
+			let callstack = lib#util#StringTrim(matchstr(msg[i],"\\(#\\d\\{-}\\s\\)\\@<=\\S\\{-}\\(\\s\\)\\@="))
+			let pointer = lib#util#StringTrim(matchstr(msg[i],"\\(#\\)\\@<=\\d\\{-}\\(\\s\\)\\@="))
 			call add(stacks, {
 				\	'filename': filename,
 				\	'linnr': linnr,
@@ -116,5 +116,5 @@ endfunction
 
 " 输出 LogMsg
 function! s:LogMsg(msg)
-	call debugger#util#LogMsg(a:msg)
+	call lib#util#LogMsg(a:msg)
 endfunction

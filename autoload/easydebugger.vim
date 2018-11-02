@@ -69,7 +69,7 @@ endfunction
 
 function! easydebugger#InspectInit()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
+		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectInit')()
@@ -77,7 +77,7 @@ endfunction
 
 function! easydebugger#WebInspectInit()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
+		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'WebInspectInit')()
@@ -85,7 +85,7 @@ endfunction
 
 function! easydebugger#InspectCont()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
+		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectCont')()
@@ -93,7 +93,7 @@ endfunction
 
 function! easydebugger#InspectNext()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
+		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectNext')()
@@ -101,7 +101,7 @@ endfunction
 
 function! easydebugger#InspectStep()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
+		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectStep')()
@@ -109,7 +109,7 @@ endfunction
 
 function! easydebugger#InspectOut()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
+		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectOut')()
@@ -117,7 +117,7 @@ endfunction
 
 function! easydebugger#InspectPause()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
+		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectPause')()
@@ -125,7 +125,7 @@ endfunction
 
 function! easydebugger#InspectSetBreakPoint()
 	if !s:Language_supported() || !exists('g:language_setup')
-		call debugger#util#LogMsg(g:None_Lang_Sp_Msg)
+		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectSetBreakPoint')()
