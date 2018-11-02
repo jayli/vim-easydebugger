@@ -1,7 +1,7 @@
 " File:			easydebugger.vim
 " Author:		@jayli <http://jayli.github.io>
 " Description:	vim-easydebugger 插件的启动文件，
-"				EasyDebugger 是 NodeJS 的 Debug 程序，运行在 VIM 8.1 上
+"				EasyDebugger 是一个 Debug 程序插件，运行在 VIM 8.1 上
 "
 "				更多信息请访问 <https://github.com/jayli/vim-easydebugger>
 
