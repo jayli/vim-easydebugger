@@ -16,6 +16,7 @@
 - Debugger flow commands - step-in, step-over, step-out and continue...
 - Breakpoints management
 - Evaluating expressions in the current context, watch expression and variable values while debugging.
+- Backtrace
 
 ## Installation
 
@@ -39,6 +40,7 @@ With [Vundle.vim](https://github.com/VundleVim/Vundle.vim): add the following co
 
 Put these code in your `~/.vimrc`
 
+	" Debugger startup
 	nmap <S-R>   <Plug>EasyDebuggerInspect
 	nmap <S-W>   <Plug>EasyDebuggerWebInspect
 	" pause
@@ -72,13 +74,13 @@ Key-Maps:
 
 Commands：
 
-- InspectInit: startup debugger
-- WebInspectInit: startup Chrome DevTools debug service
-- InspectCont: continue
-- InspectNext: stepover
-- InspectStep: stepin
-- InspectOut: stepout
-- InspectPause: pause
+- `InspectInit`: startup debugger
+- `WebInspectInit`: startup Chrome DevTools debug service
+- `InspectCont`: continue
+- `InspectNext`: stepover
+- `InspectStep`: stepin
+- `InspectOut`: stepout
+- `InspectPause`: pause
 
 ## Useage
 
@@ -86,13 +88,17 @@ Commands：
 
 Press <kbd>Shift-R</kbd> to startup debugger with `node inspect {filename}` (`dlv debug {filename}` for golang) running in terminal.
 
-![](https://gw.alicdn.com/tfs/TB1V9P0kHPpK1RjSZFFXXa5PpXa-2084-1240.jpg)
+![](https://gw.alicdn.com/tfs/TB1Lq2umRLoK1RjSZFuXXXn0XXa-2022-1232.jpg)
 
 Type `next` + <kbd>Enter</kbd> in Terminal means step over. Get more useage here: [node inspect document](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html) and [go delve document](https://github.com/derekparker/delve/tree/master/Documentation/cli). Quit debug with twice <kbd>Ctrl-C</kbd>, or input `exit` + <kbd>Enter</kbd> in Terminal.
 
 Press <kbd>F12</kbd> to toggle break points:
 
 ![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger-breakpoint.gif)
+
+To get local variables, take nodejs for example:
+
+<img src="https://gw.alicdn.com/tfs/TB19_bymHrpK1RjSZTEXXcWAVXa-554-364.png" width=350>
 
 ### Chrome DevTools Debug for NodeJS
 
@@ -102,7 +108,7 @@ You can use chrome devtool for nodejs debug. Press <kbd>Shift-W</kbd> . Then con
 
 Only three window is really not enough for user to inspect local vars value and function backtraces.... The following feature will be added soon:
 
-- QuickFix Window：for local vars and backtrace. Done!
+- QuickFix Window：for local variables and backtrace. Done!
 - File List Window：for a entire project with a lot of source files, I want a convenient changing buffer operation.
 - Errlog：Errlog is necessary. `:echom` is good, but there is no more space available to show multiline message. Besides, I don't want to type `:message` everytime.
 

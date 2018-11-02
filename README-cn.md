@@ -115,13 +115,13 @@ Done!
 
 命令列表：
 
-- InspectInit：启动 VIM 调试器
-- WebInspectInit：启动 Chrome DevTools 调试服务
-- InspectCont：继续执行
-- InspectNext：单步执行
-- InspectStep：单步进入
-- InspectOut：跳出函数
-- InspectPause：暂停执行
+- `InspectInit`：启动 VIM 调试器
+- `WebInspectInit`：启动 Chrome DevTools 调试服务
+- `InspectCont`：继续执行
+- `InspectNext`：单步执行
+- `InspectStep`：单步进入
+- `InspectOut`：跳出函数
+- `InspectPause`：暂停执行
 
 ### 使用
 
@@ -129,13 +129,13 @@ Done!
 
 在 normal 模式下按下 <kbd>Shift-R</kbd> 会进入 VIM 调试模式，自动打开 Debugger 命令窗口，执行 `node inspect {filename}` 并停留在当前代码第一行（Go 调试器执行`dlv debug {filename}`），右侧代码窗口对应行高亮，这时可以逐行跟踪代码了。
 
-![](https://gw.alicdn.com/tfs/TB1V9P0kHPpK1RjSZFFXXa5PpXa-2084-1240.jpg)
+![](https://gw.alicdn.com/tfs/TB1Lq2umRLoK1RjSZFuXXXn0XXa-2022-1232.jpg)
 
 左侧终端窗口内等待输入调试器命令。比如调试 NodeJS 时可输入 `next` + <kbd>Enter</kbd> 表示执行下一行代码。NodeJS Debugger 更多命令可参照[官网文档](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html)。Go Delve 更多命令可参照[官网文档](https://github.com/derekparker/delve/tree/master/Documentation/cli)。另外可以使用快捷键来跟踪调试。敲击两次 <kbd>Ctrl-C</kbd> 终止调试。
 
 如果要查看当前变量，NodeJS 需要进入“[Read-Eval-Print-Loop](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html#debugger_information)”（repl）模式，在左侧终端内输入 `repl`，输入变量名字即可查看。需要退出 Repl 模式才能继续逐行跟踪，输入 <kbd>Ctrl-C</kbd> 退出 Repl 模式。Go 则直接输命令即可，比如`vars`输出当前包内的变量。
 
-<img src="https://gw.alicdn.com/tfs/TB1qfi7hmzqK1RjSZFjXXblCFXa-620-227.png" width=350>
+<img src="https://gw.alicdn.com/tfs/TB19_bymHrpK1RjSZTEXXcWAVXa-554-364.png" width=350>
 
 在左侧终端内敲入`exit` + <kbd>Enter</kbd> 退出调试模式。
 
