@@ -1,9 +1,7 @@
 
-" 语言全局配置
 function! debugger#go#Setup()
 
 	" Delve 不支持 Pause 
-	" TODO ，这里需要将 命令行里的 stack 去掉
 	let setup_options = {
 		\	'ctrl_cmd_continue':          "continue",
 		\	'ctrl_cmd_next':              "next",
@@ -24,7 +22,6 @@ function! debugger#go#Setup()
 		\	'TermSetupScript':            function('debugger#go#TermSetupScript'),
 		\	'AfterStopScript':            function('debugger#go#AfterStopScript'),
 		\	'TermCallbackHandler':        function('debugger#go#TermCallbackHandler'),
-		\
 		\	'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
 		\	'WebDebuggerCommandPrefix':   'dlv debug',
 		\	'LocalDebuggerCommandPrefix': 'dlv debug',
@@ -42,7 +39,6 @@ function! debugger#go#TermCallbackHandler(msg)
 	call s:Fillup_Quickfix_window(a:msg)
 endfunction
 
-" TODO 如果源码跟踪到s文件里，执行这里没反应
 function! s:Fillup_Quickfix_window(msg)
 	let stacks = s:Get_Stack(a:msg)
 	if len(stacks) == 0
