@@ -1,8 +1,43 @@
+" 文件说明：
 " file: debugger/runtime.vim 这里是 Debugger 运行时的标准实现，无特殊情况应当
 " 优先使用这些默认实现，如果不能满足当前调试器（比如 go 语言的 delve 不支持
-" pause），就需要重新实现一下，就放在 debugger/[编程语言].vim 中重写下就好了
+" pause），就需要重新实现一下，在 debugger/[编程语言].vim 中重写
 
-" 启动Chrome DevTools 模式的调试服务
+" 实现原理：
+" Debugger 程序运行在 Term 内，VIM 创建 Term 时可以绑定输出回调，通过监听 Term
+" 内的输出字符来执行单步执行、继续执行、暂停、输出回调堆栈等等操作，VIM 作为
+" UI 层的交互，由于 Term 回调机制可以更好的完成，难度不大，关键是做好各个语言
+" 的 Debugger 输出的格式过滤，目前已经将 runtime.vim 基本抽象出来了，debugger
+" 目录下的 [编程语言].vim 的实现基于这个 runtime 抽象，目前有这些已经定义好的
+" 接口：
+"   - ctrl_cmd_continue : {string} : Debugger 继续执行的命令
+"   - ctrl_cmd_next : {string} : Debugger 单步执行的命令
+"   - ctrl_cmd_stepin : {string} : Debugger 进入函数的命令
+"   - ctrl_cmd_stepout : {string} : Debugger 退出函数的命令
+"   - ctrl_cmd_pause : {string} : Debugger 程序暂停的命令
+"   - InspectInit : {function} : Debugger 启动函数
+"   - WebInspectInit : {function} : Debugger Web 服务启动函数
+"   - InspectCont : {function} : 继续执行的函数
+"   - InspectNext : {function} : 单步执行的函数
+"   - InspectStep : {function} : 单步进入的函数
+"   - InspectOut : {function} : 退出函数
+"   - InspectPause : {function} : 暂停执行的函数
+"   - InspectSetBreakPoint : {function} : 设置断点主函数
+"   - DebuggerTester : {function} : 判断当前语言的 Debugger 是否安装
+"   - ClearBreakPoint : {function} : 返回清除断点的命令字符串
+"   - SetBreakPoint : {function} : 返回添加断点的命令字符串
+"   - TermSetupScript : {function} : Terminal 初始化完成后执行的脚本
+"   - AfterStopScript : {function} : 程序进行到新行后追加的执行的脚本
+"   - TermCallbackHandler : {function} : Terminal 有输出回调时，会追加执行的脚本
+"   - DebuggerNotInstalled : {string} : Debugger 未安装的提示文案
+"   - WebDebuggerCommandPrefix : {string} : Debugger Web 服务启动的命令前缀
+"   - LocalDebuggerCommandPrefix : {string} : Debugger 启动的命令前缀
+"   - LocalDebuggerCommandSufix : {string} : Debugger 命令启动的后缀
+"   - ExecutionTerminatedMsg : {regex} : 判断 Debugger 运行结束的结束语正则
+"   - BreakFileNameRegex : {regex} : 获得程序停驻所在文件的正则
+"   - BreakLineNrRegex : {regex} : 获得程序停驻行号的正则
+
+" 启动 Chrome DevTools 模式的调试服务
 function! debugger#runtime#WebInspectInit()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
@@ -26,10 +61,10 @@ function! debugger#runtime#WebInspectInit()
 		call system(l:full_command)
 	else 
 		call term_start(l:full_command,{ 
-						\ 'term_finish': 'close',
-						\ 'term_cols':s:Get_Term_Width(),
-						\ 'vertical':'1',
-						\ })
+			\ 'term_finish': 'close',
+			\ 'term_cols':s:Get_Term_Width(),
+			\ 'vertical':'1',
+			\ })
 	endif
 	call s:Echo_debugging_info(l:full_command)
 endfunction
@@ -62,13 +97,13 @@ function! debugger#runtime#InspectInit()
 	else 
 		call s:Set_Debug_CursorLine()
 		call term_start(l:full_command,{ 
-						\ 'term_finish': 'close',
-						\ 'term_name':get(g:debugger,'debugger_window_name') ,
-						\ 'term_cols':s:Get_Term_Width(),
-						\ 'vertical':'1',
-						\ 'out_cb':'debugger#runtime#Term_callback',
-						\ 'close_cb':'debugger#runtime#Reset_Editor',
-						\ })
+			\ 'term_finish': 'close',
+			\ 'term_name':get(g:debugger,'debugger_window_name') ,
+			\ 'term_cols':s:Get_Term_Width(),
+			\ 'vertical':'1',
+			\ 'out_cb':'debugger#runtime#Term_callback',
+			\ 'close_cb':'debugger#runtime#Reset_Editor',
+			\ })
 		" 记录 Term 的 Winid
 		let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
 		" 监听 Terminal 模式里的回车键
@@ -166,10 +201,12 @@ function! debugger#runtime#InspectSetBreakPoint()
 	endif
 endfunction
 
+" 清除断点
 function! debugger#runtime#clearBreakpoint(fname,line)
 	return get(g:language_setup, "ClearBreakPoint")(a:fname,a:line)
 endfunction
 
+" 设置断点
 function! debugger#runtime#setBreakpoint(fname,line)
 	return get(g:language_setup, "SetBreakPoint")(a:fname,a:line)
 endfunction
@@ -252,6 +289,7 @@ function! debugger#runtime#Term_callback(channel, msg)
 
 endfunction
 
+" 判断首字母是否是可见的 ASCII 码
 function! s:Is_Ascii_Visiable(c)
 	if char2nr(a:c) >= 32 && char2nr(a:c) <= 126
 		return 1
@@ -260,6 +298,7 @@ function! s:Is_Ascii_Visiable(c)
 	endif
 endfunction
 
+" 输出初始调试信息
 function! s:Echo_debugging_info(command)
 	call s:LogMsg(a:command . ' ' . ' : [Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
 endfunction
@@ -301,6 +340,7 @@ function! s:Clear_All_Signs()
 	let g:debugger.break_points = []
 endfunction
 
+" 显示 Term 窗口关闭消息
 function! s:Show_Close_Msg()
 	call s:LogMsg(bufname('%')." ". get(g:debugger,'close_msg'))
 endfunction
@@ -320,7 +360,7 @@ function! s:Get_Term_Stop_Msg(log)
 		return 0
 	endif
 
-	" 因为碎片输出，这里会被执行很多次
+	" 因为碎片输出，这里会被执行很多次，可能有潜在的性能问题
 	let break_line = 0
 	let fname = ''
 	let fn_regex = get(g:language_setup, "BreakFileNameRegex")
@@ -453,8 +493,6 @@ function! s:Goto_winnr(winnr) abort
     let cmd = type(a:winnr) == type(0) ? a:winnr . 'wincmd w'
                                      \ : 'wincmd ' . a:winnr
 	noautocmd execute cmd
-	" 这句话会带来一次闪烁，原因不明，不加这句话，启动时光标不停留在Term里，不
-	" 执行 out_cb ，TODO
 	call execute('redraw','silent!')
 endfunction
 
@@ -470,19 +508,18 @@ function! s:Goto_terminal_window()
 	endif
 endfunction
 
-" qflist
+" 打开 Quickfix window
 function! s:Open_qfwindow()
 	call s:Goto_sourcecode_window()
 	call execute('below copen','silent!')
 endfunction
 
+" 关闭 Quickfix window
 function! s:Close_qfwidow()
 	call execute('cclose','silent!')
-	" if exists('g:debugger') && exists('g:debugger.quickfix_winid')
-	" 	unlet g:debugger.quickfix_winid
-	" endif
 endfunction
 
+" 跳转到 Window
 function! s:Goto_window(winid) abort
 	if a:winid == bufwinid(bufnr(""))
 		return

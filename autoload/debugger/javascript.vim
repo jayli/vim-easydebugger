@@ -69,11 +69,11 @@ function! s:Set_qflist(stacks)
 	let fullstacks = []
 	for item in a:stacks
 		call add(fullstacks, {
-					\ 'filename':item.filename,
-					\ 'lnum':str2nr(item.linnr),
-					\ 'text':item.callstack,
-					\ 'valid':1
-					\ })
+			\ 'filename':item.filename,
+			\ 'lnum':str2nr(item.linnr),
+			\ 'text':item.callstack,
+			\ 'valid':1
+			\ })
 	endfor
 	call setqflist(fullstacks, 'r')
 endfunction
@@ -94,11 +94,11 @@ function! s:Get_Stack(msg)
 			let callstack = debugger#util#StringTrim(matchstr(msg[i],"\\(#\\d\\{-}\\s\\)\\@<=\\S\\{-}\\(\\s\\)\\@="))
 			let pointer = debugger#util#StringTrim(matchstr(msg[i],"\\(#\\)\\@<=\\d\\{-}\\(\\s\\)\\@="))
 			call add(stacks, {
-						\	'filename': filename,
-						\	'linnr': linnr,
-						\	'callstack':callstack,
-						\	'pointer':pointer
-						\ })
+				\	'filename': filename,
+				\	'linnr': linnr,
+				\	'callstack':callstack,
+				\	'pointer':pointer
+				\ })
 		endif
 		let i = i + 1
 	endwhile

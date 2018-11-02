@@ -57,11 +57,11 @@ function! s:Set_qflist(stacks)
 	let fullstacks = []
 	for item in a:stacks
 		call add(fullstacks, {
-					\ 'filename':item.filename,
-					\ 'lnum':str2nr(item.linnr),
-					\ 'text':item.callstack.' | '. item.pointer,
-					\ 'valid':1
-					\ })
+			\ 'filename':item.filename,
+			\ 'lnum':str2nr(item.linnr),
+			\ 'text':item.callstack.' | '. item.pointer,
+			\ 'valid':1
+			\ })
 	endfor
 	call setqflist(fullstacks, 'r')
 endfunction
@@ -89,11 +89,11 @@ function! s:Get_Stack(msg)
 				continue
 			else
 				call add(stacks, {
-							\	'filename': filename,
-							\	'linnr': linnr,
-							\	'callstack':callstack,
-							\	'pointer':pointer
-							\ })
+					\	'filename': filename,
+					\	'linnr': linnr,
+					\	'callstack':callstack,
+					\	'pointer':pointer
+					\ })
 				let i = i + 2
 			endif
 		else
@@ -110,7 +110,8 @@ function! debugger#go#CommandExists()
 endfunction
 
 function! debugger#go#TermSetupScript()
-	call term_sendkeys(get(g:debugger,'debugger_window_name'), "break " .get(g:language_setup,'_GoPkgName'). ".main\<CR>")
+	call term_sendkeys(get(g:debugger,'debugger_window_name'), 
+				\ "break " .get(g:language_setup,'_GoPkgName'). ".main\<CR>")
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
 endfunction
 
