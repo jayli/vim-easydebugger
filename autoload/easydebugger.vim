@@ -20,7 +20,8 @@ function! easydebugger#Enable()
 	" g:None_Lang_Sp_Msg		当前代码不支持调试
 	
 	let g:Debug_Lang_Supported = ["javascript","go"]
-	let g:None_Lang_Sp_Msg = "不支持该语言，或者需要将光标切换到调试窗口"
+	let g:None_Lang_Sp_Msg = "不支持该语言，或者需要将光标切换到调试窗口, ".
+				\ "not support current lang"
 
 	if index(g:Debug_Lang_Supported, &filetype) >= 0
 		call execute('let g:language_setup = debugger#'. &filetype .'#Setup()' )
