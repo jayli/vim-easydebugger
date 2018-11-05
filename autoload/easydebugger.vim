@@ -58,12 +58,12 @@ endfunction
 
 function! easydebugger#GetCtrlCmd(cmd)
 	if !s:Language_supported() || !exists('g:language_setup')
-		return ""
+		return "should_execute_nothing"
 	endif
 	if has_key(g:language_setup, a:cmd)
 		return get(g:language_setup, a:cmd) . "<CR>"
 	else
-		return ""
+		return "should_execute_nothing"
 	endif
 endfunction
 
