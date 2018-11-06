@@ -324,7 +324,7 @@ endfunction
 
 " 将标记清除
 function! s:Clear_All_Signs()
-	exec ":sign unplace 100 file=".g:debugger.original_bufname
+	exec ":sign unplace 100 file=".s:Get_Fullname(g:debugger.original_bufname)
 	for bfname in g:debugger.bufs
 		exec ":sign unplace 100 file=".s:Get_Fullname(bfname)
 	endfor
