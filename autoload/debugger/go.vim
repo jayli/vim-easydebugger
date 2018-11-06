@@ -3,40 +3,42 @@ function! debugger#go#Setup()
 
 	" Delve 不支持 Pause 
 	let setup_options = {
-		\	'ctrl_cmd_continue':          "continue",
-		\	'ctrl_cmd_next':              "next",
-		\	'ctrl_cmd_stepin':            "step",
-		\	'ctrl_cmd_stepout':           "stepout",
-		\	'ctrl_cmd_pause':             "doNothing",
-		\	'InspectInit':                function('lib#runtime#InspectInit'),
-		\	'WebInspectInit':             function('lib#runtime#WebInspectInit'),
-		\	'InspectCont':                function('lib#runtime#InspectCont'),
-		\	'InspectNext':                function('lib#runtime#InspectNext'),
-		\	'InspectStep':                function('lib#runtime#InspectStep'),
-		\	'InspectOut':                 function('lib#runtime#InspectOut'),
-		\	'InspectPause':               function('debugger#go#InpectPause'),
-		\	'InspectSetBreakPoint':       function('lib#runtime#InspectSetBreakPoint'),
-		\	'DebuggerTester':             function('debugger#go#CommandExists'),
-		\	'ClearBreakPoint':            function("debugger#go#ClearBreakPoint"),
-		\	'SetBreakPoint':              function("debugger#go#SetBreakPoint"),
-		\	'TermSetupScript':            function('debugger#go#TermSetupScript'),
-		\	'AfterStopScript':            function('debugger#go#AfterStopScript'),
-		\	'TermCallbackHandler':        function('debugger#go#TermCallbackHandler'),
-		\	'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
-		\	'WebDebuggerCommandPrefix':   'dlv debug',
+		\	'ctrl_cmd_continue':					"continue",
+		\	'ctrl_cmd_next':							"next",
+		\	'ctrl_cmd_stepin':						"step",
+		\	'ctrl_cmd_stepout':						"stepout",
+		\	'ctrl_cmd_pause':							"doNothing",
+		\	'InspectInit':								function('lib#runtime#InspectInit'),
+		\	'WebInspectInit':							function('lib#runtime#WebInspectInit'),
+		\	'InspectCont':								function('lib#runtime#InspectCont'),
+		\	'InspectNext':								function('lib#runtime#InspectNext'),
+		\	'InspectStep':								function('lib#runtime#InspectStep'),
+		\	'InspectOut':									function('lib#runtime#InspectOut'),
+		\	'InspectPause':								function('debugger#go#InpectPause'),
+		\	'InspectSetBreakPoint':				function('lib#runtime#InspectSetBreakPoint'),
+		\	'DebuggerTester':							function('debugger#go#CommandExists'),
+		\	'ClearBreakPoint':						function("debugger#go#ClearBreakPoint"),
+		\	'SetBreakPoint':							function("debugger#go#SetBreakPoint"),
+		\	'TermSetupScript':						function('debugger#go#TermSetupScript'),
+		\	'AfterStopScript':						function('debugger#go#AfterStopScript'),
+		\	'TermCallbackHandler':				function('debugger#go#TermCallbackHandler'),
+		\	'DebuggerNotInstalled':				'系统没有安装 Delve ！Please install Delve first.',
+		\	'WebDebuggerCommandPrefix':		'dlv debug',
 		\	'LocalDebuggerCommandPrefix': 'dlv debug',
-		\	'LocalDebuggerCommandSufix':  '',
-		\	'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
-		\	'BreakFileNameRegex':         "\\(>\\s\\S\\+\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
-		\	'BreakLineNrRegex':           "\\(>\\s\\S\\+\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
+		\	'LocalDebuggerCommandSufix':	'',
+		\	'ExecutionTerminatedMsg':			"\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
+		\	'BreakFileNameRegex':					"\\(>\\s\\S\\+\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
+		\	'BreakLineNrRegex':						"\\(>\\s\\S\\+\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
 		\
-		\	'_GoPkgName':                 debugger#go#Get_Package()
+		\	'_GoPkgName':									debugger#go#Get_Package()
 		\ }
 	return setup_options
 endfunction
 
 function! debugger#go#TermCallbackHandler(msg)
-	if a:msg[0] == "Can not debug non-main package" 
+	if type(a:msg) == type([]) &&
+				\ len(a:msg) == 1 &&
+				\ a:msg[0] == "Can not debug non-main package" 
 		call timer_start(500,
 				\ {-> s:LogMsg(a:msg[0])},
 				\ {'repeat' : 1})
@@ -74,8 +76,8 @@ function! s:Get_Stack(msg)
 	let i = 0
 
 	"stack 信息样例:
-	"2  0x000000000105e7c1 in runtime.goexit
-	"   at /usr/local/go/src/runtime/asm_amd64.s:1333
+	"2	0x000000000105e7c1 in runtime.goexit
+	"		at /usr/local/go/src/runtime/asm_amd64.s:1333
 	while i <= endline
 		if a:msg[i] =~ go_stack_regx
 			let pointer = lib#util#StringTrim(matchstr(a:msg[i],"0x\\S\\+"))
@@ -106,7 +108,7 @@ function! s:Get_Stack(msg)
 endfunction
 
 function! debugger#go#CommandExists()
-	let result =  system("dlv version 2>/dev/null")
+	let result =	system("dlv version 2>/dev/null")
 	return empty(result) ? 0 : 1
 endfunction
 
