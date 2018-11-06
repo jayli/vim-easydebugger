@@ -36,6 +36,11 @@ function! debugger#go#Setup()
 endfunction
 
 function! debugger#go#TermCallbackHandler(msg)
+	if a:msg[0] == "Can not debug non-main package" 
+		call timer_start(500,
+				\ {-> s:LogMsg(a:msg[0])},
+				\ {'repeat' : 1})
+	endif
 	call s:Fillup_Quickfix_window(a:msg)
 endfunction
 

@@ -326,7 +326,7 @@ endfunction
 function! s:Clear_All_Signs()
 	exec ":sign unplace 100 file=".g:debugger.original_bufname
 	for bfname in g:debugger.bufs
-		exec ":sign unplace 100 file=".bfname
+		exec ":sign unplace 100 file=".s:Get_Fullname(bfname)
 	endfor
 	for item in g:debugger.break_points
 		" break_points 的存储格式为: ['a.js|3','t/b.js|34']
