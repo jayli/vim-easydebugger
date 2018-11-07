@@ -234,12 +234,12 @@ function! lib#runtime#Reset_Editor(...)
 		if !(type(a:1) == type('string') && a:1 == 'silently')
 			call feedkeys("\<S-ZZ>")
 		endif
-		call s:Show_Close_Msg()
+		" call s:Show_Close_Msg()
 	endif
 	call s:Clear_All_Signs()
 	call execute('redraw','silent!')
 	" 最后清空本次 Terminal 里的 log
-	call s:LogMsg("调试结束,Debug over..")
+	"call s:LogMsg("调试结束,Debug over..")
 	call s:Close_qfwidow()
 	let g:debugger.log = []
 	if exists('g:debugger._prev_msg')
