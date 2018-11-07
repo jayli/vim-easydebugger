@@ -3,39 +3,38 @@ function! debugger#go#Setup()
 
 	" Delve 不支持 Pause 
 	let setup_options = {
-		\	'ctrl_cmd_continue':					"continue",
-		\	'ctrl_cmd_next':							"next",
-		\	'ctrl_cmd_stepin':						"step",
-		\	'ctrl_cmd_stepout':						"stepout",
-		\	'ctrl_cmd_pause':							"doNothing",
-		\	'InspectInit':								function('lib#runtime#InspectInit'),
-		\	'WebInspectInit':							function('lib#runtime#WebInspectInit'),
-		\	'InspectCont':								function('lib#runtime#InspectCont'),
-		\	'InspectNext':								function('lib#runtime#InspectNext'),
-		\	'InspectStep':								function('lib#runtime#InspectStep'),
-		\	'InspectOut':									function('lib#runtime#InspectOut'),
-		\	'InspectPause':								function('debugger#go#InpectPause'),
-		\	'InspectSetBreakPoint':				function('lib#runtime#InspectSetBreakPoint'),
-		\	'DebuggerTester':							function('debugger#go#CommandExists'),
-		\	'ClearBreakPoint':						function("debugger#go#ClearBreakPoint"),
-		\	'SetBreakPoint':							function("debugger#go#SetBreakPoint"),
-		\	'TermSetupScript':						function('debugger#go#TermSetupScript'),
-		\	'AfterStopScript':						function('debugger#go#AfterStopScript'),
-		\	'TermCallbackHandler':				function('debugger#go#TermCallbackHandler'),
-		\	'DebuggerNotInstalled':				'系统没有安装 Delve ！Please install Delve first.',
-		\	'WebDebuggerCommandPrefix':		'dlv debug',
+		\	'ctrl_cmd_continue':          "continue",
+		\	'ctrl_cmd_next':              "next",
+		\	'ctrl_cmd_stepin':            "step",
+		\	'ctrl_cmd_stepout':           "stepout",
+		\	'ctrl_cmd_pause':             "doNothing",
+		\	'InspectInit':                function('lib#runtime#InspectInit'),
+		\	'WebInspectInit':             function('lib#runtime#WebInspectInit'),
+		\	'InspectCont':                function('lib#runtime#InspectCont'),
+		\	'InspectNext':                function('lib#runtime#InspectNext'),
+		\	'InspectStep':                function('lib#runtime#InspectStep'),
+		\	'InspectOut':                 function('lib#runtime#InspectOut'),
+		\	'InspectPause':               function('debugger#go#InpectPause'),
+		\	'InspectSetBreakPoint':       function('lib#runtime#InspectSetBreakPoint'),
+		\	'DebuggerTester':             function('debugger#go#CommandExists'),
+		\	'ClearBreakPoint':            function("debugger#go#ClearBreakPoint"),
+		\	'SetBreakPoint':              function("debugger#go#SetBreakPoint"),
+		\	'TermSetupScript':            function('debugger#go#TermSetupScript'),
+		\	'AfterStopScript':            function('debugger#go#AfterStopScript'),
+		\	'TermCallbackHandler':        function('debugger#go#TermCallbackHandler'),
+		\	'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
+		\	'WebDebuggerCommandPrefix':   'dlv debug',
 		\	'LocalDebuggerCommandPrefix': 'dlv debug',
-		\	'LocalDebuggerCommandSufix':	'',
-		\	'ExecutionTerminatedMsg':			"\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
-		\	'BreakFileNameRegex':					"\\(>\\s\\S\\+\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
-		\	'BreakLineNrRegex':						"\\(>\\s\\S\\+\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
-		\
-		\	'_GoPkgName':									debugger#go#Get_Package()
+		\	'LocalDebuggerCommandSufix':  '',
+		\	'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
+		\	'BreakFileNameRegex':         "\\(>\\s\\S\\+\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
+		\	'BreakLineNrRegex':           "\\(>\\s\\S\\+\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
 		\ }
 	return setup_options
 endfunction
 
 function! debugger#go#TermCallbackHandler(msg)
+	" call s:LogMsg(string(a:msg))
 	if type(a:msg) == type([]) &&
 				\ len(a:msg) == 1 &&
 				\ a:msg[0] == "Can not debug non-main package" 
@@ -114,7 +113,7 @@ endfunction
 
 function! debugger#go#TermSetupScript()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), 
-				\ "break " .get(g:language_setup,'_GoPkgName'). ".main\<CR>")
+				\ "break " .s:Get_Package(). ".main\<CR>")
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
 endfunction
 
@@ -134,10 +133,11 @@ function! debugger#go#SetBreakPoint(fname,line)
 	return "break ".a:fname.":".a:line."\<CR>"
 endfunction
 
-function! debugger#go#Get_Package()
-	let lines = getbufline('%',1,'$')
+function! s:Get_Package()
+	let lines = getbufline(g:debugger.original_bnr,1,'$')
 	let pkg = ""
 	for line in lines
+		call s:LogMsg(line)
 		if line =~ "^\\s\\{-}package\\s\\{-}\\w\\{1,}"
 			let pkg = matchstr(line,"\\(^\\s\\{-}package\\s\\{-}\\)\\@<=\\w\\{1,}")
 			break
