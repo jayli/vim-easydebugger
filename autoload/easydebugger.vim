@@ -23,31 +23,44 @@ function! easydebugger#Enable()
 	let g:None_Lang_Sp_Msg = "不支持该语言，或者需要将光标切换到调试窗口, ".
 				\ "not support current lang"
 
-	if index(g:Debug_Lang_Supported, &filetype) >= 0
-		call execute('let g:language_setup = debugger#'. &filetype .'#Setup()' )
-	endif
+	" if index(g:Debug_Lang_Supported, &filetype) >= 0
+	" 	call execute('let g:language_setup = debugger#'. &filetype .'#Setup()' )
+	" endif
 
-	call s:Bind_Map_Keys()
+	call s:Bind_Nor_Map_Keys()
+	call s:Build_Command()
 endfunction
 
-function! s:Bind_Map_Keys()
+" 每进入一个 Buffer 都重新绑定一下 Term 的映射命令
+function! easydebugger#BindTermMapKeys()
+	call s:Bind_Term_Map_Keys()
+endfunction
+
+" VIM 启动的时候绑定一次
+function! s:Bind_Nor_Map_Keys()
 	" 服务启动唤醒键映射
 	nnoremap <silent> <Plug>EasyDebuggerInspect :call easydebugger#InspectInit()<CR>
 	nnoremap <silent> <Plug>EasyDebuggerWebInspect :call easydebugger#WebInspectInit()<CR>
 	" 调试快捷键映射
 	nnoremap <silent> <Plug>EasyDebuggerContinue :call easydebugger#InspectCont()<CR>
-	exec "tnoremap <silent> <Plug>EasyDebuggerContinue ".easydebugger#GetCtrlCmd('ctrl_cmd_continue')
 	nnoremap <silent> <Plug>EasyDebuggerNext :call easydebugger#InspectNext()<CR>
-	exec "tnoremap <silent> <Plug>EasyDebuggerNext ".easydebugger#GetCtrlCmd('ctrl_cmd_next')
 	nnoremap <silent> <Plug>EasyDebuggerStepIn :call easydebugger#InspectStep()<CR>
-	exec "tnoremap <silent> <Plug>EasyDebuggerStepIn ".easydebugger#GetCtrlCmd('ctrl_cmd_stepin')
 	nnoremap <silent> <Plug>EasyDebuggerStepOut :call easydebugger#InspectOut()<CR>
-	exec "tnoremap <silent> <Plug>EasyDebuggerStepOut ".easydebugger#GetCtrlCmd('ctrl_cmd_stepout')
 	nnoremap <silent> <Plug>EasyDebuggerPause :call easydebugger#InspectPause()<CR>
-	exec "tnoremap <silent> <Plug>EasyDebuggerPause ".easydebugger#GetCtrlCmd('ctrl_cmd_pause')
 	" 设置断点快捷键映射
 	nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#InspectSetBreakPoint()<CR>
+endfunction
 
+" 每次进入一个新 Buffer 都要重新绑定一次
+function! s:Bind_Term_Map_Keys()
+	exec "tnoremap <silent> <Plug>EasyDebuggerContinue ".easydebugger#GetCtrlCmd('ctrl_cmd_continue')
+	exec "tnoremap <silent> <Plug>EasyDebuggerNext ".easydebugger#GetCtrlCmd('ctrl_cmd_next')
+	exec "tnoremap <silent> <Plug>EasyDebuggerStepIn ".easydebugger#GetCtrlCmd('ctrl_cmd_stepin')
+	exec "tnoremap <silent> <Plug>EasyDebuggerStepOut ".easydebugger#GetCtrlCmd('ctrl_cmd_stepout')
+	exec "tnoremap <silent> <Plug>EasyDebuggerPause ".easydebugger#GetCtrlCmd('ctrl_cmd_pause')
+endfunction
+
+function! s:Build_Command()
 	command! -nargs=0 -complete=command -buffer InspectInit call easydebugger#InspectInit()
 	command! -nargs=0 -complete=command -buffer WebInspectInit call easydebugger#WebInspectInit()
 	command! -nargs=0 -complete=command InspectCont call easydebugger#InspectCont()
@@ -57,8 +70,20 @@ function! s:Bind_Map_Keys()
 	command! -nargs=0 -complete=command InspectPause call easydebugger#InspectPause()
 endfunction
 
+function! s:Create_Lang_Setup()
+	if index(g:Debug_Lang_Supported, &filetype) >= 0
+		call execute('let g:language_setup = debugger#'. &filetype .'#Setup()' )
+		if exists("g:language_setup")
+			let g:language_setup.language = &filetype
+		endif
+	else
+		let g:language_setup = 0
+		unlet g:language_setup 
+	endif
+endfunction
+
 function! easydebugger#GetCtrlCmd(cmd)
-	if !s:Language_supported() || !exists('g:language_setup')
+	if !exists('g:language_setup') || !s:Language_supported(get(g:language_setup,"language")) 
 		return "should_execute_nothing"
 	endif
 	if has_key(g:language_setup, a:cmd)
@@ -69,6 +94,7 @@ function! easydebugger#GetCtrlCmd(cmd)
 endfunction
 
 function! easydebugger#InspectInit()
+	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
@@ -77,6 +103,7 @@ function! easydebugger#InspectInit()
 endfunction
 
 function! easydebugger#WebInspectInit()
+	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
@@ -85,6 +112,7 @@ function! easydebugger#WebInspectInit()
 endfunction
 
 function! easydebugger#InspectCont()
+	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
@@ -93,6 +121,7 @@ function! easydebugger#InspectCont()
 endfunction
 
 function! easydebugger#InspectNext()
+	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
@@ -101,6 +130,7 @@ function! easydebugger#InspectNext()
 endfunction
 
 function! easydebugger#InspectStep()
+	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
@@ -109,6 +139,7 @@ function! easydebugger#InspectStep()
 endfunction
 
 function! easydebugger#InspectOut()
+	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
@@ -117,6 +148,7 @@ function! easydebugger#InspectOut()
 endfunction
 
 function! easydebugger#InspectPause()
+	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
@@ -125,6 +157,7 @@ function! easydebugger#InspectPause()
 endfunction
 
 function! easydebugger#InspectSetBreakPoint()
+	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
@@ -133,7 +166,8 @@ function! easydebugger#InspectSetBreakPoint()
 endfunction
 
 " 判断语言是否支持
-function! s:Language_supported()
+function! s:Language_supported(...)
 	" 如果是 quickfix window 和 tagbar 时忽略
-	return index(extend(g:Debug_Lang_Supported,['qf','tagbar']), &filetype) >= 0 ? 1 : 0
+	let ft = exists(a:0) ? a:0 : &filetype
+	return index(extend(deepcopy(g:Debug_Lang_Supported),['qf','tagbar']), ft) >= 0 ? 1 : 0
 endfunction
