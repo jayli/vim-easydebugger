@@ -137,7 +137,6 @@ function! s:Get_Package()
 	let lines = getbufline(g:debugger.original_bnr,1,'$')
 	let pkg = ""
 	for line in lines
-		call s:LogMsg(line)
 		if line =~ "^\\s\\{-}package\\s\\{-}\\w\\{1,}"
 			let pkg = matchstr(line,"\\(^\\s\\{-}package\\s\\{-}\\)\\@<=\\w\\{1,}")
 			break
