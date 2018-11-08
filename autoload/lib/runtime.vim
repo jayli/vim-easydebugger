@@ -269,6 +269,11 @@ function! lib#runtime#Term_callback(channel, msg)
 	let msgslist = split(m,"\r\n")
 	let g:debugger.log += msgslist
 	" let g:debugger.log += [""]
+	" 为了防止 log 过长带来的性能问题，这里做一个上限
+	let log_max_length = 100
+	if len(g:debugger.log) >= log_max_length
+		unlet g:debugger.log[0:len(g:debugger.log) - (log_max_length)]
+	endif
 	let full_log = deepcopy(g:debugger.log)
 
 	if has_key(g:language_setup, "ExecutionTerminatedMsg") && 
