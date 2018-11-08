@@ -190,6 +190,7 @@ function! lib#runtime#InspectSetBreakPoint()
 			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
 			exec ":sign unplace ".sid." file=".fname
 			call remove(g:debugger.break_points, breakpoint_contained)
+			call s:LogMsg("取消断点成功")
 		else
 			" 如果不存在 BreakPoint，则新增 BreakPoint
 			call term_sendkeys(get(g:debugger,'debugger_window_name'),lib#runtime#setBreakpoint(fname,line))
@@ -197,6 +198,7 @@ function! lib#runtime#InspectSetBreakPoint()
 			let g:debugger.break_points =  uniq(g:debugger.break_points)
 			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
 			exec ":sign place ".sid." line=".line." name=break_point file=".fname
+			call s:LogMsg("设置断点成功")
 		endif
 	endif
 endfunction
