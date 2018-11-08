@@ -133,7 +133,7 @@ Done!
 
 左侧终端窗口内等待输入调试器命令。比如调试 NodeJS 时可输入 `next` + <kbd>Enter</kbd> 表示执行下一行代码。NodeJS Debugger 更多命令可参照[官网文档](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html)。Go Delve 更多命令可参照[官网文档](https://github.com/derekparker/delve/tree/master/Documentation/cli)。另外可以使用快捷键来跟踪调试。敲击两次 <kbd>Ctrl-C</kbd> 终止调试。
 
-如果要查看当前变量，NodeJS 需要进入“[Read-Eval-Print-Loop](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html#debugger_information)”（repl）模式，在左侧终端内输入 `repl`，输入变量名字即可查看。需要退出 Repl 模式才能继续逐行跟踪，输入 <kbd>Ctrl-C</kbd> 退出 Repl 模式。Go 则直接输命令即可，比如`vars`输出当前包内的变量。
+如果要查看当前变量，NodeJS 需要进入“[Read-Eval-Print-Loop](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html#debugger_information)”（repl）模式，在左侧终端内输入 `repl`，输入变量名字即可查看。需要退出 Repl 模式才能继续逐行跟踪，输入 <kbd>Ctrl-C</kbd> 退出 Repl 模式。Go 则直接输命令即可，比如`vars`输出当前包内的变量，`locals - {变量名}`查看变量的值。
 
 <img src="https://gw.alicdn.com/tfs/TB19_bymHrpK1RjSZTEXXcWAVXa-554-364.png" width=300>
 
