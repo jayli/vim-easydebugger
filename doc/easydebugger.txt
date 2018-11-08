@@ -1,0 +1,96 @@
+easydebugger.txt   Last change: 2018-11-09         *easydebugger* *easydebug*
+
+ oh its..
+       _
+     _  __(_)_ _
+    | |/ / /  ' \          __    __
+    |___/_/_/_/_/ __ _____/ /__ / /  __ _____ ____ ____ ____
+    / -_) _ `(_-</ // / _  / -_) _ \/ // / _ `/ _ `/ -_) __/
+    \__/\_,_/___/\_, /\_,_/\__/_.__/\_,_/\_, /\_, /\__/_/
+                /___/                   /___//___/
+
+
+Table of Contents
+=============================================================================
+
+   Vim-EasyDebugger                            |debugger-Introduction|    
+   Mappings                                    |debugger-mappings|
+   Commands                                    |debugger-commands|
+   Operations                                  |debugger-operations|
+   Author                                      |debugger-author|
+   License                                     |debugger-license|
+
+
+EasyDebugger Introduction                             *debugger-introduction*
+=============================================================================
+Vim-EasyDebugger is yet another debugger frontend plugin for Vim. It's based on 
+VIM 8.1 and support multi-language. It has been tested with NodeJS and Go. Some 
+other debugger plugins are too difficult to configure and most of them are no 
+longer maintained today. So I simplified the design for this plugin with only three
+windows, the terminal window, the source code and the backtraces stack. I did'nt 
+use any DBGP protocol such as Xdebug because I think it's not easy to accomplish 
+minimalist experience that I want. Anyway, Thanks to VIM 8.1, Terminal features is 
+powerful enough for me and the development experience is cool.
+
+Vim-EasyDebugger has a nicer interface to be easily extended. You can add your 
+favourite debugger toolkit.  By default EasyDebugger currently support:
+
+  - Tracking in the source code
+  - Debugger flow commands - step-in, step-over, step-out and continue...
+  - Breakpoints management
+  - Evaluating expressions in the current context, watch expression and variable 
+    values while debugging.
+  - Backtrace
+
+Requirements: 
+
+  - VIM 8.1 with terminal support. 
+  - Debugger such as Node inspect and Delve.
+
+
+Mappings                                                  *debugger-mappings*
+=============================================================================
+
+Key-Maps:
+
+  - Shift-R ：startup debugger
+  - Shift-W ：startup Chrome DevTools debug service
+  - F7 ：pause
+  - Shift-F7 ：stepout
+  - F8 ：stepin
+  - F9 ：stepover
+  - F10 ：continue
+  - F12 ：toggle line breakpoint
+
+Commands                                                  *debugger-commands*
+=============================================================================
+
+  - InspectInit: startup debugger
+  - WebInspectInit: startup Chrome DevTools debug service
+  - InspectCont: continue
+  - InspectNext: stepover
+  - InspectStep: stepin
+  - InspectOut: stepout
+  - InspectPause: pause
+
+Operations                            *debugger-operations*   *exit-debugging*
+=============================================================================
+
+To get local variables, take nodejs for example. Type `repl` in terminal, then 
+input variable name.
+
+Type `exit` in terminal to exit debugging.
+
+Author                                                      *debugger-author*
+=============================================================================
+
+{Jayli}
+                                                      http://github.com/jayli
+
+LICENSE                                                    *debugger-license*
+=============================================================================
+
+MIT
+
+=============================================================================
+vim:set tw=80:sw=2:ts=2:ft=help:norl:nowrap:
