@@ -96,7 +96,10 @@ Press <kbd>F12</kbd> to toggle break points:
 
 ![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger-breakpoint.gif)
 
-To get local variables, take nodejs for example. Type `repl` in terminal, then input variable name:
+How to inspect local variables? 
+
+- NodeJS: Type `repl` in terminal. Go go the REPL mode and then input variable name . Such as below.
+- Golang: Type `locals -v {variable}`.
 
 <img src="https://gw.alicdn.com/tfs/TB19_bymHrpK1RjSZTEXXcWAVXa-554-364.png" width=300>
 
