@@ -99,7 +99,7 @@ Press <kbd>F12</kbd> to toggle break points:
 How to inspect local variables? 
 
 - NodeJS: Type `repl` in terminal. Go go the REPL mode and then input variable name . Such as below.
-- Golang: Type `locals -v {variable}`.
+- Golang: Type `print {variable}` or `locals -v {variable}`.
 
 <img src="https://gw.alicdn.com/tfs/TB19_bymHrpK1RjSZTEXXcWAVXa-554-364.png" width=300>
 

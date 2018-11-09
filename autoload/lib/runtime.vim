@@ -188,7 +188,7 @@ function! lib#runtime#InspectSetBreakPoint()
 			" 已经存在 BreakPoint，则清除掉 BreakPoint
 			call term_sendkeys(get(g:debugger,'debugger_window_name'),lib#runtime#clearBreakpoint(fname,line))
 			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
-			exec ":sign unplace ".sid." file=".fname
+			exec ":sign unplace ".sid." file=".s:Get_Fullname(fname)
 			call remove(g:debugger.break_points, breakpoint_contained)
 			call s:LogMsg("取消断点成功")
 		else
@@ -197,7 +197,7 @@ function! lib#runtime#InspectSetBreakPoint()
 			call add(g:debugger.break_points, fname."|".line)
 			let g:debugger.break_points =  uniq(g:debugger.break_points)
 			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
-			exec ":sign place ".sid." line=".line." name=break_point file=".fname
+			exec ":sign place ".sid." line=".line." name=break_point file=".s:Get_Fullname(fname)
 			call s:LogMsg("设置断点成功")
 		endif
 	endif
@@ -341,7 +341,7 @@ function! s:Clear_All_Signs()
 		let fname = split(item,"|")[0]
 		let line  = split(item,"|")[1]
 		let sid   = string(index(g:debugger.break_points, item) + 1)
-		exec ":sign unplace ".sid." file=".fname
+		exec ":sign unplace ".sid." file=".s:Get_Fullname(fname)
 	endfor
 	" 退出 Debug 时清除当前所有断点
 	let g:debugger.break_points = []
@@ -487,10 +487,10 @@ endfunction
 function! s:Sign_Set_StopPoint(fname, line)
 	try
 		" sign 9999 是为了防止界面抖动
-		exec ":sign place 9999 line=1 name=place_holder file=".a:fname
-		exec ":sign unplace 100 file=".a:fname
-		exec ":sign place 100 line=".string(a:line)." name=stop_point file=".a:fname
-		exec ":sign unplace 9999 file=".a:fname
+		exec ":sign place 9999 line=1 name=place_holder file=".s:Get_Fullname(a:fname)
+		exec ":sign unplace 100 file=".s:Get_Fullname(a:fname)
+		exec ":sign place 100 line=".string(a:line)." name=stop_point file=".s:Get_Fullname(a:fname)
+		exec ":sign unplace 9999 file=".s:Get_Fullname(a:fname)
 	catch
 	endtry
 endfunction
