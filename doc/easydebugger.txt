@@ -77,7 +77,7 @@ Operations                            *debugger-operations*   *exit-debugging*
 =============================================================================
 
 To get local variables, take nodejs for example. Type `repl` in terminal, then 
-input variable name.
+input variable name. With Golang type `print {virable}` in terminal.
 
 Type `exit` in terminal to exit debugging.
 
