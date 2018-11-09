@@ -272,7 +272,7 @@ function! lib#runtime#Term_callback(channel, msg)
 	let g:debugger.log += msgslist
 	" let g:debugger.log += [""]
 	" 为了防止 log 过长带来的性能问题，这里做一个上限
-	let log_max_length = 100
+	let log_max_length = 50
 	if len(g:debugger.log) >= log_max_length
 		unlet g:debugger.log[0:len(g:debugger.log) - (log_max_length)]
 	endif
