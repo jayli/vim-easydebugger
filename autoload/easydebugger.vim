@@ -17,7 +17,7 @@ function! easydebugger#Enable()
 	" g:Debug_Lang_Supported	当前支持的debug语言种类
 	" g:None_Lang_Sp_Msg		当前代码不支持调试
 	
-	let g:Debug_Lang_Supported = ["javascript","go"]
+	let g:Debug_Lang_Supported = ["javascript","javascript.jsx","go"]
 	let g:None_Lang_Sp_Msg = "不支持该语言，或者需要将光标切换到调试窗口, ".
 				\ "not support current lang"
 
