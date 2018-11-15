@@ -115,6 +115,7 @@ Only three window is really not enough for user to inspect local vars value and 
 - File List Window：for a entire project with a lot of source files, I want a convenient changing buffer operation.
 - Errlog：Errlog is necessary. `:echom` is good, but there is no more space available to show multiline message. Besides, I don't want to type `:message` everytime.
 - GUI support: Easydebugger is now tested in cterm on Linux and MacOS. Gvim support is not ready.
+- Python DBG support
 
 ## Licence
 
