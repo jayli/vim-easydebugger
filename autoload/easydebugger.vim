@@ -69,10 +69,10 @@ function! s:Build_Command()
 endfunction
 
 function! s:Create_Lang_Setup()
-	if index(g:Debug_Lang_Supported, &filetype) >= 0
-		call execute('let g:language_setup = debugger#'. &filetype .'#Setup()' )
+	if index(g:Debug_Lang_Supported, s:Get_Filetype()) >= 0
+		call execute('let g:language_setup = debugger#'. s:Get_Filetype() .'#Setup()' )
 		if exists("g:language_setup")
-			let g:language_setup.language = &filetype
+			let g:language_setup.language = s:Get_Filetype() 
 		endif
 	else
 		let g:language_setup = 0
@@ -166,6 +166,10 @@ endfunction
 " 判断语言是否支持
 function! s:Language_supported(...)
 	" 如果是 quickfix window 和 tagbar 时忽略
-	let ft = exists(a:0) ? a:0 : &filetype
+	let ft = exists(a:0) ? a:0 : s:Get_Filetype() 
 	return index(extend(deepcopy(g:Debug_Lang_Supported),['qf','tagbar']), ft) >= 0 ? 1 : 0
+endfunction
+
+function! s:Get_Filetype()
+	return &filetype == "javascript.jsx" ? "javascript" : &filetype
 endfunction
