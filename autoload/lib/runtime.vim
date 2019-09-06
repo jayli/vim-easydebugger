@@ -96,11 +96,12 @@ function! lib#runtime#InspectInit()
 		call system(l:full_command)
 	else 
 		call s:Set_Debug_CursorLine()
+		exec "vertical botright split new"
 		call term_start(l:full_command,{ 
 			\ 'term_finish': 'close',
 			\ 'term_name':get(g:debugger,'debugger_window_name') ,
-			\ 'term_cols':s:Get_Term_Width(),
 			\ 'vertical':'1',
+			\ 'curwin':'1',
 			\ 'out_cb':'lib#runtime#Term_callback',
 			\ 'close_cb':'lib#runtime#Reset_Editor',
 			\ })
@@ -323,6 +324,7 @@ endfunction
 function! s:Get_Term_Width()
 	if winwidth(winnr()) >= 130
 		let term_width = 40 
+		let term_width = float2nr(floor(winwidth(winnr()) * 40 / 100))
 	else
 		let term_width = float2nr(floor(winwidth(winnr()) * 25 / 100))
 	endif

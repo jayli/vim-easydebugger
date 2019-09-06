@@ -61,8 +61,9 @@ function! s:Set_qflist(stacks)
 	for item in a:stacks
 		call add(fullstacks, {
 			\ 'filename':item.filename,
+			\ 'module': len(item.filename) >= 40 ? pathshorten(item.filename) : item.filename,
 			\ 'lnum':str2nr(item.linnr),
-			\ 'text':item.callstack.' | '. item.pointer,
+			\ 'text':item.callstack.' |'. item.pointer,
 			\ 'valid':1
 			\ })
 	endfor
@@ -102,7 +103,7 @@ function! s:Get_Stack(msg)
 					\	'filename': filename,
 					\	'linnr': linnr,
 					\	'callstack':callstack,
-					\	'pointer':pointer
+					\	'pointer':pointer . linnr
 					\ })
 				let i = i + 1 
 			endif
@@ -130,7 +131,7 @@ function! debugger#python#AfterStopScript(msg)
 endfunction
 
 function! debugger#python#InpectPause()
-	call lib#util#LogMsg("Delve 不支持 Pause，'Pause' is not supported by Delve")
+	call lib#util#LogMsg("PDB 不支持 Pause，'Pause' is not supported by PDB")
 endfunction
 
 function! debugger#python#ClearBreakPoint(fname,line)
