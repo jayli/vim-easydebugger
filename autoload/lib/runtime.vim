@@ -115,7 +115,7 @@ function! lib#runtime#InspectInit()
 		" Jayli
 		" 如果定义了 Quickfix Window 的输出日志的逻辑，则打开 Quickfix Window
 		if has_key(g:language_setup,"AfterStopScript")
-			exec "keepa bo 1new StackWindow"
+			" exec "keepa bo 1new" " 打开一个新窗口
 			" call s:Open_qfwindow()
 			" call s:Open_localistwindow() " 是否打开这行，对结果不影响
 		endif
