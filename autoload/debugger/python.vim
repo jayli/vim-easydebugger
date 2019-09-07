@@ -67,7 +67,11 @@ function! s:Set_qflist(stacks)
 			\ 'valid':1
 			\ })
 	endfor
-	call setqflist(fullstacks, 'r')
+	" call setqflist(fullstacks, 'r')
+	call g:Goto_window(g:debugger.original_winid)
+	call setloclist(0,fullstacks, 'r')
+	exec "below lopen"
+	call g:Goto_window(get(g:debugger,'term_winid'))
 endfunction
 
 function! s:Get_Stack(msg)

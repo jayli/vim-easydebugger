@@ -114,7 +114,8 @@ function! lib#runtime#InspectInit()
 
 		" 如果定义了 Quickfix Window 的输出日志的逻辑，则打开 Quickfix Window
 		if has_key(g:language_setup,"AfterStopScript")
-			call s:Open_qfwindow()
+			" call s:Open_qfwindow()
+			" call s:Open_localistwindow() " 是否打开这行，对结果不影响
 		endif
 
 		" 启动调试器后执行需要运行的脚本，有的调试器是需要的（比如go）
@@ -244,6 +245,7 @@ function! lib#runtime#Reset_Editor(...)
 	" 最后清空本次 Terminal 里的 log
 	"call s:LogMsg("调试结束,Debug over..")
 	call s:Close_qfwidow()
+	call s:Close_localistwindow()
 	let g:debugger.log = []
 	if exists('g:debugger._prev_msg')
 		unlet g:debugger._prev_msg
@@ -507,13 +509,13 @@ endfunction
 
 " 跳转到原始源码所在的窗口
 function! s:Goto_sourcecode_window()
-	call s:Goto_window(g:debugger.original_winid)
+	call g:Goto_window(g:debugger.original_winid)
 endfunction
 
 " 跳转到 Term 所在的窗口
 function! s:Goto_terminal_window()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
-		call s:Goto_window(get(g:debugger,'term_winid'))
+		call g:Goto_window(get(g:debugger,'term_winid'))
 	endif
 endfunction
 
@@ -523,13 +525,22 @@ function! s:Open_qfwindow()
 	call execute('below copen','silent!')
 endfunction
 
+function! s:Open_localistwindow()
+	call s:Goto_sourcecode_window()
+	call execute('below lopen','silent!')
+endfunction
+
+function! s:Close_localistwindow()
+	call execute('lclose','silent!')
+endfunction
+
 " 关闭 Quickfix window
 function! s:Close_qfwidow()
 	call execute('cclose','silent!')
 endfunction
 
 " 跳转到 Window
-function! s:Goto_window(winid) abort
+function! g:Goto_window(winid) abort
 	if a:winid == bufwinid(bufnr(""))
 		return
 	endif
