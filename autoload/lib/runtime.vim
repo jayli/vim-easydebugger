@@ -112,8 +112,10 @@ function! lib#runtime#InspectInit()
 		call term_wait(get(g:debugger,'debugger_window_name'))
 		call s:Debugger_Stop_Action(g:debugger.log)
 
+		" Jayli
 		" 如果定义了 Quickfix Window 的输出日志的逻辑，则打开 Quickfix Window
 		if has_key(g:language_setup,"AfterStopScript")
+			exec "keepa bo 1new StackWindow"
 			" call s:Open_qfwindow()
 			" call s:Open_localistwindow() " 是否打开这行，对结果不影响
 		endif
@@ -244,7 +246,7 @@ function! lib#runtime#Reset_Editor(...)
 	call execute('redraw','silent!')
 	" 最后清空本次 Terminal 里的 log
 	"call s:LogMsg("调试结束,Debug over..")
-	call s:Close_qfwidow()
+	"call s:Close_qfwidow()
 	call s:Close_localistwindow()
 	let g:debugger.log = []
 	if exists('g:debugger._prev_msg')
@@ -529,6 +531,15 @@ function! s:Open_localistwindow()
 	call s:Goto_sourcecode_window()
 	call execute('below lopen','silent!')
 endfunction
+
+function g:Open_localistwindow_once()
+	if !exists('g:debugger.lopen_done') || g:debugger.lopen_done != 1
+		call s:Goto_sourcecode_window()
+		call execute("below lopen",'silent!')
+		let g:debugger.lopen_done = 1
+	endif
+endfunction
+
 
 function! s:Close_localistwindow()
 	call execute('lclose','silent!')

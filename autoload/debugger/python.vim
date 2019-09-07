@@ -35,7 +35,10 @@ function! debugger#python#Setup()
 endfunction
 
 function! debugger#python#TermCallbackHandler(msg)
-	" call s:LogMsg(string(a:msg))
+	" 确保只在应该刷新stack时执行
+	if !exists('g:debugger.show_stack_log') || g:debugger.show_stack_log != 1
+		return
+	endif
 	if type(a:msg) == type([]) &&
 				\ len(a:msg) == 1 &&
 				\ a:msg[0] == "Can not debug non-main package" 
@@ -44,11 +47,12 @@ function! debugger#python#TermCallbackHandler(msg)
 				\ {'repeat' : 1})
 	endif
 	call s:Fillup_Quickfix_window(a:msg)
+	let g:debugger.show_stack_log = 0
 endfunction
 
 function! s:Fillup_Quickfix_window(msg)
 	let stacks = s:Get_Stack(a:msg)
-	if len(stacks) == 0
+	if len(stacks) == 0 
 		return
 	endif
 	call s:Set_qflist(stacks)
@@ -69,18 +73,30 @@ function! s:Set_qflist(stacks)
 	endfor
 	" call setqflist(fullstacks, 'r')
 	call g:Goto_window(g:debugger.original_winid)
-	call setloclist(0,fullstacks, 'r')
-	exec "below lopen"
+	" TODO 这句话执行速度很慢
+	call s:LogMsg('执行 setloclist 开始')
+	call setloclist(0, fullstacks, 'r')  " TODO local list 和 quick fix 窗口
+	call s:LogMsg('执行 setloclist 结束')
+	" 对于 locallist 来说，必须要先设置其值，再打开，顺序不能错，quickfix 窗口
+	" 可以先打开窗口再传值
+	call g:Open_localistwindow_once()
 	call g:Goto_window(get(g:debugger,'term_winid'))
 endfunction
+
 
 function! s:Get_Stack(msg)
 	let stacks = []
 	let go_stack_regx = "^->\\s\\+\\S\\{-}"
 
+	" 如果是键盘输入了单个字符
 	if len(a:msg) == 1
 		return []
 	endif
+
+	" " 如果不是 w 命令输出 stack，直接反馈空
+	" if a:msg[0] != 'w'
+	" 	return []
+	" endif
 
 	let endline = len(a:msg) - 1
 	call s:LogMsg(string(a:msg))
@@ -89,6 +105,7 @@ function! s:Get_Stack(msg)
 	"stack 信息样例:
 	"2	0x000000000105e7c1 in runtime.goexit
 	"		at /usr/local/go/src/runtime/asm_amd64.s:1333
+	" 这个循环执行的是很快的
 	while i <= endline
 		if a:msg[i] =~ go_stack_regx
 			let pointer = " "
@@ -131,7 +148,10 @@ function! debugger#python#TermSetupScript()
 endfunction
 
 function! debugger#python#AfterStopScript(msg)
+	call s:LogMsg('11111111111')
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "w\<CR>")
+	call s:LogMsg('22222222222')
+	let g:debugger.show_stack_log = 1
 endfunction
 
 function! debugger#python#InpectPause()
