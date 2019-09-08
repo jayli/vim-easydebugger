@@ -65,11 +65,12 @@ function! s:Set_qflist(stacks)
 	for item in a:stacks
 		call add(fullstacks, {
 			\ 'filename':item.filename,
-			\ 'module': len(item.filename) >= 40 ? pathshorten(item.filename) : item.filename,
+			\ 'module': s:Get_FileName(item.filename),
 			\ 'lnum':str2nr(item.linnr),
-			\ 'text':item.callstack.' |'. item.pointer,
+			\ 'text':item.callstack,
 			\ 'valid':1
 			\ })
+	" \ 'module': len(item.filename) >= 40 ? pathshorten(item.filename) : item.filename,
 	endfor
 	" call setqflist(fullstacks, 'r')
 	call g:Goto_window(g:debugger.original_winid)
@@ -83,6 +84,11 @@ function! s:Set_qflist(stacks)
 	call g:Goto_window(get(g:debugger,'term_winid'))
 endfunction
 
+function! s:Get_FileName(path)
+	let path  = simplify(a:path)
+	let fname = matchstr(path,"\\([\\/]\\)\\@<=[^\\/]\\+$")
+	return fname
+endfunction
 
 function! s:Get_Stack(msg)
 	let stacks = []

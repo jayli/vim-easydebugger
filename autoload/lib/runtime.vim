@@ -96,7 +96,11 @@ function! lib#runtime#InspectInit()
 		call system(l:full_command)
 	else 
 		call s:Set_Debug_CursorLine()
-		exec "vertical botright split new"
+		exec "vertical botright new"
+		exec "setl nomodifiable nonu nowrite"
+		let vars_winnr = winnr()
+		let g:debugger.vars_winnr = vars_winnr
+		exec "abo " . (winheight(vars_winnr) - 11) . "new"
 		call term_start(l:full_command,{ 
 			\ 'term_finish': 'close',
 			\ 'term_name':get(g:debugger,'debugger_window_name') ,
@@ -256,6 +260,7 @@ function! lib#runtime#Reset_Editor(...)
 	"call s:LogMsg("调试结束,Debug over..")
 	"call s:Close_qfwidow()
 	call s:Close_localistwindow()
+	call s:Close_varwindow()
 	let g:debugger.log = []
 	if exists('g:debugger._prev_msg')
 		unlet g:debugger._prev_msg
@@ -535,23 +540,33 @@ function! s:Open_qfwindow()
 	call execute('below copen','silent!')
 endfunction
 
+" 用locallist window 代替quickfix window
 function! s:Open_localistwindow()
 	call s:Goto_sourcecode_window()
 	call execute('below lopen','silent!')
 endfunction
 
+" 打开locallist 窗口一次，避免重复打开，堆栈信息放在 localist window中
 function g:Open_localistwindow_once()
 	if !exists('g:debugger.lopen_done') || g:debugger.lopen_done != 1
-		call s:Goto_sourcecode_window()
+		" call s:Goto_sourcecode_window()
 		" call s:Goto_terminal_window()
-		call execute("below lopen",'silent!')
+		" call g:Goto_window(g:debugger.vars_winnr)
+		call execute("below lopen 10",'silent!')
+		let g:debugger.localistwinnr = winnr()
 		let g:debugger.lopen_done = 1
 	endif
 endfunction
 
-
 function! s:Close_localistwindow()
 	call execute('lclose','silent!')
+endfunction
+
+function! s:Close_varwindow()
+	if exists('g:debugger.vars_winnr')
+		call g:Goto_window(g:debugger.vars_winnr)
+		call execute('close', 'silent!')
+	endif
 endfunction
 
 " 关闭 Quickfix window
