@@ -124,7 +124,15 @@ function! lib#runtime#InspectInit()
 		if has_key(g:language_setup, "TermSetupScript")
 			call get(g:language_setup,"TermSetupScript")()
 		endif
+
+		call s:Open_localvars_window()
 	endif
+endfunction
+
+" 在调试窗口下方打开一个新窗口
+function s:Open_localvars_window()
+
+
 endfunction
 
 function! lib#runtime#InspectCont()
@@ -535,6 +543,7 @@ endfunction
 function g:Open_localistwindow_once()
 	if !exists('g:debugger.lopen_done') || g:debugger.lopen_done != 1
 		call s:Goto_sourcecode_window()
+		" call s:Goto_terminal_window()
 		call execute("below lopen",'silent!')
 		let g:debugger.lopen_done = 1
 	endif

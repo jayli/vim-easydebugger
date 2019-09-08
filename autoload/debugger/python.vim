@@ -142,9 +142,10 @@ function! debugger#python#CommandExists()
 endfunction
 
 function! debugger#python#TermSetupScript()
-	call term_sendkeys(get(g:debugger,'debugger_window_name'), 
-				\ "break " .s:Get_Package(). ".main\<CR>")
-	call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
+	call s:LogMsg('Do Nothing')
+	" call term_sendkeys(get(g:debugger,'debugger_window_name'), 
+	" 			\ "break " .s:Get_Package(). ".main\<CR>")
+	" call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
 endfunction
 
 function! debugger#python#AfterStopScript(msg)
