@@ -15,15 +15,13 @@ VIM 的调试器插件（[演示](https://gw.alicdn.com/tfs/TB1OF9CkQvoK1RjSZFDX
 	║                               │                               ║
 	║                               │                               ║
 	║                               │                               ║
-	║           源码窗口            │           调试输出            ║
-	║    g:debugger.original_winid  │     g:debugger.term_winid     ║
+	║          Source Code          │         Debug window          ║
 	║                               │                               ║
 	║                               │                               ║
 	║                               │                               ║
 	╟───────────────────────────────┼───────────────────────────────╢
 	║                               │                               ║
-	║           调用堆栈            │           本地变量            ║
-	║   g:debugger.localist_winid   │   g:debugger.localvars_winid  ║
+	║        Callback Stacks        │          Local vars           ║
 	║                               │                               ║
 	╚═══════════════════════════════╧═══════════════════════════════╝
 
