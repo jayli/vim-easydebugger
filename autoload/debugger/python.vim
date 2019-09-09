@@ -38,40 +38,31 @@ function! debugger#python#TermCallbackHandler(msg)
 	" 刷新函数调用堆栈
 	if exists('g:debugger.show_stack_log') && g:debugger.show_stack_log == 1
 		" 确保只在应该刷新stack时执行
-		if type(a:msg) == type([]) &&
-					\ len(a:msg) == 1 &&
-					\ a:msg[0] == "Can not debug non-main package" 
-			" call timer_start(500,
-			" 		\ {-> s:LogMsg(a:msg[0])},
-			" 		\ {'repeat' : 1})
-		endif
-		call s:Fillup_Localist_window(a:msg)
 		let g:debugger.show_stack_log = 0
+		" 为了确保show_stack 和 show_localvars 的处理时序基本不乱，这个条件里
+		" 只做term的命令输出，在show_localvars 时统一做渲染，可能会有一定的冗
+		" 余，比如Fillup_localist_window 的操作可能会有多次，但始终会保证最后
+		" 一次parse是正确的
 		call debugger#python#ShowLocalVarNames()
 	endif
 
 	" 刷新本地变量列表
 	if exists('g:debugger.show_localvars') && g:debugger.show_localvars == 1
-		call s:LogMsg('-----------getlocalvars callback called----------')
-		call s:LogMsg(string(a:msg))
-		call s:Fillup_localvars_window(a:msg)
-		let g:debugger.show_localvars = 0
-		" TODO 加上这句，localvar的刷新时机是正确的，但stack只能刷新出一条出来
-		" jayli??????
-		" call timer_start(500,
-		" 		\ {-> s:Fillup_localvars_window(g:debugger.log)},
-		" 		\ {'repeat' : 1})
-		" call debugger#python#ShowStacks()
+		let localvars =  s:Fillup_localvars_window(a:msg)
+		call s:Fillup_Localist_window(a:msg)
+		if len(localvars) != 0
+			let g:debugger.show_localvars = 0
+		endif
 	endif
 endfunction
 
 function! s:Fillup_localvars_window(msg)
 	let localvars = s:Get_Localvars(a:msg)
-	call s:LogMsg('>>>>' . string(localvars))
 	call s:Set_localvarlist(localvars)
 
 	let g:debugger.log = []
 	let g:debugger.localvars = localvars
+	return localvars
 endfunction
 
 function! s:Get_Localvars(msg)
@@ -79,7 +70,6 @@ function! s:Get_Localvars(msg)
 	let var_names = []
 	for item in a:msg
 		if item =~ "^$\\s\\S\\{-}"
-			call s:LogMsg("--".item)
 			let var_name = matchstr(item,"\\(^$\\s\\)\\@<=.\\+\\(\\s=\\)\\@=")
 			let var_value = matchstr(item,"\\(^$\\s\\S\\+\\s=\\s\\)\\@<=.\\+")
 			if index(var_names, var_name) == -1
@@ -99,7 +89,6 @@ function! s:Set_localvarlist(localvars)
 	for item in a:localvars
 		let ix = ix + 1
 		let bufline_str = "*" . item.var_name . "* " . item.var_value
-		call s:LogMsg(bufline_str)
 		call setbufline(bufnr, ix, bufline_str)
 	endfor
 	if buf_oldlnum >= ix + 1
@@ -109,7 +98,6 @@ function! s:Set_localvarlist(localvars)
 	endif
 	call setbufvar(bufnr, '&modifiable', 0)
 	let g:debugger.localvars_bufinfo = getbufinfo(bufnr)
-	" TODO here jayli
 endfunction
 
 function! s:Fillup_Localist_window(msg)
@@ -120,6 +108,7 @@ function! s:Fillup_Localist_window(msg)
 	call s:Set_qflist(stacks)
 	let g:debugger.log = []
 	let g:debugger.python_stacks = stacks
+	let g:debugger.show_stack_log = 0
 endfunction
 
 function! s:Set_qflist(stacks)
@@ -140,9 +129,7 @@ function! s:Set_qflist(stacks)
 	" Quickfix 和 Localist 执行速度都很慢
 	" 这里用 Localist 代替 Quickfix 原因是 Quickfix 只能保持一个实例，可能跟用
 	" 户的源码错误日志产生冲突
-	call s:LogMsg('执行 setloclist 开始')
 	call setloclist(0, fullstacks, 'r') 
-	call s:LogMsg('执行 setloclist 结束')
 	" 对于 locallist 来说，必须要先设置其值，再打开，顺序不能错，
 	" quickfix 窗口可以先打开窗口再传值
 	call g:Open_localistwindow_once()
@@ -173,7 +160,6 @@ function! s:Get_Stack(msg)
 		if a:msg[i] =~ go_stack_regx
 			let pointer = " "
 			let callstack = lib#util#StringTrim(matchstr(a:msg[i],"\\(->\\s\\+\\)\\@<=.\\+"))
-			call s:LogMsg("============" . callstack)
 			" if i == endline 
 			" 	break
 			" endif
@@ -210,13 +196,21 @@ function! debugger#python#TermSetupScript()
 endfunction
 
 function! debugger#python#AfterStopScript(msg)
+	" 始终先尝试输出调用堆栈(再输出本地变量)
 	call debugger#python#ShowStacks()
-	" call debugger#python#ShowLocalVarNames()
+endfunction
+
+function s:set_stacks_flag(flag)
+	let g:debugger.show_stack_log = a:flag
 endfunction
 
 function! debugger#python#ShowStacks()
 	let g:debugger.show_stack_log = 1
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "w\<CR>")
+endfunction
+
+function s:set_localvars_flag(flag)
+	let g:debugger.show_localvars = a:flag
 endfunction
 
 function! debugger#python#ShowLocalVarNames()
