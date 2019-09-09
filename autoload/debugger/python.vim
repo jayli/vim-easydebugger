@@ -35,29 +35,52 @@ function! debugger#python#Setup()
 endfunction
 
 function! debugger#python#TermCallbackHandler(msg)
-	" 确保只在应该刷新stack时执行
-	if !exists('g:debugger.show_stack_log') || g:debugger.show_stack_log != 1
-		return
+	if exists('g:debugger.show_stack_log') && g:debugger.show_stack_log == 1
+		" 确保只在应该刷新stack时执行
+		if type(a:msg) == type([]) &&
+					\ len(a:msg) == 1 &&
+					\ a:msg[0] == "Can not debug non-main package" 
+			call timer_start(500,
+					\ {-> s:LogMsg(a:msg[0])},
+					\ {'repeat' : 1})
+		endif
+		call s:Fillup_Localist_window(a:msg)
+		let g:debugger.show_stack_log = 0
+		call debugger#python#ShowLocalVarNames()
 	endif
-	if type(a:msg) == type([]) &&
-				\ len(a:msg) == 1 &&
-				\ a:msg[0] == "Can not debug non-main package" 
-		call timer_start(500,
-				\ {-> s:LogMsg(a:msg[0])},
-				\ {'repeat' : 1})
+
+	if exists('g:debugger.show_localvars') && g:debugger.show_localvars == 1
+		call s:LogMsg('-----------getlocalvars callback called----------')
+		call s:LogMsg(string(a:msg))
+		call s:Fillup_localvars_window(a:msg)
+		let g:debugger.show_localvars = 0
 	endif
-	call s:Fillup_Quickfix_window(a:msg)
-	let g:debugger.show_stack_log = 0
 endfunction
 
-function! s:Fillup_Quickfix_window(msg)
+function! s:Fillup_localvars_window(msg)
+	let localvars = s:Get_Localvars(a:msg)
+	call s:Set_localvarlist(localvars)
+
+	let g:debugger.log = []
+	let g:debugger.localvars = localvars
+endfunction
+
+function! s:Get_Localvars(msg)
+	" TODO here jayli
+endfunction
+
+function! s:Set_localvarlist(msg)
+	" TODO here jayli
+endfunction
+
+function! s:Fillup_Localist_window(msg)
 	let stacks = s:Get_Stack(a:msg)
 	if len(stacks) == 0 
 		return
 	endif
 	call s:Set_qflist(stacks)
 	let g:debugger.log = []
-	let g:debugger.go_stacks = stacks
+	let g:debugger.python_stacks = stacks
 endfunction
 
 function! s:Set_qflist(stacks)
@@ -70,20 +93,24 @@ function! s:Set_qflist(stacks)
 			\ 'text':item.callstack,
 			\ 'valid':1
 			\ })
+	" 为了尽可能的避免 Localist 中的折行，只显示filename，不再用缩减的path
 	" \ 'module': len(item.filename) >= 40 ? pathshorten(item.filename) : item.filename,
 	endfor
-	" call setqflist(fullstacks, 'r')
-	call g:Goto_window(g:debugger.original_winid)
-	" TODO 这句话执行速度很慢
+	call g:Goto_sourcecode_window()
+	" TODO setloclist 这句话执行速度很慢
+	" Quickfix 和 Localist 执行速度都很慢
+	" 这里用 Localist 代替 Quickfix 原因是 Quickfix 只能保持一个实例，可能跟用
+	" 户的源码错误日志产生冲突
 	call s:LogMsg('执行 setloclist 开始')
-	call setloclist(0, fullstacks, 'r')  " TODO local list 和 quick fix 窗口
+	call setloclist(0, fullstacks, 'r') 
 	call s:LogMsg('执行 setloclist 结束')
-	" 对于 locallist 来说，必须要先设置其值，再打开，顺序不能错，quickfix 窗口
-	" 可以先打开窗口再传值
+	" 对于 locallist 来说，必须要先设置其值，再打开，顺序不能错，
+	" quickfix 窗口可以先打开窗口再传值
 	call g:Open_localistwindow_once()
 	call g:Goto_window(get(g:debugger,'term_winid'))
 endfunction
 
+" 从path中得到文件名
 function! s:Get_FileName(path)
 	let path  = simplify(a:path)
 	let fname = matchstr(path,"\\([\\/]\\)\\@<=[^\\/]\\+$")
@@ -99,19 +126,10 @@ function! s:Get_Stack(msg)
 		return []
 	endif
 
-	" " 如果不是 w 命令输出 stack，直接反馈空
-	" if a:msg[0] != 'w'
-	" 	return []
-	" endif
-
 	let endline = len(a:msg) - 1
-	call s:LogMsg(string(a:msg))
 	let i = 0
 
-	"stack 信息样例:
-	"2	0x000000000105e7c1 in runtime.goexit
-	"		at /usr/local/go/src/runtime/asm_amd64.s:1333
-	" 这个循环执行的是很快的
+	"stack 信息提取，备注：这个循环执行的是很快的
 	while i <= endline
 		if a:msg[i] =~ go_stack_regx
 			let pointer = " "
@@ -148,17 +166,18 @@ function! debugger#python#CommandExists()
 endfunction
 
 function! debugger#python#TermSetupScript()
-	call s:LogMsg('Do Nothing')
-	" call term_sendkeys(get(g:debugger,'debugger_window_name'), 
-	" 			\ "break " .s:Get_Package(). ".main\<CR>")
-	" call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
+	call term_sendkeys(get(g:debugger,'debugger_window_name'), 
+				\ "alias pi for __localvars__ in dir(): print(__localvars__,str(eval(__localvars__))[0:30])\<CR>")
 endfunction
 
 function! debugger#python#AfterStopScript(msg)
-	call s:LogMsg('11111111111')
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), "w\<CR>")
-	call s:LogMsg('22222222222')
 	let g:debugger.show_stack_log = 1
+endfunction
+
+function! debugger#python#ShowLocalVarNames()
+	call term_sendkeys(get(g:debugger,'debugger_window_name'), "pi\<CR>")
+	let g:debugger.show_localvars = 1
 endfunction
 
 function! debugger#python#InpectPause()
@@ -166,7 +185,7 @@ function! debugger#python#InpectPause()
 endfunction
 
 function! debugger#python#ClearBreakPoint(fname,line)
-	return "clearall ".a:fname.":".a:line."\<CR>"
+	return "clear ".a:fname.":".a:line."\<CR>"
 endfunction
 
 function! debugger#python#SetBreakPoint(fname,line)

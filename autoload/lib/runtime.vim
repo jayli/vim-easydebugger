@@ -2,6 +2,22 @@
 " file: debugger/runtime.vim 这里是 Debugger 运行时的标准实现，无特殊情况应当
 " 优先使用这些默认实现，如果不能满足当前调试器（比如 go 语言的 delve 不支持
 " pause），就需要重新实现一下，在 debugger/[编程语言].vim 中重写
+"
+"  ╔═══════════════════════════════╤═══════════════════════════════╗
+"  ║                               │                               ║
+"  ║                               │                               ║
+"  ║                               │                               ║
+"  ║           源码窗口            │           调试输出            ║
+"  ║    g:debugger.original_winid  │     g:debugger.term_winid     ║
+"  ║                               │                               ║
+"  ║                               │                               ║
+"  ║                               │                               ║
+"  ╟───────────────────────────────┼───────────────────────────────╢
+"  ║                               │                               ║
+"  ║           调用堆栈            │           本地变量            ║
+"  ║   g:debugger.localist_winid   │   g:debugger.localvars_winid  ║
+"  ║                               │                               ║
+"  ╚═══════════════════════════════╧═══════════════════════════════╝
 
 " 实现原理：
 " Debugger 程序运行在 Term 内，VIM 创建 Term 时可以绑定输出回调，通过监听 Term
@@ -36,6 +52,7 @@
 "   - ExecutionTerminatedMsg : {regex} : 判断 Debugger 运行结束的结束语正则
 "   - BreakFileNameRegex : {regex} : 获得程序停驻所在文件的正则
 "   - BreakLineNrRegex : {regex} : 获得程序停驻行号的正则
+"
 
 " 启动 Chrome DevTools 模式的调试服务
 function! lib#runtime#WebInspectInit()
@@ -98,9 +115,9 @@ function! lib#runtime#InspectInit()
 		call s:Set_Debug_CursorLine()
 		exec "vertical botright new"
 		exec "setl nomodifiable nonu nowrite"
-		let vars_winnr = winnr()
-		let g:debugger.vars_winnr = vars_winnr
-		exec "abo " . (winheight(vars_winnr) - 11) . "new"
+		let localvars_winid = winnr()
+		let g:debugger.localvars_winid = localvars_winid
+		exec "abo " . (winheight(localvars_winid) - 11) . "new"
 		call term_start(l:full_command,{ 
 			\ 'term_finish': 'close',
 			\ 'term_name':get(g:debugger,'debugger_window_name') ,
@@ -236,7 +253,7 @@ function! lib#runtime#Reset_Editor(...)
 	if !exists("g:debugger") 
 		return
 	endif
-	call s:Goto_sourcecode_window()
+	call g:Goto_sourcecode_window()
 	" 短名长名都不等，当前所在buf不是原始buf的话，先切换到原始Buf
 	if g:debugger.original_bufname !=  bufname('%') &&
 				\ g:debugger.original_bufname != fnameescape(fnamemodify(bufname('%'),':p'))
@@ -258,7 +275,6 @@ function! lib#runtime#Reset_Editor(...)
 	call execute('redraw','silent!')
 	" 最后清空本次 Terminal 里的 log
 	"call s:LogMsg("调试结束,Debug over..")
-	"call s:Close_qfwidow()
 	call s:Close_localistwindow()
 	call s:Close_varwindow()
 	let g:debugger.log = []
@@ -302,7 +318,7 @@ function! lib#runtime#Term_callback(channel, msg)
 		call lib#runtime#Reset_Editor('silently')
 		" 调试终止之后应该将光标停止在 Term 内
 		if winnr() != get(g:debugger, 'original_winnr')
-			call s:Goto_terminal_window()
+			call g:Goto_terminal_window()
 		endif
 	else
 		call s:Debugger_Stop_Action(g:debugger.log)
@@ -477,7 +493,7 @@ function! s:Debugger_Stop(fname, line)
 	let g:debugger.stop_fname = fname
 	let g:debugger.stop_line = a:line
 
-	call s:Goto_sourcecode_window()
+	call g:Goto_sourcecode_window()
 	let fname = s:Debugger_get_filebuf(fname)
 	" 如果读到一个不存在的文件，认为进入到 Native 部分的 Debugging，
 	" 比如进入到了 Node Native 部分 Debugging, node inspect 没有给
@@ -497,7 +513,7 @@ function! s:Debugger_Stop(fname, line)
 		call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
 	endif
 	" 凡是执行完停驻行跳转的动作，都重新定位到 Term 里，方便用户直接输入命令
-	call s:Goto_terminal_window()
+	call g:Goto_terminal_window()
 	" 只要重新停驻到新行，这一阶段的解析就完成了，log清空
 	let g:debugger.log = []
 endfunction
@@ -523,37 +539,31 @@ function! s:Goto_winnr(winnr) abort
 endfunction
 
 " 跳转到原始源码所在的窗口
-function! s:Goto_sourcecode_window()
+function! g:Goto_sourcecode_window()
 	call g:Goto_window(g:debugger.original_winid)
 endfunction
 
 " 跳转到 Term 所在的窗口
-function! s:Goto_terminal_window()
+function! g:Goto_terminal_window()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call g:Goto_window(get(g:debugger,'term_winid'))
 	endif
 endfunction
 
-" 打开 Quickfix window
-function! s:Open_qfwindow()
-	call s:Goto_sourcecode_window()
-	call execute('below copen','silent!')
-endfunction
-
 " 用locallist window 代替quickfix window
 function! s:Open_localistwindow()
-	call s:Goto_sourcecode_window()
+	call g:Goto_sourcecode_window()
 	call execute('below lopen','silent!')
 endfunction
 
 " 打开locallist 窗口一次，避免重复打开，堆栈信息放在 localist window中
 function g:Open_localistwindow_once()
 	if !exists('g:debugger.lopen_done') || g:debugger.lopen_done != 1
-		" call s:Goto_sourcecode_window()
-		" call s:Goto_terminal_window()
-		" call g:Goto_window(g:debugger.vars_winnr)
+		" call g:Goto_sourcecode_window()
+		" call g:Goto_terminal_window()
+		" call g:Goto_window(g:debugger.localvars_winid)
 		call execute("below lopen 10",'silent!')
-		let g:debugger.localistwinnr = winnr()
+		let g:debugger.localist_winid = winnr()
 		let g:debugger.lopen_done = 1
 	endif
 endfunction
@@ -563,15 +573,10 @@ function! s:Close_localistwindow()
 endfunction
 
 function! s:Close_varwindow()
-	if exists('g:debugger.vars_winnr')
-		call g:Goto_window(g:debugger.vars_winnr)
+	if exists('g:debugger.localvars_winid')
+		call g:Goto_window(g:debugger.localvars_winid)
 		call execute('close', 'silent!')
 	endif
-endfunction
-
-" 关闭 Quickfix window
-function! s:Close_qfwidow()
-	call execute('cclose','silent!')
 endfunction
 
 " 跳转到 Window
