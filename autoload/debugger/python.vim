@@ -35,30 +35,39 @@ function! debugger#python#Setup()
 endfunction
 
 function! debugger#python#TermCallbackHandler(msg)
+	" 刷新函数调用堆栈
 	if exists('g:debugger.show_stack_log') && g:debugger.show_stack_log == 1
 		" 确保只在应该刷新stack时执行
 		if type(a:msg) == type([]) &&
 					\ len(a:msg) == 1 &&
 					\ a:msg[0] == "Can not debug non-main package" 
-			call timer_start(500,
-					\ {-> s:LogMsg(a:msg[0])},
-					\ {'repeat' : 1})
+			" call timer_start(500,
+			" 		\ {-> s:LogMsg(a:msg[0])},
+			" 		\ {'repeat' : 1})
 		endif
 		call s:Fillup_Localist_window(a:msg)
 		let g:debugger.show_stack_log = 0
 		call debugger#python#ShowLocalVarNames()
 	endif
 
+	" 刷新本地变量列表
 	if exists('g:debugger.show_localvars') && g:debugger.show_localvars == 1
 		call s:LogMsg('-----------getlocalvars callback called----------')
 		call s:LogMsg(string(a:msg))
 		call s:Fillup_localvars_window(a:msg)
 		let g:debugger.show_localvars = 0
+		" TODO 加上这句，localvar的刷新时机是正确的，但stack只能刷新出一条出来
+		" jayli??????
+		" call timer_start(500,
+		" 		\ {-> s:Fillup_localvars_window(g:debugger.log)},
+		" 		\ {'repeat' : 1})
+		" call debugger#python#ShowStacks()
 	endif
 endfunction
 
 function! s:Fillup_localvars_window(msg)
 	let localvars = s:Get_Localvars(a:msg)
+	call s:LogMsg('>>>>' . string(localvars))
 	call s:Set_localvarlist(localvars)
 
 	let g:debugger.log = []
@@ -66,10 +75,40 @@ function! s:Fillup_localvars_window(msg)
 endfunction
 
 function! s:Get_Localvars(msg)
-	" TODO here jayli
+	let vars = []
+	let var_names = []
+	for item in a:msg
+		if item =~ "^$\\s\\S\\{-}"
+			call s:LogMsg("--".item)
+			let var_name = matchstr(item,"\\(^$\\s\\)\\@<=.\\+\\(\\s=\\)\\@=")
+			let var_value = matchstr(item,"\\(^$\\s\\S\\+\\s=\\s\\)\\@<=.\\+")
+			if index(var_names, var_name) == -1
+				call add(vars, {"var_name":var_name, "var_value": var_value})
+				call add(var_names, var_name)
+			endif
+		endif
+	endfor
+	return vars
 endfunction
 
-function! s:Set_localvarlist(msg)
+function! s:Set_localvarlist(localvars)
+	let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
+	let buf_oldlnum = len(getbufline(bufnr,0,'$'))
+	call setbufvar(bufnr, '&modifiable', 1)
+	let ix = 0 
+	for item in a:localvars
+		let ix = ix + 1
+		let bufline_str = "*" . item.var_name . "* " . item.var_value
+		call s:LogMsg(bufline_str)
+		call setbufline(bufnr, ix, bufline_str)
+	endfor
+	if buf_oldlnum >= ix + 1
+		call deletebufline(bufnr, ix + 1, buf_oldlnum)
+	elseif ix == 0
+		call deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
+	endif
+	call setbufvar(bufnr, '&modifiable', 0)
+	let g:debugger.localvars_bufinfo = getbufinfo(bufnr)
 	" TODO here jayli
 endfunction
 
@@ -167,17 +206,22 @@ endfunction
 
 function! debugger#python#TermSetupScript()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), 
-				\ "alias pi for __localvars__ in dir(): print(__localvars__,str(eval(__localvars__))[0:30])\<CR>")
+				\ "alias pi for __localvars__ in dir(): print('$ '+__localvars__+' =',str(eval(__localvars__))[0:30])\<CR>")
 endfunction
 
 function! debugger#python#AfterStopScript(msg)
-	call term_sendkeys(get(g:debugger,'debugger_window_name'), "w\<CR>")
+	call debugger#python#ShowStacks()
+	" call debugger#python#ShowLocalVarNames()
+endfunction
+
+function! debugger#python#ShowStacks()
 	let g:debugger.show_stack_log = 1
+	call term_sendkeys(get(g:debugger,'debugger_window_name'), "w\<CR>")
 endfunction
 
 function! debugger#python#ShowLocalVarNames()
-	call term_sendkeys(get(g:debugger,'debugger_window_name'), "pi\<CR>")
 	let g:debugger.show_localvars = 1
+	call term_sendkeys(get(g:debugger,'debugger_window_name'), "pi\<CR>")
 endfunction
 
 function! debugger#python#InpectPause()

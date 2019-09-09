@@ -114,9 +114,10 @@ function! lib#runtime#InspectInit()
 	else 
 		call s:Set_Debug_CursorLine()
 		exec "vertical botright new"
-		exec "setl nomodifiable nonu nowrite"
+		exec "setl nomodifiable nonu nowrite filetype=help"
 		let localvars_winid = winnr()
 		let g:debugger.localvars_winid = localvars_winid
+		let g:debugger.localvars_bufinfo = getbufinfo(bufnr('')) 
 		exec "abo " . (winheight(localvars_winid) - 11) . "new"
 		call term_start(l:full_command,{ 
 			\ 'term_finish': 'close',
@@ -124,6 +125,7 @@ function! lib#runtime#InspectInit()
 			\ 'vertical':'1',
 			\ 'curwin':'1',
 			\ 'out_cb':'lib#runtime#Term_callback',
+			\ 'out_timeout':400,
 			\ 'close_cb':'lib#runtime#Reset_Editor',
 			\ })
 		" 记录 Term 的 Winid
@@ -575,7 +577,11 @@ endfunction
 function! s:Close_varwindow()
 	if exists('g:debugger.localvars_winid')
 		call g:Goto_window(g:debugger.localvars_winid)
-		call execute('close', 'silent!')
+		let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
+		call setbufvar(bufnr, '&modifiable', 1)
+		call deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
+		call setbufvar(bufnr, '&modifiable', 0)
+		call execute(':q!', 'silent!')
 	endif
 endfunction
 
