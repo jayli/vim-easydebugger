@@ -8,9 +8,28 @@ VIM 的调试器插件（[演示](https://gw.alicdn.com/tfs/TB1OF9CkQvoK1RjSZFDX
 
 ![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/vim-easydebugger.gif?t=1)
 
+![](https://gw.alicdn.com/tfs/TB1JCnLfBv0gK0jSZKbXXbK2FXa-2620-1280.png)
+
+	// 视口说明
+	╔═══════════════════════════════╤═══════════════════════════════╗
+	║                               │                               ║
+	║                               │                               ║
+	║                               │                               ║
+	║           源码窗口            │           调试输出            ║
+	║    g:debugger.original_winid  │     g:debugger.term_winid     ║
+	║                               │                               ║
+	║                               │                               ║
+	║                               │                               ║
+	╟───────────────────────────────┼───────────────────────────────╢
+	║                               │                               ║
+	║           调用堆栈            │           本地变量            ║
+	║   g:debugger.localist_winid   │   g:debugger.localvars_winid  ║
+	║                               │                               ║
+	╚═══════════════════════════════╧═══════════════════════════════╝
+
 ### 一个精简的 VIM 调试器
 
-VIM 上一直缺少好用的断点跟踪调试插件，在命令行环境中 Debug 代码通常用打 Log 的方式。VIM 从 8.1 版本开始支持“终端”特性（Terminal），并内置了基于`c`语言的 GDB 调试器，强大的 Terminal 特性让 Debugger 插件开发难度大大降低，不用依赖其他代理嫁接在 Debug 服务 （GDB Server） 和调试器（Inspector）之间，从而避免重写 Debugger 协议（[Debugger Protocol](https://chromedevtools.github.io/debugger-protocol-viewer/v8/)），同时基于 Terminal 的原生命令行支持，也大大简化了 VIM 视窗的管理。Vim-Easydebugger 就是基于 Terminal 特性实现的调试器，只依赖 JS 运行环境 [node](https://nodejs.org)、Go 调试器 [Delve](https://github.com/derekparker/delve) 和 VimL，安装配置非常方便。
+VIM 从 8.1 版本开始支持“终端”特性（Terminal），并内置了基于`c`语言的 GDB 调试器，强大的 Terminal 特性让 Debugger 插件开发难度大大降低，不用依赖其他代理嫁接在 Debug 服务 （GDB Server） 和调试器（Inspector）之间，从而避免重写 Debugger 协议（[Debugger Protocol](https://chromedevtools.github.io/debugger-protocol-viewer/v8/)），同时基于 Terminal 的原生命令行支持，也大大简化了 VIM 视窗的管理。Vim-Easydebugger 就是基于 Terminal 特性实现的调试器，只依赖 VimL。需要支持的语言只须支持对应的运行环境即可：比如 JS 运行环境 [node](https://nodejs.org)、Go 调试器 [Delve](https://github.com/derekparker/delve)、Python 调试工具 [PDB](https://docs.python.org/3/library/pdb.html)。
 
 开源社区已有的 VIM 调试器现状：
 
@@ -28,11 +47,11 @@ Vim-EasyDebugger 即是基于 Terminal 实现的一个精简的调试器，目�
 
 1. 断点逐行跟踪
 2. 变量监听
-3. 支持 VIM 调试和 WebServer 连接外部调试器两种方法
+3. 支持 VIM 调试和 WebServer 连接外部调试器（外部调试连接只支持 NodeJS）两种方法
 
-NodeJS 调试基于 [Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html)，Go 的调试基于 [Delve](https://github.com/derekparker/delve)。
+NodeJS 调试基于 [Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html)，Go 的调试基于 [Delve](https://github.com/derekparker/delve)，Python 调试基于 [PDB](https://docs.python.org/3/library/pdb.html)。
 
-### 安装
+### 环境依赖
 
 **Vim 版本说明**：Vim-EasyDebugger 依赖 VIM 8.1 及以上，如果是编译安装，需要开启 `+terminal` 选项，可以通过下面命令查看是否开启了 `+terminal` 选项：
 
@@ -49,6 +68,10 @@ NodeJS 调试基于 `node inspect`（通常 v8.x 及以上的 node 都自带了�
 **Go 调试器**：
 
 Go 语言的调试基于 Delve，[参考官方文档安装](https://github.com/derekparker/delve)。
+
+**Python 调试器**
+
+Python 语言基于 Python(3) 自带的 PDB，命令行启动`python3 -m -pdb file.py`，可[参考官方文档](https://docs.python.org/3/library/pdb.html)。
 
 **安装该 VIM 插件**：
 
@@ -81,37 +104,37 @@ Done!
 在 `~/.vimrc` 中添加快捷键配置：
 
 	" Vim-EasyDebugger 快捷键配置
-	" 启动调试器的两个快捷键
-	nmap <S-R>   <Plug>EasyDebuggerInspect
-	nmap <S-W>   <Plug>EasyDebuggerWebInspect
+	" 开启 NodeJS 调试
+	nmap <S-R>	<Plug>EasyDebuggerInspect
+	nmap <S-W>	<Plug>EasyDebuggerWebInspect
 	" 暂停程序
-	nmap <F7>    <Plug>EasyDebuggerPause
-	tmap <F7>    <Plug>EasyDebuggerPause
+	nmap <F6>	<Plug>EasyDebuggerPause
+	tmap <F6>	<Plug>EasyDebuggerPause
+	" 跳出函数
+	nmap <F7>	<Plug>EasyDebuggerStepOut
+	tmap <F7>	<Plug>EasyDebuggerStepOut
 	" 进入函数
 	nmap <F8>   <Plug>EasyDebuggerStepIn
 	tmap <F8>   <Plug>EasyDebuggerStepIn
-	" 跳出函数
-	nmap <S-F8> <Plug>EasyDebuggerStepOut
-	tmap <S-F8> <Plug>EasyDebuggerStepOut
 	" 单步执行
-	nmap <F9>    <Plug>EasyDebuggerNext
-	tmap <F9>    <Plug>EasyDebuggerNext
+	nmap <F9>	<Plug>EasyDebuggerNext
+	tmap <F9>	<Plug>EasyDebuggerNext
 	" Continue
-	nmap <F10>   <Plug>EasyDebuggerContinue
-	tmap <F10>   <Plug>EasyDebuggerContinue
+	nmap <F10>	<Plug>EasyDebuggerContinue
+	tmap <F10>	<Plug>EasyDebuggerContinue
 	" 设置断点
-	nmap <F12>   <Plug>EasyDebuggerSetBreakPoint
+	nmap <F12>	<Plug>EasyDebuggerSetBreakPoint
 
 快捷键说明：
 
 - <kbd>Shift-R</kbd> ：启动 VIM 调试器
-- <kbd>Shift-W</kbd> ：启动 Chrome DevTools 调试服务
-- <kbd>F7</kbd> ：暂停执行
-- <kbd>Shift-F7</kbd> ：跳出函数
-- <kbd>F8</kbd> ：单步进入
-- <kbd>F9</kbd> ：单步执行
-- <kbd>F10</kbd> ：继续执行
-- <kbd>F12</kbd> ：给当前行设置断点 
+- <kbd>Shift-W</kbd> ：启动 Chrome DevTools 调试服务（仅支持NodeJS）
+- <kbd>F6</kbd> ：暂停执行，pause
+- <kbd>F7</kbd> ：跳出函数，Python 中为`up`命令
+- <kbd>F8</kbd> ：单步进入，stepin
+- <kbd>F9</kbd> ：单步执行，next
+- <kbd>F10</kbd> ：继续执行，continue
+- <kbd>F12</kbd> ：给当前行设置断点，break
 
 命令列表：
 
