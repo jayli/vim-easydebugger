@@ -47,6 +47,7 @@
 "   - TermCallbackHandler : {function} : Terminal 有输出回调时，会追加执行的脚本
 "   - DebuggerNotInstalled : {string} : Debugger 未安装的提示文案
 "   - WebDebuggerCommandPrefix : {string} : Debugger Web 服务启动的命令前缀
+"   - ShowLocalVarsWindow : {Number} : 是否显示本地变量窗口
 "   - LocalDebuggerCommandPrefix : {string} : Debugger 启动的命令前缀
 "   - LocalDebuggerCommandSufix : {string} : Debugger 命令启动的后缀
 "   - ExecutionTerminatedMsg : {regex} : 判断 Debugger 运行结束的结束语正则
@@ -114,6 +115,7 @@ function! lib#runtime#InspectInit()
 	else 
 		call s:Set_Debug_CursorLine()
 		exec "vertical botright new"
+		" nowrite 是一个全局配置，所有窗口不可写，退出时需重置
 		exec "setl nomodifiable nonu nowrite filetype=help"
 		let localvars_winid = winnr()
 		let g:debugger.localvars_winid = localvars_winid
@@ -583,6 +585,8 @@ function! s:Close_varwindow()
 			call setbufvar(bufnr, '&modifiable', 0)
 		endif
 		call execute(':q!', 'silent!')
+		" 代码窗口回复可写状态
+		call execute('setl write', 'silent!')
 	endif
 endfunction
 
