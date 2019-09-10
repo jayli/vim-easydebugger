@@ -118,7 +118,13 @@ function! lib#runtime#InspectInit()
 		let localvars_winid = winnr()
 		let g:debugger.localvars_winid = localvars_winid
 		let g:debugger.localvars_bufinfo = getbufinfo(bufnr('')) 
-		exec "abo " . (winheight(localvars_winid) - 11) . "new"
+		if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
+			" 如果调试器支持输出本地变量，则创建本地变量窗口
+			exec "abo " . (winheight(localvars_winid) - 11) . "new"
+		else
+			" or Do Nothing
+		endif
+
 		call term_start(l:full_command,{ 
 			\ 'term_finish': 'close',
 			\ 'term_name':get(g:debugger,'debugger_window_name') ,
@@ -148,14 +154,7 @@ function! lib#runtime#InspectInit()
 			call get(g:language_setup,"TermSetupScript")()
 		endif
 
-		call s:Open_localvars_window()
 	endif
-endfunction
-
-" 在调试窗口下方打开一个新窗口
-function s:Open_localvars_window()
-
-
 endfunction
 
 function! lib#runtime#InspectCont()
@@ -577,10 +576,12 @@ endfunction
 function! s:Close_varwindow()
 	if exists('g:debugger.localvars_winid')
 		call g:Goto_window(g:debugger.localvars_winid)
-		let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
-		call setbufvar(bufnr, '&modifiable', 1)
-		call deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
-		call setbufvar(bufnr, '&modifiable', 0)
+		if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
+			let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
+			call setbufvar(bufnr, '&modifiable', 1)
+			call deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
+			call setbufvar(bufnr, '&modifiable', 0)
+		endif
 		call execute(':q!', 'silent!')
 	endif
 endfunction

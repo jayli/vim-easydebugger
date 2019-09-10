@@ -26,6 +26,7 @@ function! debugger#go#Setup()
 		\	'WebDebuggerCommandPrefix':   'dlv debug',
 		\	'LocalDebuggerCommandPrefix': 'dlv debug',
 		\	'LocalDebuggerCommandSufix':  '',
+		\	'ShowLocalVarsWindow':		  0,
 		\	'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
 		\	'BreakFileNameRegex':         "\\(>\\s\\S\\+\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
 		\	'BreakLineNrRegex':           "\\(>\\s\\S\\+\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
@@ -42,17 +43,18 @@ function! debugger#go#TermCallbackHandler(msg)
 				\ {-> s:LogMsg(a:msg[0])},
 				\ {'repeat' : 1})
 	endif
-	call s:Fillup_Quickfix_window(a:msg)
+	call s:Fillup_Localist_window(a:msg)
 endfunction
 
-function! s:Fillup_Quickfix_window(msg)
+function! s:Fillup_Localist_window(msg)
 	let stacks = s:Get_Stack(a:msg)
-	if len(stacks) == 0
+	if len(stacks) == 0 
 		return
 	endif
 	call s:Set_qflist(stacks)
 	let g:debugger.log = []
-	let g:debugger.go_stacks = stacks
+	let g:debugger.callback_stacks = stacks
+	let g:debugger.show_stack_log = 0
 endfunction
 
 function! s:Set_qflist(stacks)
@@ -60,12 +62,17 @@ function! s:Set_qflist(stacks)
 	for item in a:stacks
 		call add(fullstacks, {
 			\ 'filename':item.filename,
+			\ 'module': pathshorten(item.filename),
 			\ 'lnum':str2nr(item.linnr),
 			\ 'text':item.callstack.' | '. item.pointer,
 			\ 'valid':1
 			\ })
 	endfor
-	call setqflist(fullstacks, 'r')
+	" call setqflist(fullstacks, 'r')
+	call g:Goto_sourcecode_window()
+	call setloclist(0, fullstacks, 'r') 
+	call g:Open_localistwindow_once()
+	call g:Goto_window(get(g:debugger,'term_winid'))
 endfunction
 
 function! s:Get_Stack(msg)

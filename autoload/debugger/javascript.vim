@@ -20,13 +20,14 @@ function! debugger#javascript#Setup()
 		\	'TermSetupScript':            function('debugger#javascript#TermSetupScript'),
 		\	'AfterStopScript':            function('debugger#javascript#AfterStopScript'),
 		\	'TermCallbackHandler':        function('debugger#javascript#TermCallbackHandler'),
+		\	'ShowLocalVarsWindow':		  0,
 		\
 		\	'DebuggerNotInstalled':       '系统没有安装 Node！Please install node first.',
 		\	'WebDebuggerCommandPrefix':   'node --inspect-brk',
 		\	'LocalDebuggerCommandPrefix': 'node inspect',
 		\	'LocalDebuggerCommandSufix':  '2>/dev/null',
 		\	'ExecutionTerminatedMsg':     'Waiting for the debugger to disconnect',
-		\	'BreakFileNameRegex':         "\\(\\(break in\\|Break on start in\\)\\s\\)\\@<=.\\{\-}\\(:\\)\\@=",
+		\	'BreakFileNameRegex':         "\\(^\\(break in\\|Break on start in\\)\\s.\\{-}:\\/\\/\\)\\@<=.\\{-}\\(:\\)\\@=",
 		\	'BreakLineNrRegex':           "\\(^>\\s\\|^>\\)\\@<=\\(\\d\\{1,10000}\\)\\(\\s\\)\\@=",
 		\ }
 
@@ -47,10 +48,10 @@ function! debugger#javascript#SetBreakPoint(fname,line)
 endfunction
 
 function! debugger#javascript#TermCallbackHandler(msg)
-	call s:Fillup_Quickfix_window(a:msg)
+	call s:Fillup_Localist_window(a:msg)
 endfunction
 
-function! s:Fillup_Quickfix_window(msg)
+function! s:Fillup_Localist_window(msg)
 	if len(a:msg) < 2
 		return
 	endif
@@ -68,14 +69,21 @@ endfunction
 function! s:Set_qflist(stacks)
 	let fullstacks = []
 	for item in a:stacks
+		" hack filename
+		let fn = substitute(item.filename,"^file:\\/\\/","","g")
 		call add(fullstacks, {
-			\ 'filename':item.filename,
+			\ 'filename':fn,
+			\ 'module': fn,
 			\ 'lnum':str2nr(item.linnr),
 			\ 'text':item.callstack,
 			\ 'valid':1
 			\ })
 	endfor
-	call setqflist(fullstacks, 'r')
+	" call setqflist(fullstacks, 'r')
+	call g:Goto_sourcecode_window()
+	call setloclist(0, fullstacks, 'r') 
+	call g:Open_localistwindow_once()
+	call g:Goto_window(get(g:debugger,'term_winid'))
 endfunction
 
 function! s:Get_Stack(msg)

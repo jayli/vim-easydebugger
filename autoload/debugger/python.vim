@@ -26,6 +26,7 @@ function! debugger#python#Setup()
 		\	'DebuggerNotInstalled':       'pdb not installed ！Please install pdb first.',
 		\	'WebDebuggerCommandPrefix':   'python3 -m pdb',
 		\	'LocalDebuggerCommandPrefix': 'python3 -m pdb',
+		\	'ShowLocalVarsWindow':		  1,
 		\	'LocalDebuggerCommandSufix':  '',
 		\	'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
 		\	'BreakFileNameRegex':		  "\\(>\\s\\+\\)\\@<=\\S\\{-}\\.py\\(\\S\\+\\)\\@=",
@@ -107,7 +108,7 @@ function! s:Fillup_Localist_window(msg)
 	endif
 	call s:Set_qflist(stacks)
 	let g:debugger.log = []
-	let g:debugger.python_stacks = stacks
+	let g:debugger.callback_stacks = stacks
 	let g:debugger.show_stack_log = 0
 endfunction
 
@@ -196,7 +197,6 @@ function! debugger#python#TermSetupScript()
 endfunction
 
 function! debugger#python#AfterStopScript(msg)
-	" 始终先尝试输出调用堆栈(再输出本地变量)
 	call debugger#python#ShowStacks()
 endfunction
 
@@ -228,18 +228,6 @@ endfunction
 
 function! debugger#python#SetBreakPoint(fname,line)
 	return "break ".a:fname.":".a:line."\<CR>"
-endfunction
-
-function! s:Get_Package()
-	let lines = getbufline(g:debugger.original_bnr,1,'$')
-	let pkg = ""
-	for line in lines
-		if line =~ "^\\s\\{-}package\\s\\{-}\\w\\{1,}"
-			let pkg = matchstr(line,"\\(^\\s\\{-}package\\s\\{-}\\)\\@<=\\w\\{1,}")
-			break
-		endif
-	endfor
-	return pkg
 endfunction
 
 " 输出 LogMsg
