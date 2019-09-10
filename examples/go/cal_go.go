@@ -1,4 +1,3 @@
-// kkkkkk
 package main
 
 import "fmt"
