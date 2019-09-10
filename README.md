@@ -172,9 +172,11 @@ JavaScript 暂未实现本地变量监视。启动调试后，程序自动执行
 
 ![](https://gw.alicdn.com/tfs/TB1BWUqfrr1gK0jSZR0XXbP8XXa-1137-629.gif)
 
-Go 语言暂未实现本地变量监视。启动调试后自动执行`dlv debug {filename}`，更多指令参照 Go Delve [官网文档](https://github.com/derekparker/delve/tree/master/Documentation/cli)。敲击两次 <kbd>Ctrl-C</kbd> 终止调试。也可以执行`exit`退出调试。
+Go 语言暂未实现本地变量监视。启动调试后自动执行`dlv debug {filename}`，并自动停留在 main() 函数处，更多指令参照 Go Delve [官网文档](https://github.com/derekparker/delve/tree/master/Documentation/cli)。敲击两次 <kbd>Ctrl-C</kbd> 终止调试。也可以执行`exit`退出调试。
 
-> - 对于 Go 来说，调试器启动后会停留在 main() 函数处。
+Go 语言堆栈查看示例：
+
+![](https://gw.alicdn.com/tfs/TB1HKcpfpP7gK0jSZFjXXc5aXXa-1132-628.gif)
 
 #### - NodeJS 的 Chrome DevTools 调试模式
 
