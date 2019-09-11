@@ -131,7 +131,7 @@ Done!
 
 #### - VIM 调试模式
 
-在 Normal 模式下按下 <kbd>Shift-R</kbd> 进入 VIM 调试模式，自动打开 Debugger 命令窗口。默认情况下，调试窗口中启动诸如 `python -m pdb {filename}` 的命令，其中`{filename}`为当前所在文件，如果调试运行文件的入口不是当前文件，需要在当前代码前部注释中添加`debugger_entry =`，以 Python 为例：
+在 Normal 模式下按下 <kbd>Shift-R</kbd> 进入 VIM 调试模式，自动打开 Debugger 命令窗口。默认情况下，调试窗口中启动诸如 `python -m pdb {filename}` 的命令，其中`{filename}`为当前所在文件，如果调试运行文件的入口不是当前文件，需要在当前代码前部注释中添加`debugger_entry = {filepath}`（{filepath}需为绝对路径），以 Python 为例：
 
 	# debugger_entry = /Users/bachi/jayli/gogogo/python/index.py
 
