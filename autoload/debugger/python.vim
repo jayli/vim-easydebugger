@@ -130,7 +130,7 @@ function! s:Set_qflist(stacks)
 	" Quickfix 和 Localist 执行速度都很慢
 	" 这里用 Localist 代替 Quickfix 原因是 Quickfix 只能保持一个实例，可能跟用
 	" 户的源码错误日志产生冲突
-	call setloclist(0, fullstacks) 
+	call setloclist(0, fullstacks, 'r') 
 	" 对于 locallist 来说，必须要先设置其值，再打开，顺序不能错，
 	" quickfix 窗口可以先打开窗口再传值
 	call g:Open_localistwindow_once()
