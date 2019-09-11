@@ -6,7 +6,7 @@
 
 VIM 的调试器插件（[演示](https://gw.alicdn.com/tfs/TB1cS7ofED1gK0jSZFGXXbd3FXa-1137-627.gif)，以 Python 语言为例） @author：[Jayli](http://jayli.github.io/)
 
-![](https://gw.alicdn.com/tfs/TB1cS7ofED1gK0jSZFGXXbd3FXa-1137-627.gif)
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif)
 
 ### 一个精简的 VIM 调试器
 
@@ -170,13 +170,13 @@ JavaScript 暂未实现本地变量监视。启动调试后，程序自动执行
 
 #### - Go
 
-![](https://gw.alicdn.com/tfs/TB1BWUqfrr1gK0jSZR0XXbP8XXa-1137-629.gif)
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/go_demo.gif)
 
 Go 语言暂未实现本地变量监视。启动调试后自动执行`dlv debug {filename}`，并自动停留在 main() 函数处，更多指令参照 Go Delve [官网文档](https://github.com/derekparker/delve/tree/master/Documentation/cli)。敲击两次 <kbd>Ctrl-C</kbd> 终止调试。也可以执行`exit`退出调试。
 
 Go 语言堆栈查看示例：
 
-![](https://gw.alicdn.com/tfs/TB1HKcpfpP7gK0jSZFjXXc5aXXa-1132-628.gif)
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/go_demo_stack.gif)
 
 #### - NodeJS 的 Chrome DevTools 调试模式
 
