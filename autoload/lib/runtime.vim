@@ -236,7 +236,8 @@ function! lib#runtime#InspectSetBreakPoint()
 				\ index(g:debugger.bufs,bufname('%')) >= 0 ||
 				\ bufwinnr(bufnr('')) == g:debugger.original_winnr)
 		let line = line('.')
-		let fname = bufname('%')
+		" let fname = bufname('%')
+		let fname = expand("%:p")
 		let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
 		if breakpoint_contained >= 0
 			" 已经存在 BreakPoint，则清除掉 BreakPoint

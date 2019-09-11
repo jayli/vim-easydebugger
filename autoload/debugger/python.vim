@@ -73,7 +73,7 @@ function! s:Get_Localvars(msg)
 		if item =~ "^$\\s\\S\\{-}"
 			let var_name = matchstr(item,"\\(^$\\s\\)\\@<=.\\+\\(\\s=\\)\\@=")
 			let var_value = matchstr(item,"\\(^$\\s\\S\\+\\s=\\s\\)\\@<=.\\+")
-			if index(var_names, var_name) == -1
+			if index(var_names, var_name) == -1 && var_name != '__localvars__'
 				call add(vars, {"var_name":var_name, "var_value": var_value})
 				call add(var_names, var_name)
 			endif
@@ -192,12 +192,17 @@ function! debugger#python#CommandExists()
 endfunction
 
 function! debugger#python#TermSetupScript()
+	call s:SetPythonLocalvarsCmd()
+endfunction
+
+function! s:SetPythonLocalvarsCmd()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'), 
 				\ "alias pi for __localvars__ in dir(): print('$ '+__localvars__+' =',str(eval(__localvars__))[0:80])\<CR>")
 endfunction
 
 function! debugger#python#AfterStopScript(msg)
 	call debugger#python#ShowStacks()
+	call s:SetPythonLocalvarsCmd()
 endfunction
 
 function s:set_stacks_flag(flag)
