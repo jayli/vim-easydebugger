@@ -135,6 +135,10 @@ Done!
 
 	# debugger_entry = /Users/bachi/jayli/gogogo/python/index.py
 
+退出调试模式：光标在 Terminal 时，一般使用 `Ctrl-D` 退出。
+
+Terminal 窗口如何滚动：进入 Terminal-Normal 模式即可，光标在 Terminal 时通过 `Ctrl-w N`（Ctrl-w，Shift-N）进入，`i` 或者 `a` 再次进入 Terminal 交互模式。
+
 界面说明:
 
 	╔═══════════════════════════════╤═══════════════════════════════╗
