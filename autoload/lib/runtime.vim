@@ -606,7 +606,9 @@ function! s:Close_varwindow()
 			call deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
 			call setbufvar(bufnr, '&modifiable', 0)
 		endif
-		call execute(':q!', 'silent!')
+		if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
+			call execute(':q!', 'silent!')
+		endif
 		" 代码窗口回复可写状态
 		call execute('setl write', 'silent!')
 	endif
