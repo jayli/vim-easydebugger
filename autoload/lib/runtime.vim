@@ -87,6 +87,19 @@ function! lib#runtime#WebInspectInit()
 	call s:Echo_debugging_info(l:full_command)
 endfunction
 
+" 如果 存在 debugger_entry = ... 优先从这里先启动
+function! s:GetDebuggerEntry()
+	let filename = ''
+	let code_lines = getbufline(bufnr(''),1,'$')
+	for line in code_lines
+		if line  =~ "^\\(#\\|\"\\|//\\)\\s\\{-}debugger_entry\\s\\{-}=" 
+			let filename = matchstr(line , "\\(\\s\\{-}debugger_entry\\s\\{-}=\\s\\{-}\\)\\@<=.\\+")
+			return filename
+		endif
+	endfor
+	return ""
+endfunction
+
 " VIM 调试模式
 function! lib#runtime#InspectInit()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
@@ -101,7 +114,10 @@ function! lib#runtime#InspectInit()
 		return ""
 	endif
 
-	let l:command = get(g:language_setup,'LocalDebuggerCommandPrefix') . ' ' . getbufinfo('%')[0].name
+	let in_file_debugger_entry = s:GetDebuggerEntry()
+	let debug_filename = in_file_debugger_entry == "" ? getbufinfo('%')[0].name : in_file_debugger_entry
+	let l:command = get(g:language_setup,'LocalDebuggerCommandPrefix') . ' ' . debug_filename
+	call s:LogMsg('====' . in_file_debugger_entry)
 	if has_key(g:language_setup, "LocalDebuggerCommandSufix")
 		let l:full_command = s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix"))
 	else
@@ -216,7 +232,9 @@ function! lib#runtime#InspectSetBreakPoint()
 		return ""
 	endif
 	" 如果是当前文件所在的 Buf 或者是临时加载的 Buf
-	if exists("g:debugger") && (bufnr('') == g:debugger.original_bnr || index(g:debugger.bufs,bufname('%')) >= 0)
+	if exists("g:debugger") && (bufnr('') == g:debugger.original_bnr || 
+				\ index(g:debugger.bufs,bufname('%')) >= 0 ||
+				\ bufwinnr(bufnr('')) == g:debugger.original_winnr)
 		let line = line('.')
 		let fname = bufname('%')
 		let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
@@ -236,6 +254,8 @@ function! lib#runtime#InspectSetBreakPoint()
 			exec ":sign place ".sid." line=".line." name=break_point file=".s:Get_Fullname(fname)
 			call s:LogMsg("设置断点成功")
 		endif
+	else
+		call s:LogMsg('设置断点无响应')
 	endif
 endfunction
 
@@ -410,6 +430,7 @@ function! s:Get_Term_Stop_Msg(log)
 	let fname = ''
 	let fn_regex = get(g:language_setup, "BreakFileNameRegex")
 	let nr_regex = get(g:language_setup, "BreakLineNrRegex")
+
 
 	for line in a:log
 		let fn = matchstr(line, fn_regex)
