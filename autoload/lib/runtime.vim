@@ -117,7 +117,6 @@ function! lib#runtime#InspectInit()
 	let in_file_debugger_entry = s:GetDebuggerEntry()
 	let debug_filename = in_file_debugger_entry == "" ? getbufinfo('%')[0].name : in_file_debugger_entry
 	let l:command = get(g:language_setup,'LocalDebuggerCommandPrefix') . ' ' . debug_filename
-	call s:LogMsg('====' . in_file_debugger_entry)
 	if has_key(g:language_setup, "LocalDebuggerCommandSufix")
 		let l:full_command = s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix"))
 	else
