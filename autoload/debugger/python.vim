@@ -50,6 +50,7 @@ function! debugger#python#TermCallbackHandler(msg)
 	" 刷新本地变量列表
 	if exists('g:debugger.show_localvars') && g:debugger.show_localvars == 1
 		let localvars =  s:Fillup_localvars_window(a:msg)
+		call s:Fillup_Stacks_window(a:msg)
 		call s:Fillup_Localist_window(a:msg)
 		if len(localvars) != 0
 			let g:debugger.show_localvars = 0
@@ -80,6 +81,38 @@ function! s:Get_Localvars(msg)
 		endif
 	endfor
 	return vars
+endfunction
+
+function! s:Fillup_Stacks_window(msg)
+	let stacks = s:Get_Stack(a:msg)
+	if len(stacks) == 0 
+		return
+	endif
+	call s:Set_stackslist(stacks)
+	let g:debugger.log = []
+	let g:debugger.callback_stacks = stacks
+	let g:debugger.show_stack_log = 0
+endfunction
+
+function! s:Set_stackslist(stacks)
+	let bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
+	let buf_oldlnum = len(getbufline(bufnr,0,'$'))
+	call setbufvar(bufnr, '&modifiable', 1)
+	let ix = 0 
+	for item in a:stacks
+		let ix = ix + 1
+		let bufline_str = "*" . s:Get_FileName(item.filename) . "* : " .
+					\ "|" . item.linnr . "|" .
+					\ " → " . item.callstack
+		call setbufline(bufnr, ix, bufline_str)
+	endfor
+	if buf_oldlnum >= ix + 1
+		call deletebufline(bufnr, ix + 1, buf_oldlnum)
+	elseif ix == 0
+		call deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
+	endif
+	call setbufvar(bufnr, '&modifiable', 0)
+	let g:debugger.stacks_bufinfo = getbufinfo(bufnr)
 endfunction
 
 function! s:Set_localvarlist(localvars)
@@ -122,8 +155,6 @@ function! s:Set_qflist(stacks)
 			\ 'text':item.callstack,
 			\ 'valid':1
 			\ })
-	" 为了尽可能的避免 Localist 中的折行，只显示filename，不再用缩减的path
-	" \ 'module': len(item.filename) >= 40 ? pathshorten(item.filename) : item.filename,
 	endfor
 	call g:Goto_sourcecode_window()
 	" TODO setloclist 这句话执行速度很慢

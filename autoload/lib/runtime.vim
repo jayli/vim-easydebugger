@@ -129,9 +129,20 @@ function! lib#runtime#InspectInit()
 		call system(l:full_command)
 	else 
 		call s:Set_Debug_CursorLine()
-		exec "vertical botright new"
-		" nowrite 是一个全局配置，所有窗口不可写，退出时需重置
-		exec "setl nomodifiable nonu nowrite filetype=help"
+
+		"-------------------
+		" 创建stack window
+		sil! exec "bo 10new"
+		" 设置stack window 属性
+		let g:debugger.stacks_winid = winnr()
+		let g:debugger.stacks_bufinfo = getbufinfo(bufnr('')) 
+		exec s:Get_cfg_list_window_status_cmd()
+		exec 'setl nu'
+		call g:Goto_sourcecode_window()
+		"-------------------
+		sil! exec "vertical botright new"
+		" 设置localvar window 属性
+		exec s:Get_cfg_list_window_status_cmd()
 		let localvars_winid = winnr()
 		let g:debugger.localvars_winid = localvars_winid
 		let g:debugger.localvars_bufinfo = getbufinfo(bufnr('')) 
@@ -300,6 +311,7 @@ function! lib#runtime#Reset_Editor(...)
 	"call s:LogMsg("调试结束,Debug over..")
 	call s:Close_localistwindow()
 	call s:Close_varwindow()
+	call s:Close_stackwindow()
 	let g:debugger.log = []
 	if exists('g:debugger._prev_msg')
 		unlet g:debugger._prev_msg
@@ -378,12 +390,7 @@ endfunction
 
 " 获得 term 宽度
 function! s:Get_Term_Width()
-	if winwidth(winnr()) >= 130
-		let term_width = 40 
-		let term_width = float2nr(floor(winwidth(winnr()) * 40 / 100))
-	else
-		let term_width = float2nr(floor(winwidth(winnr()) * 25 / 100))
-	endif
+	let term_width = float2nr(floor(winwidth(winnr()) * 50 / 100))
 	return term_width
 endfunction
 
@@ -574,6 +581,17 @@ function! g:Goto_terminal_window()
 	endif
 endfunction
 
+" 代替 localist 窗口
+function! s:Open_callstack_window()
+
+endfunction
+
+function! s:Get_cfg_list_window_status_cmd()
+	" nowrite 是一个全局配置，所有窗口不可写，退出时需重置
+	return "setl nomodifiable nolist nonu noudf " . 
+				\ "nowrite nowrap buftype=nofile filetype=help"
+endfunction
+
 " 用locallist window 代替quickfix window
 function! s:Open_localistwindow()
 	call g:Goto_sourcecode_window()
@@ -606,6 +624,14 @@ function! s:Close_varwindow()
 			call setbufvar(bufnr, '&modifiable', 0)
 			call execute(':q!', 'silent!')
 		endif
+		" 代码窗口回复可写状态
+		call execute('setl write', 'silent!')
+	endif
+endfunction
+
+function! s:Close_stackwindow()
+	if exists('g:debugger.stacks_winid')
+		call execute("close " . g:debugger.stacks_winid)
 		" 代码窗口回复可写状态
 		call execute('setl write', 'silent!')
 	endif
