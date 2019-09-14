@@ -576,7 +576,8 @@ function! s:Debugger_Stop(fname, line)
 
 	call s:Sign_Set_StopPoint(fname, a:line)
 	call cursor(a:line,1)
-	call s:LogMsg('程序执行到 '.fname.' 的第 '.a:line.' 行。 ' . 
+	let shorten_filename = len(fname) > 40 ? pathshorten(fname) : fname
+	call s:LogMsg('Stop at '. shorten_filename .', line '.a:line.'. ' . 
 				\  '[Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
 	if has_key(g:language_setup, 'AfterStopScript')
 		call get(g:language_setup, 'AfterStopScript')(g:debugger.log)

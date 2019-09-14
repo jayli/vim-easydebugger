@@ -48,42 +48,44 @@ function! debugger#javascript#SetBreakPoint(fname,line)
 endfunction
 
 function! debugger#javascript#TermCallbackHandler(msg)
-	call s:Fillup_Localist_window(a:msg)
+	call s:Fillup_Stacks_window(a:msg)
 endfunction
 
-function! s:Fillup_Localist_window(msg)
+function! s:Fillup_Stacks_window(msg)
 	if len(a:msg) < 2
 		return
 	endif
-
 	let stacks = reverse(s:Get_Stack(a:msg))
 	if len(stacks) == 0
 		return
 	endif
-	call s:Set_qflist(stacks)
-	" 清空log很重要
+	call s:Set_stackslist(stacks)
 	let g:debugger.log = []
-	let g:debugger.javascript_stacks = stacks
+	let g:debugger.callback_stacks = stacks
+	let g:debugger.show_stack_log = 0
 endfunction
 
-function! s:Set_qflist(stacks)
-	let fullstacks = []
+function! s:Set_stackslist(stacks)
+	let bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
+	let buf_oldlnum = len(getbufline(bufnr,0,'$'))
+	call setbufvar(bufnr, '&modifiable', 1)
+	let ix = 0 
 	for item in a:stacks
-		" hack filename
-		let fn = substitute(item.filename,"^file:\\/\\/","","g")
-		call add(fullstacks, {
-			\ 'filename':fn,
-			\ 'module': fn,
-			\ 'lnum':str2nr(item.linnr),
-			\ 'text':item.callstack,
-			\ 'valid':1
-			\ })
+		let ix = ix + 1
+		let bufline_str = "*" . lib#util#GetFileName(item.filename) . "* : " .
+					\ "|" . item.linnr . "|" .
+					\ " → " . item.callstack . " [at] " . item.filename
+		call setbufline(bufnr, ix, bufline_str)
 	endfor
-	" call setqflist(fullstacks, 'r')
-	call g:Goto_sourcecode_window()
-	call setloclist(0, fullstacks, 'r') 
-	call g:Open_localistwindow_once()
+	if buf_oldlnum >= ix + 1
+		call deletebufline(bufnr, ix + 1, buf_oldlnum)
+	elseif ix == 0
+		call deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
+	endif
+	call setbufvar(bufnr, '&modifiable', 0)
+	let g:debugger.stacks_bufinfo = getbufinfo(bufnr)
 	call g:Goto_window(get(g:debugger,'term_winid'))
+	call execute('redraw','silent!')
 endfunction
 
 function! s:Get_Stack(msg)
@@ -102,7 +104,7 @@ function! s:Get_Stack(msg)
 			let callstack = lib#util#StringTrim(matchstr(msg[i],"\\(#\\d\\{-}\\s\\)\\@<=\\S\\{-}\\(\\s\\)\\@="))
 			let pointer = lib#util#StringTrim(matchstr(msg[i],"\\(#\\)\\@<=\\d\\{-}\\(\\s\\)\\@="))
 			call add(stacks, {
-				\	'filename': filename,
+				\	'filename': substitute(filename, "^file:\\/\\/","","g"),
 				\	'linnr': linnr,
 				\	'callstack':callstack,
 				\	'pointer':pointer
