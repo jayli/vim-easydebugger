@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# debugger_entry = /Users/bachi/jayli/gogogo/python/index.py
 
 from dotmap import DotMap as CreateObject
 import sys
@@ -30,8 +31,10 @@ def init():
     o.c.g = 5
     print(o.__name__)
     print("---------------->>")
-    # TODO 这里得到了完整的对象结构，下一步，将这个结构正确的树形图绘制出来
-    get_full_class_obj_structure(F).pprint()
+    klass_obj = get_full_class_obj_structure(F)
+    # TODO printable_list 已经正确的创建，下一步，将它正确的绘制出来
+    printable_list = get_printable_list(klass_obj)
+    print(printable_list)
     print("---------------->>")
 
     full_output = object_tree(F())
@@ -47,7 +50,24 @@ def get_full_class_obj_structure(klass):
         return CreateObject(root_obj)
     except AttributeError:
         print('入参应该是类', sys.exc_info()[0])
-    
+    return None
+
+def get_printable_list(obj):
+    # jayli
+    all_list = []
+    for item in dir(obj):
+        __import__('pdb').set_trace()
+        child_var = obj[item]
+        if type(child_var) == type(CreateObject({})):
+            child_node = get_printable_list(child_var)
+        else:
+            child_node = child_var
+        parsed_obj = {
+            "name":item,
+            "child":child_node,
+        }
+        all_list.append(parsed_obj)
+    return all_list 
 
 def create_object_from_class(klass):
     # 如果是根类

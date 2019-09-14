@@ -42,7 +42,7 @@ function! debugger#python#TermCallbackHandler(msg)
 		let g:debugger.show_stack_log = 0
 		" 为了确保show_stack 和 show_localvars 的处理时序基本不乱，这个条件里
 		" 只做term的命令输出，在show_localvars 时统一做渲染，可能会有一定的冗
-		" 余，比如Fillup_localist_window 的操作可能会有多次，但始终会保证最后
+		" 余，比如Fillup_Stacks_window的操作可能会有多次，但始终会保证最后
 		" 一次parse是正确的
 		call debugger#python#ShowLocalVarNames()
 	endif
@@ -51,7 +51,6 @@ function! debugger#python#TermCallbackHandler(msg)
 	if exists('g:debugger.show_localvars') && g:debugger.show_localvars == 1
 		let localvars =  s:Fillup_localvars_window(a:msg)
 		call s:Fillup_Stacks_window(a:msg)
-		call s:Fillup_Localist_window(a:msg)
 		if len(localvars) != 0
 			let g:debugger.show_localvars = 0
 		endif
@@ -132,40 +131,6 @@ function! s:Set_localvarlist(localvars)
 	endif
 	call setbufvar(bufnr, '&modifiable', 0)
 	let g:debugger.localvars_bufinfo = getbufinfo(bufnr)
-endfunction
-
-function! s:Fillup_Localist_window(msg)
-	let stacks = s:Get_Stack(a:msg)
-	if len(stacks) == 0 
-		return
-	endif
-	call s:Set_qflist(stacks)
-	let g:debugger.log = []
-	let g:debugger.callback_stacks = stacks
-	let g:debugger.show_stack_log = 0
-endfunction
-
-function! s:Set_qflist(stacks)
-	let fullstacks = []
-	for item in a:stacks
-		call add(fullstacks, {
-			\ 'filename':item.filename,
-			\ 'module': s:Get_FileName(item.filename),
-			\ 'lnum':str2nr(item.linnr),
-			\ 'text':item.callstack,
-			\ 'valid':1
-			\ })
-	endfor
-	call g:Goto_sourcecode_window()
-	" TODO setloclist 这句话执行速度很慢
-	" Quickfix 和 Localist 执行速度都很慢
-	" 这里用 Localist 代替 Quickfix 原因是 Quickfix 只能保持一个实例，可能跟用
-	" 户的源码错误日志产生冲突
-	call setloclist(0, fullstacks, 'r') 
-	" 对于 locallist 来说，必须要先设置其值，再打开，顺序不能错，
-	" quickfix 窗口可以先打开窗口再传值
-	call g:Open_localistwindow_once()
-	call g:Goto_window(get(g:debugger,'term_winid'))
 endfunction
 
 " 从path中得到文件名

@@ -137,12 +137,13 @@ function! lib#runtime#InspectInit()
 		let g:debugger.stacks_winid = winnr()
 		let g:debugger.stacks_bufinfo = getbufinfo(bufnr('')) 
 		exec s:Get_cfg_list_window_status_cmd()
-		exec 'setl nu'
+		call s:Add_jump_mapping()
 		call g:Goto_sourcecode_window()
 		"-------------------
 		sil! exec "vertical botright new"
 		" 设置localvar window 属性
 		exec s:Get_cfg_list_window_status_cmd()
+		exec 'setl nonu'
 		let localvars_winid = winnr()
 		let g:debugger.localvars_winid = localvars_winid
 		let g:debugger.localvars_bufinfo = getbufinfo(bufnr('')) 
@@ -309,7 +310,6 @@ function! lib#runtime#Reset_Editor(...)
 	call execute('redraw','silent!')
 	" 最后清空本次 Terminal 里的 log
 	"call s:LogMsg("调试结束,Debug over..")
-	call s:Close_localistwindow()
 	call s:Close_varwindow()
 	call s:Close_stackwindow()
 	let g:debugger.log = []
@@ -588,30 +588,26 @@ endfunction
 
 function! s:Get_cfg_list_window_status_cmd()
 	" nowrite 是一个全局配置，所有窗口不可写，退出时需重置
-	return "setl nomodifiable nolist nonu noudf " . 
+	return "setl nomodifiable nolist nu noudf " . 
 				\ "nowrite nowrap buftype=nofile filetype=help"
 endfunction
 
-" 用locallist window 代替quickfix window
-function! s:Open_localistwindow()
-	call g:Goto_sourcecode_window()
-	call execute('below lopen','silent!')
+" stack 窗口中的回车事件监听
+function! s:Add_jump_mapping()
+	call execute("nnoremap <buffer> <CR> :call lib#runtime#stack_jumpping()<CR>")
 endfunction
 
-" 打开locallist 窗口一次，避免重复打开，堆栈信息放在 localist window中
-function g:Open_localistwindow_once()
-	if !exists('g:debugger.lopen_done') || g:debugger.lopen_done != 1
-		" call g:Goto_sourcecode_window()
-		" call g:Goto_terminal_window()
-		" call g:Goto_window(g:debugger.localvars_winid)
-		call execute("below lopen 10",'silent!')
-		let g:debugger.localist_winid = winnr()
-		let g:debugger.lopen_done = 1
+function! lib#runtime#stack_jumpping()
+	let lnum = getbufinfo(bufnr(''))[0].lnum
+	if exists("g:debugger.callback_stacks")
+		let stacks = g:debugger.callback_stacks
+		let obj = stacks[lnum - 1]
+		call g:Goto_sourcecode_window()
+		call execute("e " . obj.filename)
+		call cursor(obj.linnr, 1) "TODO 定位到对应列
+	else
+		call s:LogMsg("g:debugger.callback_stacks 不存在")
 	endif
-endfunction
-
-function! s:Close_localistwindow()
-	call execute('lclose','silent!')
 endfunction
 
 function! s:Close_varwindow()
