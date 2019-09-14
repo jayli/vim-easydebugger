@@ -521,9 +521,6 @@ function! s:Debugger_Stop(fname, line)
 		return
 	endif
 
-	let g:debugger.stop_fname = fname
-	let g:debugger.stop_line = a:line
-
 	call g:Goto_sourcecode_window()
 	let fname = s:Debugger_get_filebuf(fname)
 	" 如果读到一个不存在的文件，认为进入到 Native 部分的 Debugging，
@@ -536,6 +533,7 @@ function! s:Debugger_Stop(fname, line)
 		return
 	endif
 	call execute('setlocal nocursorline','silent!')
+
 	call s:Sign_Set_StopPoint(fname, a:line)
 	call cursor(a:line,1)
 	call s:LogMsg('程序执行到 '.fname.' 的第 '.a:line.' 行。 ' . 
@@ -545,13 +543,22 @@ function! s:Debugger_Stop(fname, line)
 	endif
 	" 凡是执行完停驻行跳转的动作，都重新定位到 Term 里，方便用户直接输入命令
 	call g:Goto_terminal_window()
+	
+	let g:debugger.stop_fname = fname
+	let g:debugger.stop_line = a:line
+
 	" 只要重新停驻到新行，这一阶段的解析就完成了，log清空
 	let g:debugger.log = []
 endfunction
 
 " 重新设置 Break Point 的 Sign 标记的位置
 function! s:Sign_Set_StopPoint(fname, line)
+
 	try
+		" 如果要停驻的文件名有变化...
+		if a:fname != g:debugger.stop_fname && g:debugger.stop_fname != ""
+			exec ":sign unplace 100 file=".g:debugger.stop_fname
+		endif
 		" sign 9999 是为了防止界面抖动
 		exec ":sign place 9999 line=1 name=place_holder file=".s:Get_Fullname(a:fname)
 		exec ":sign unplace 100 file=".s:Get_Fullname(a:fname)
