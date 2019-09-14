@@ -62,6 +62,10 @@ function! lib#runtime#WebInspectInit()
 		return ""
 	endif
 
+	if !exists('g:language_setup')
+		call easydebugger#Create_Lang_Setup()
+	endif
+
 	if !get(g:language_setup,'DebuggerTester')()
 		if has_key(g:language_setup, 'DebuggerNotInstalled')
 			call s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
@@ -105,6 +109,10 @@ function! lib#runtime#InspectInit()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
 		return ""
+	endif
+
+	if !exists('g:language_setup')
+		call easydebugger#Create_Lang_Setup()
 	endif
 
 	if !get(g:language_setup,'DebuggerTester')()
@@ -187,6 +195,9 @@ function! lib#runtime#InspectInit()
 endfunction
 
 function! lib#runtime#InspectCont()
+	if !exists('g:language_setup')
+		call easydebugger#Create_Lang_Setup()
+	endif
 	if !exists('g:debugger')
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
@@ -197,6 +208,9 @@ function! lib#runtime#InspectCont()
 endfunction
 
 function! lib#runtime#InspectNext()
+	if !exists('g:language_setup')
+		call easydebugger#Create_Lang_Setup()
+	endif
 	if !exists('g:debugger')
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
@@ -207,6 +221,9 @@ function! lib#runtime#InspectNext()
 endfunction
 
 function! lib#runtime#InspectStep()
+	if !exists('g:language_setup')
+		call easydebugger#Create_Lang_Setup()
+	endif
 	if !exists('g:debugger')
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
@@ -217,6 +234,9 @@ function! lib#runtime#InspectStep()
 endfunction
 
 function! lib#runtime#InspectOut()
+	if !exists('g:language_setup')
+		call easydebugger#Create_Lang_Setup()
+	endif
 	if !exists('g:debugger')
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
@@ -227,6 +247,9 @@ function! lib#runtime#InspectOut()
 endfunction
 
 function! lib#runtime#InspectPause()
+	if !exists('g:language_setup')
+		call easydebugger#Create_Lang_Setup()
+	endif
 	if !exists('g:debugger')
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
@@ -273,11 +296,17 @@ endfunction
 
 " 清除断点
 function! lib#runtime#clearBreakpoint(fname,line)
+	if !exists('g:language_setup')
+		call easydebugger#Create_Lang_Setup()
+	endif
 	return get(g:language_setup, "ClearBreakPoint")(a:fname,a:line)
 endfunction
 
 " 设置断点
 function! lib#runtime#setBreakpoint(fname,line)
+	if !exists('g:language_setup')
+		call easydebugger#Create_Lang_Setup()
+	endif
 	return get(g:language_setup, "SetBreakPoint")(a:fname,a:line)
 endfunction
 
@@ -347,6 +376,9 @@ function! lib#runtime#Term_callback(channel, msg)
 	endif
 	let full_log = deepcopy(g:debugger.log)
 
+	if !exists("g:language_setup")
+		call easydebugger#Create_Lang_Setup()
+	endif
 	if has_key(g:language_setup, "ExecutionTerminatedMsg") && 
 				\ a:msg =~ get(g:language_setup, "ExecutionTerminatedMsg")
 		call s:Show_Close_Msg()
@@ -432,6 +464,10 @@ function! s:Get_Term_Stop_Msg(log)
 		return 0
 	endif
 
+	if !exists("g:language_setup")
+		call easydebugger#Create_Lang_Setup()
+	endif
+
 	" 因为碎片输出，这里会被执行很多次，可能有潜在的性能问题
 	let break_line = 0
 	let fname = ''
@@ -515,6 +551,10 @@ endfunction
 " 执行到什么文件的什么行
 function! s:Debugger_Stop(fname, line)
 	let fname = s:Get_Fullname(a:fname)
+
+	if !exists("g:language_setup")
+		call easydebugger#Create_Lang_Setup()
+	endif
 
 	" 如果当前停驻行和文件较上次没变化，则什么也不做
 	if fname == g:debugger.stop_fname && a:line == g:debugger.stop_line
@@ -620,6 +660,9 @@ endfunction
 function! s:Close_varwindow()
 	if exists('g:debugger.localvars_winid')
 		call g:Goto_window(g:debugger.localvars_winid)
+		if !exists('g:language_setup')
+			call easydebugger#Create_Lang_Setup()
+		endif
 		if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
 			let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
 			call setbufvar(bufnr, '&modifiable', 1)

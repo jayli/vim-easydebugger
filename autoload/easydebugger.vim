@@ -10,6 +10,13 @@ function! easydebugger#Enable()
 		return
 	endif
 
+	call s:Global_Setup()
+	call s:Bind_Nor_Map_Keys()
+	call s:Build_Command()
+	call easydebugger#BindTermMapKeys()
+endfunction
+
+function! s:Global_Setup()
 	" 全局对象
 	" g:debugger				Debugger 全局对象，运行 Term 时被初始化
 	" g:language_setup			当前语言的 Debugger 配置，当支持当前语言的情况下随文件加载初始化
@@ -20,13 +27,6 @@ function! easydebugger#Enable()
 	let g:Debug_Lang_Supported = ["javascript","go","python"]
 	let g:None_Lang_Sp_Msg = "不支持该语言，或者需要将光标切换到调试窗口, ".
 				\ "not support current lang"
-
-	" if index(g:Debug_Lang_Supported, &filetype) >= 0
-	" 	call execute('let g:language_setup = debugger#'. &filetype .'#Setup()' )
-	" endif
-
-	call s:Bind_Nor_Map_Keys()
-	call s:Build_Command()
 endfunction
 
 " 每进入一个 Buffer 都重新绑定一下 Term 的映射命令
@@ -68,7 +68,14 @@ function! s:Build_Command()
 	command! -nargs=0 -complete=command InspectPause call easydebugger#InspectPause()
 endfunction
 
+function! easydebugger#Create_Lang_Setup()
+	call s:Create_Lang_Setup()
+endfunction
+
 function! s:Create_Lang_Setup()
+	if !exists("g:Debug_Lang_Supported")
+		call s:Global_Setup()
+	endif
 	if index(g:Debug_Lang_Supported, s:Get_Filetype()) >= 0
 		call execute('let g:language_setup = debugger#'. s:Get_Filetype() .'#Setup()' )
 		if exists("g:language_setup")
@@ -81,6 +88,7 @@ function! s:Create_Lang_Setup()
 endfunction
 
 function! easydebugger#GetCtrlCmd(cmd)
+	call s:Create_Lang_Setup()
 	if !exists('g:language_setup') || !s:Language_supported(get(g:language_setup,"language")) 
 		" exec "echom string(g:language_setup)"
 		return "should_execute_nothing1"
