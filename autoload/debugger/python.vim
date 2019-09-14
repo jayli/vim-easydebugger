@@ -100,7 +100,7 @@ function! s:Set_stackslist(stacks)
 	let ix = 0 
 	for item in a:stacks
 		let ix = ix + 1
-		let bufline_str = "*" . s:Get_FileName(item.filename) . "* : " .
+		let bufline_str = "*" . lib#util#GetFileName(item.filename) . "* : " .
 					\ "|" . item.linnr . "|" .
 					\ " → " . item.callstack
 		call setbufline(bufnr, ix, bufline_str)

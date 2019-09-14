@@ -82,7 +82,8 @@ endfunction
 
 function! easydebugger#GetCtrlCmd(cmd)
 	if !exists('g:language_setup') || !s:Language_supported(get(g:language_setup,"language")) 
-		return "should_execute_nothing"
+		" exec "echom string(g:language_setup)"
+		return "should_execute_nothing1"
 	endif
 	if has_key(g:language_setup, a:cmd)
 		return get(g:language_setup, a:cmd) . "<CR>"

@@ -37,3 +37,10 @@ function! lib#util#StringTrim(str)
 	endif
 	return ""
 endfunction
+
+" 从path中得到文件名
+function! lib#util#GetFileName(path)
+	let path  = simplify(a:path)
+	let fname = matchstr(path,"\\([\\/]\\)\\@<=[^\\/]\\+$")
+	return fname
+endfunction
