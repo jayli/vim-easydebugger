@@ -76,10 +76,20 @@ function! s:Create_Lang_Setup()
 	if !exists("g:Debug_Lang_Supported")
 		call s:Global_Setup()
 	endif
+
 	if index(g:Debug_Lang_Supported, s:Get_Filetype()) >= 0
+		" 如果当前文件类型满足条件
 		call execute('let g:language_setup = debugger#'. s:Get_Filetype() .'#Setup()' )
 		if exists("g:language_setup")
 			let g:language_setup.language = s:Get_Filetype() 
+		endif
+	elseif exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running' &&
+				\ (g:debugger.localvars_winid == winnr() || g:debugger.stacks_winid == winnr())
+		" 如果调试器在运行，且在stack或者localvar窗口中
+		let ft = g:debugger.language
+		call execute('let g:language_setup = debugger#'. ft .'#Setup()' )
+		if exists("g:language_setup")
+			let g:language_setup.language = ft
 		endif
 	else
 		let g:language_setup = 0
@@ -90,7 +100,6 @@ endfunction
 function! easydebugger#GetCtrlCmd(cmd)
 	call s:Create_Lang_Setup()
 	if !exists('g:language_setup') || !s:Language_supported(get(g:language_setup,"language")) 
-		" exec "echom string(g:language_setup)"
 		return "should_execute_nothing1"
 	endif
 	if has_key(g:language_setup, a:cmd)

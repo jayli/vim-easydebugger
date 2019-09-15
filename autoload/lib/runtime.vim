@@ -138,17 +138,19 @@ function! lib#runtime#InspectInit()
 	else 
 		call s:Set_Debug_CursorLine()
 
-		"-------------------
-		" 创建stack window
+		" 创建call stack window {{{
 		sil! exec "bo 10new"
+		call s:Set_Bottom_Window_Statusline("stack")
 		" 设置stack window 属性
 		let g:debugger.stacks_winid = winnr()
 		let g:debugger.stacks_bufinfo = getbufinfo(bufnr('')) 
 		exec s:Get_cfg_list_window_status_cmd()
 		call s:Add_jump_mapping()
 		call g:Goto_sourcecode_window()
-		"-------------------
+		" }}}
+		" 创建localvar window {{{
 		sil! exec "vertical botright new"
+		call s:Set_Bottom_Window_Statusline("localvars")
 		" 设置localvar window 属性
 		exec s:Get_cfg_list_window_status_cmd()
 		exec 'setl nonu'
@@ -158,9 +160,8 @@ function! lib#runtime#InspectInit()
 		if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
 			" 如果调试器支持输出本地变量，则创建本地变量窗口
 			exec "abo " . (winheight(localvars_winid) - 11) . "new"
-		else
-			" or Do Nothing
 		endif
+		" }}}
 
 		call term_start(l:full_command,{ 
 			\ 'term_finish': 'close',
@@ -192,6 +193,17 @@ function! lib#runtime#InspectInit()
 		endif
 
 	endif
+endfunction
+
+function! s:Set_Bottom_Window_Statusline(name)
+	if a:name == "stack"
+		let stl = "%1*\ Normal\ %*%2*\ Call\ Stack\ %*\ %r%f[%M]%=Depth\ :\ %L\ "
+		exec 'setl statusline=%1*\ Normal\ %*%2*\ Call\ Stack\ %*\ %r%f[%M]%=Depth\ :\ %L\ '
+	elseif a:name == "localvars"
+		let stl = "%1*\ Normal\ %*%3*\ Local\ Variables\ %*\ %r%f[%M]%=No\ :\ %L\ "
+		exec 'setl statusline=%1*\ Normal\ %*%4*\ Local\ Variables\ %*\ %r%f[%M]%=No\ :\ %L\ '
+	endif
+	return stl
 endfunction
 
 function! lib#runtime#InspectCont()
@@ -516,6 +528,7 @@ function! s:Create_Debugger()
 	let g:debugger.original_winid       = bufwinid(bufnr(""))
 	let g:debugger.original_buf         = getbufinfo(bufnr(''))
 	let g:debugger.cwd                  = getcwd()
+	let g:debugger.language             = g:language_setup.language
 	let g:debugger.original_bufname     = bufname('%')
 	let g:debugger.original_line_nr     = line(".")
 	let g:debugger.original_col_nr      = col(".")
