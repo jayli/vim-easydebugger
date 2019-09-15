@@ -1,6 +1,6 @@
 " File:			autoload/easydebugger.vim
 " Author:		@jayli <http://jayli.github.io>
-" Description:	vim-easydebugger 的事件绑定基本在这里
+" Description:	vim-easydebugger 事件绑定和程序入口
 
 " 插件初始化入口
 function! easydebugger#Enable()
@@ -15,8 +15,8 @@ function! easydebugger#Enable()
 	call s:Bind_Term_Map_Keys()
 endfunction
 
+" 设置全局对象
 function! s:Global_Setup()
-	" 全局对象
 	" g:debugger				Debugger 全局对象，运行 Term 时被初始化
 	" g:language_setup			当前语言的 Debugger 配置，当支持当前语言的情况下随文件加载初始化
 	"							在debugger/[编程语言].vim中配置
@@ -25,15 +25,15 @@ function! s:Global_Setup()
 	
 	let g:Debug_Lang_Supported = ["javascript","go","python"]
 	let g:None_Lang_Sp_Msg = "不支持该语言，或者需要将光标切换到调试窗口, ".
-				\ "not support current lang"
+			\ "not support current lang"
 endfunction
 
-" 每进入一个 Buffer 都重新绑定一下 Term 的映射命令
+" 每进入一个 Buffer 都重新绑定一下 Terminal 的映射命令
 function! easydebugger#BindTermMapKeys()
 	call s:Bind_Term_Map_Keys()
 endfunction
 
-" VIM 启动的时候绑定一次
+" VIM 启动的时候绑定一次，非 Terminal 中的命令
 function! s:Bind_Nor_Map_Keys()
 	" 服务启动唤醒键映射
 	nnoremap <silent> <Plug>EasyDebuggerInspect :call easydebugger#InspectInit()<CR>
@@ -57,6 +57,7 @@ function! s:Bind_Term_Map_Keys()
 	exec "tnoremap <silent> <Plug>EasyDebuggerPause ".easydebugger#GetCtrlCmd('ctrl_cmd_pause')
 endfunction
 
+" 命令定义
 function! s:Build_Command()
 	command! -nargs=0 -complete=command -buffer InspectInit call easydebugger#InspectInit()
 	command! -nargs=0 -complete=command -buffer WebInspectInit call easydebugger#WebInspectInit()
@@ -67,11 +68,14 @@ function! s:Build_Command()
 	command! -nargs=0 -complete=command InspectPause call easydebugger#InspectPause()
 endfunction
 
+" 当打开新 Buffer 时根据文件类型做初始化
 function! easydebugger#Create_Lang_Setup()
 	call s:Create_Lang_Setup()
 endfunction
 
+" 同上
 function! s:Create_Lang_Setup()
+	" 初始化 g:language_setup 全局配置
 	if !exists("g:Debug_Lang_Supported")
 		call s:Global_Setup()
 	endif
@@ -180,7 +184,7 @@ function! easydebugger#InspectSetBreakPoint()
 	call get(g:language_setup,'InspectSetBreakPoint')()
 endfunction
 
-" 判断语言是否支持
+" 判断语言是否被支持
 function! s:Language_supported(...)
 	" 如果是 quickfix window 和 tagbar 时忽略
 	let ft = exists(a:0) ? a:0 : s:Get_Filetype() 
