@@ -22,7 +22,7 @@ VIM 从 8.1 版本开始支持 Terminal，并内置了 GDB 调试器，强大的
 - [Vim-Godebug](https://github.com/jodosha/vim-godebug)：Go 语言的调试器，基于 [Neovim](https://github.com/jodosha/vim-godebug) 和 [Vim-go](https://github.com/jodosha/vim-godebug)，项目更新缓慢，环境依赖太复杂，反正我是没搞定。
 - [Fisa-Vim-Config](http://fisadev.github.io/fisa-vim-config/)：Github 上关注度最高的一个 VIM 配置，Python 的支持很好，不支持 NodeJS，当前项目已经不维护了。
 
-我实现了一个简单的 VIM 调试器，基于 VIM 8.1 实现，不依赖 Python，只依赖要调试语言的调试环境。
+我基于 VIM 8.1 实现了一个简单的 VIM 调试器，不依赖 Python，只依赖要调试语言的调试环境。
 
 ### Vim-EasyDebugger 特性
 
