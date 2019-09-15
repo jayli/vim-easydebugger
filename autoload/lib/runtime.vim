@@ -7,15 +7,15 @@
 "  ║                               │                               ║
 "  ║                               │                               ║
 "  ║                               │                               ║
-"  ║           源码窗口            │           调试输出            ║
+"  ║        Source Window          │         Debug Window          ║
 "  ║    g:debugger.original_winid  │     g:debugger.term_winid     ║
 "  ║                               │                               ║
 "  ║                               │                               ║
 "  ║                               │                               ║
 "  ╟───────────────────────────────┼───────────────────────────────╢
 "  ║                               │                               ║
-"  ║           调用堆栈            │           本地变量            ║
-"  ║   g:debugger.localist_winid   │   g:debugger.localvars_winid  ║
+"  ║          Call Stack           │        Local Variables        ║
+"  ║    g:debugger.stacks_winid    │   g:debugger.localvars_winid  ║
 "  ║                               │                               ║
 "  ╚═══════════════════════════════╧═══════════════════════════════╝
 
@@ -53,9 +53,8 @@
 "   - ExecutionTerminatedMsg : {regex} : 判断 Debugger 运行结束的结束语正则
 "   - BreakFileNameRegex : {regex} : 获得程序停驻所在文件的正则
 "   - BreakLineNrRegex : {regex} : 获得程序停驻行号的正则
-"
 
-" 启动 Chrome DevTools 模式的调试服务
+" 启动 Chrome DevTools 模式的调试服务（只实现了 NodeJS）
 function! lib#runtime#WebInspectInit()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
@@ -73,9 +72,11 @@ function! lib#runtime#WebInspectInit()
 		return ""
 	endif
 
-	let l:command = get(g:language_setup,'WebDebuggerCommandPrefix') . ' ' . getbufinfo('%')[0].name
+	let l:command = get(g:language_setup,'WebDebuggerCommandPrefix') . ' ' . 
+					\ getbufinfo('%')[0].name
 	if has_key(g:language_setup, "LocalDebuggerCommandSufix")
-		let l:full_command = s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix"))
+		let l:full_command = s:StringTrim(l:command . ' ' . 
+					\ get(g:language_setup, "LocalDebuggerCommandSufix"))
 	else
 		let l:full_command = s:StringTrim(l:command)
 	endif
@@ -91,13 +92,14 @@ function! lib#runtime#WebInspectInit()
 	call s:Echo_debugging_info(l:full_command)
 endfunction
 
-" 如果 存在 debugger_entry = ... 优先从这里先启动
+" 如果存在 debugger_entry = ... 优先从这里先启动
 function! s:GetDebuggerEntry()
 	let filename = ''
 	let code_lines = getbufline(bufnr(''),1,'$')
 	for line in code_lines
 		if line  =~ "^\\(#\\|\"\\|//\\)\\s\\{-}debugger_entry\\s\\{-}=" 
-			let filename = matchstr(line , "\\(\\s\\{-}debugger_entry\\s\\{-}=\\s\\{-}\\)\\@<=.\\+")
+			let filename = matchstr(line , 
+						\ "\\(\\s\\{-}debugger_entry\\s\\{-}=\\s\\{-}\\)\\@<=.\\+")
 			return filename
 		endif
 	endfor
@@ -126,11 +128,12 @@ function! lib#runtime#InspectInit()
 	let debug_filename = in_file_debugger_entry == "" ? getbufinfo('%')[0].name : in_file_debugger_entry
 	let l:command = get(g:language_setup,'LocalDebuggerCommandPrefix') . ' ' . debug_filename
 	if has_key(g:language_setup, "LocalDebuggerCommandSufix")
-		let l:full_command = s:StringTrim(l:command . ' ' . get(g:language_setup, "LocalDebuggerCommandSufix"))
+		let l:full_command = s:StringTrim(l:command . ' ' . 
+					\ get(g:language_setup, "LocalDebuggerCommandSufix"))
 	else
 		let l:full_command = s:StringTrim(l:command)
 	endif
-	" 创建 g:debugger ，最重要的一个全局变量
+
 	call s:Create_Debugger()
 	call lib#runtime#Reset_Editor('silently')
 	if version <= 800
@@ -179,22 +182,14 @@ function! lib#runtime#InspectInit()
 		call term_wait(get(g:debugger,'debugger_window_name'))
 		call s:Debugger_Stop_Action(g:debugger.log)
 
-		" Jayli
-		" 如果定义了 Quickfix Window 的输出日志的逻辑，则打开 Quickfix Window
-		if has_key(g:language_setup,"AfterStopScript")
-			" exec "keepa bo 1new" " 打开一个新窗口
-			" call s:Open_qfwindow()
-			" call s:Open_localistwindow() " 是否打开这行，对结果不影响
-		endif
-
 		" 启动调试器后执行需要运行的脚本，有的调试器是需要的（比如go）
 		if has_key(g:language_setup, "TermSetupScript")
 			call get(g:language_setup,"TermSetupScript")()
 		endif
-
 	endif
 endfunction
 
+" 设置本地变量和调用堆栈窗口的statusline样式
 function! s:Set_Bottom_Window_Statusline(name)
 	if a:name == "stack"
 		exec 'setl statusline=%1*\ Normal\ %*%2*\ Call\ Stack\ %*\ %r%f[%M]%=Depth\ :\ %L\ '
@@ -203,6 +198,7 @@ function! s:Set_Bottom_Window_Statusline(name)
 	endif
 endfunction
 
+" Continue
 function! lib#runtime#InspectCont()
 	if !exists('g:language_setup')
 		call easydebugger#Create_Lang_Setup()
@@ -216,6 +212,7 @@ function! lib#runtime#InspectCont()
 	endif
 endfunction
 
+" Next
 function! lib#runtime#InspectNext()
 	if !exists('g:language_setup')
 		call easydebugger#Create_Lang_Setup()
@@ -229,6 +226,7 @@ function! lib#runtime#InspectNext()
 	endif
 endfunction
 
+" Stepin
 function! lib#runtime#InspectStep()
 	if !exists('g:language_setup')
 		call easydebugger#Create_Lang_Setup()
@@ -242,6 +240,7 @@ function! lib#runtime#InspectStep()
 	endif
 endfunction
 
+" Stepout
 function! lib#runtime#InspectOut()
 	if !exists('g:language_setup')
 		call easydebugger#Create_Lang_Setup()
@@ -255,6 +254,7 @@ function! lib#runtime#InspectOut()
 	endif
 endfunction
 
+" Pause
 function! lib#runtime#InspectPause()
 	if !exists('g:language_setup')
 		call easydebugger#Create_Lang_Setup()
@@ -360,8 +360,8 @@ endfunction
 function! lib#runtime#Term_callback(channel, msg)
 	" 如果消息为空
 	" 如果消息长度为1，说明正在敲入字符
-	" 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符，TODO 这
-	" 句话不精确
+	" 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符
+	" TODO 这句话不精确
 	"call s:LogMsg("--- " . a:msg . " --- 首字母 Ascii 码是: ". char2nr(a:msg))
 	if !exists('g:debugger._prev_msg')
 		let g:debugger._prev_msg = a:msg
@@ -377,8 +377,7 @@ function! lib#runtime#Term_callback(channel, msg)
 	let m = substitute(a:msg,"\\W\\[\\d\\{-}[a-zA-Z]","","g")
 	let msgslist = split(m,"\r\n")
 	let g:debugger.log += msgslist
-	" let g:debugger.log += [""]
-	" 为了防止 log 过长带来的性能问题，这里做一个上限
+	" 为了防止 log 过长性能变慢，这里做一个上限
 	let log_max_length = 50
 	if len(g:debugger.log) >= log_max_length
 		unlet g:debugger.log[0:len(g:debugger.log) - (log_max_length)]
@@ -604,7 +603,6 @@ endfunction
 
 " 重新设置 Break Point 的 Sign 标记的位置
 function! s:Sign_Set_StopPoint(fname, line)
-
 	try
 		" 如果要停驻的文件名有变化...
 		if a:fname != g:debugger.stop_fname && g:debugger.stop_fname != ""
@@ -639,11 +637,7 @@ function! g:Goto_terminal_window()
 	endif
 endfunction
 
-" 代替 localist 窗口
-function! s:Open_callstack_window()
-
-endfunction
-
+" 本地变量和调用堆栈窗口属性
 function! s:Get_cfg_list_window_status_cmd()
 	" nowrite 是一个全局配置，所有窗口不可写，退出时需重置
 	return "setl nomodifiable nolist nu noudf " . 
@@ -655,6 +649,7 @@ function! s:Add_jump_mapping()
 	call execute("nnoremap <buffer> <CR> :call lib#runtime#stack_jumpping()<CR>")
 endfunction
 
+" 调用堆栈窗口的文件行跳转
 function! lib#runtime#stack_jumpping()
 	let lnum = getbufinfo(bufnr(''))[0].lnum
 	if exists("g:debugger.callback_stacks")
