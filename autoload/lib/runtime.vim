@@ -201,7 +201,6 @@ function! s:Set_Bottom_Window_Statusline(name)
 	elseif a:name == "localvars"
 		exec 'setl statusline=%1*\ Normal\ %*%4*\ Local\ Variables\ %*\ %r%f[%M]%=No\ :\ %L\ '
 	endif
-	return stl
 endfunction
 
 function! lib#runtime#InspectCont()
