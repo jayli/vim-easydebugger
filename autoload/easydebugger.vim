@@ -4,7 +4,6 @@
 
 " 插件初始化入口
 function! easydebugger#Enable()
-
 	" VIM 8.1 以下版本不支持
 	if version <= 800
 		return
