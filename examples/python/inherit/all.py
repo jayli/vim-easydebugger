@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# debugger_entry = /Users/bachi/jayli/gogogo/python/index.py
+# debugger_entry = /Users/bachi/.vim/bundle/vim-easydebugger/examples/python/index.py
 
 from dotmap import DotMap as CreateObject
 import sys
@@ -56,7 +56,6 @@ def get_printable_list(obj):
     # jayli
     all_list = []
     for item in dir(obj):
-        __import__('pdb').set_trace()
         child_var = obj[item]
         if type(child_var) == type(CreateObject({})):
             child_node = get_printable_list(child_var)
@@ -104,6 +103,7 @@ def show_the_tree(full_output):
 def class_tree(cls, level , full_output):
     line_output = []
     
+    __import__('pdb').set_trace()
     index = 1
     if level <= 1:
         line_output = [" ",cls.__name__]
