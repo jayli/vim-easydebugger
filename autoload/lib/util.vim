@@ -1,3 +1,6 @@
+" File:			lib/util.vim
+" Author:		@jayli <http://jayli.github.io>
+" Description:	常用函数
 
 " 输出 LogMsg
 function! lib#util#LogMsg(msg)
