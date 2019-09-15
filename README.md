@@ -6,7 +6,7 @@
 
 VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif)，以 Python 语言为例） @author：[Jayli](http://jayli.github.io/)
 
-![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif)
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif?t=3)
 
 ### 一个精简的 VIM 调试器
 
