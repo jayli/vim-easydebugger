@@ -197,10 +197,8 @@ endfunction
 
 function! s:Set_Bottom_Window_Statusline(name)
 	if a:name == "stack"
-		let stl = "%1*\ Normal\ %*%2*\ Call\ Stack\ %*\ %r%f[%M]%=Depth\ :\ %L\ "
 		exec 'setl statusline=%1*\ Normal\ %*%2*\ Call\ Stack\ %*\ %r%f[%M]%=Depth\ :\ %L\ '
 	elseif a:name == "localvars"
-		let stl = "%1*\ Normal\ %*%3*\ Local\ Variables\ %*\ %r%f[%M]%=No\ :\ %L\ "
 		exec 'setl statusline=%1*\ Normal\ %*%4*\ Local\ Variables\ %*\ %r%f[%M]%=No\ :\ %L\ '
 	endif
 	return stl
