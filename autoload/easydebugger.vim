@@ -13,7 +13,7 @@ function! easydebugger#Enable()
 	call s:Global_Setup()
 	call s:Bind_Nor_Map_Keys()
 	call s:Build_Command()
-	call easydebugger#BindTermMapKeys()
+	call s:Bind_Term_Map_Keys()
 endfunction
 
 function! s:Global_Setup()
