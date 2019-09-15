@@ -88,7 +88,7 @@ Commands：
 
 Press <kbd>Shift-R</kbd> to startup debugger with `node inspect {filename}` (`dlv debug {filename}` for golang) running in terminal.
 
-<img src="https://gw.alicdn.com/tfs/TB1FyLLfVY7gK0jSZKzXXaikpXa-1990-1152.png" width=680>
+![](https://gw.alicdn.com/tfs/TB1FyLLfVY7gK0jSZKzXXaikpXa-1990-1152.png)
 
 Type `next` + <kbd>Enter</kbd> in Terminal means step over. Get more useage here: [node inspect document](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html) and [go delve document](https://github.com/derekparker/delve/tree/master/Documentation/cli). Quit debug with twice <kbd>Ctrl-C</kbd>, or input `exit` + <kbd>Enter</kbd> in Terminal.
 
