@@ -1,4 +1,4 @@
-# Vim-Easydebugger
+<img src="https://gw.alicdn.com/tfs/TB1MHTUf4D1gK0jSZFyXXciOVXa-1176-182.png" width=550 />
 
 [中文](README.md) | [English](README-en.md)
 
