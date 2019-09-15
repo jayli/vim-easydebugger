@@ -1,4 +1,4 @@
-easydebugger.txt   Last change: 2018-11-09         *easydebugger* *easydebug*
+easydebugger.txt   Last change: 2019-09-20         *easydebugger* *easydebug*
 
  oh its..
        _
@@ -45,7 +45,7 @@ favourite debugger toolkit.  By default EasyDebugger currently support:
 Requirements: 
 
   - VIM 8.1 with terminal support. 
-  - Debugger such as Node inspect and Delve.
+  - Debugger such as Node inspect , Delve and PDB.
 
 
 Mappings                                                  *debugger-mappings*
@@ -54,9 +54,9 @@ Mappings                                                  *debugger-mappings*
 Key-Maps:
 
   - Shift-R ：startup debugger
-  - Shift-W ：startup Chrome DevTools debug service
-  - F7 ：pause
-  - Shift-F7 ：stepout
+  - Shift-W ：startup Chrome DevTools debug service (for nodejs only)
+  - F6 : pause
+  - F7 ：stepout
   - F8 ：stepin
   - F9 ：stepover
   - F10 ：continue
@@ -65,13 +65,13 @@ Key-Maps:
 Commands                                                  *debugger-commands*
 =============================================================================
 
-  - InspectInit: startup debugger
+  - InspectInit:    startup debugger
   - WebInspectInit: startup Chrome DevTools debug service
-  - InspectCont: continue
-  - InspectNext: stepover
-  - InspectStep: stepin
-  - InspectOut: stepout
-  - InspectPause: pause
+  - InspectCont:    continue
+  - InspectNext:    stepover
+  - InspectStep:    stepin
+  - InspectOut:     stepout
+  - InspectPause:   pause
 
 Operations                            *debugger-operations*   *exit-debugging*
 =============================================================================

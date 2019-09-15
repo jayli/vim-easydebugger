@@ -1,6 +1,8 @@
+" File:			debugger/go.vim
+" Author:		@jayli <http://jayli.github.io>
+" Description:	Go 的实现
 
 function! debugger#go#Setup()
-
 	" Delve 不支持 Pause 
 	let setup_options = {
 		\	'ctrl_cmd_continue':          "continue",

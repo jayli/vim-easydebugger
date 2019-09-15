@@ -1,7 +1,8 @@
-
+" File:			debugger/python.vim
+" Author:		@jayli <http://jayli.github.io>
+" Description:	Python 的实现
 
 function! debugger#python#Setup()
-
 	" Delve 不支持 Pause 
 	let setup_options = {
 		\	'ctrl_cmd_continue':          "continue",

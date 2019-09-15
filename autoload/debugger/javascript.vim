@@ -1,3 +1,7 @@
+" File:			debugger/javascript.vim
+" Author:		@jayli <http://jayli.github.io>
+" Description:	Javascript 的实现
+
 " 语言全局配置
 function! debugger#javascript#Setup()
 	let setup_options = {
@@ -29,7 +33,6 @@ function! debugger#javascript#Setup()
 		\	'BreakFileNameRegex':         "\\(^\\(break in\\|Break on start in\\)\\s.\\{-}:\\/\\/\\)\\@<=.\\{-}\\(:\\)\\@=",
 		\	'BreakLineNrRegex':           "\\(^>\\s\\|^>\\)\\@<=\\(\\d\\{1,10000}\\)\\(\\s\\)\\@=",
 		\ }
-
 	return setup_options
 endfunction
 
