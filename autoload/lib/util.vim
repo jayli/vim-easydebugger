@@ -9,6 +9,13 @@ function! lib#util#LogMsg(msg)
 	echohl NONE
 endfunction
 
+" 输出警告 LogMsg
+function! lib#util#WarningMsg(msg)
+	echohl WarningMsg 
+	echom '>>> '. a:msg
+	echohl NONE
+endfunction
+
 " 获得当前 CursorLine 样式
 function! lib#util#Get_CursorLine_bgColor()
 	return lib#util#Get_BgColor('CursorLine')

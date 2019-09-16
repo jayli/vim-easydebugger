@@ -663,11 +663,15 @@ function! lib#runtime#stack_jumpping()
 	if exists("g:debugger.callback_stacks")
 		let stacks = g:debugger.callback_stacks
 		let obj = stacks[lnum - 1]
-		call g:Goto_sourcecode_window()
-		call execute("e " . obj.filename)
-		call cursor(obj.linnr, 1) "TODO 定位到对应列
+		if filereadable(obj.filename)
+			call g:Goto_sourcecode_window()
+			call execute("e " . obj.filename)
+			call cursor(obj.linnr, 1) "TODO 定位到对应列
+		else
+			call lib#util#WarningMsg(obj.filename ." not exists!")
+		endif
 	else
-		call s:LogMsg("g:debugger.callback_stacks 不存在")
+		call lib#util#WarningMsg("g:debugger.callback_stacks is undefined!")
 	endif
 endfunction
 
@@ -746,7 +750,7 @@ function! s:Debugger_get_filebuf(fname)
 		try 
 			call execute('buffer '.a:fname)
 		catch 
-			call s:LogMsg("File '" . a:fname . "' is opened in another shell. ".
+			call lib#util#WarningMsg("File '" . a:fname . "' is opened in another shell. ".
 					\ " Close it first.")
 		endtry
 	endif
