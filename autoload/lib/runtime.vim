@@ -99,7 +99,15 @@ function! s:GetDebuggerEntry()
 	for line in code_lines
 		if line  =~ "^\\(#\\|\"\\|//\\)\\s\\{-}debugger_entry\\s\\{-}=" 
 			let filename = matchstr(line , 
-						\ "\\(\\s\\{-}debugger_entry\\s\\{-}=\\s\\{-}\\)\\@<=.\\+")
+						\ "\\(\\s\\{-}debugger_entry\\s\\{-}=\\s\\{-}\\)\\@<=\\S\\+")
+			if filename =~ "^\\~/"
+				let filename = expand(filename)
+			endif
+			if filename =~ "^\\."
+				let bufile = getbufinfo(bufnr(''))[0].name
+				let bufdir = lib#util#GetDirName(bufile)
+				let filename = simplify(bufdir . filename)
+			endif
 			return filename
 		endif
 	endfor
@@ -735,7 +743,12 @@ function! s:Debugger_get_filebuf(fname)
 	endif
 	if fname != s:Get_Fullname(bufname("%"))
 		" call execute('redraw','silent!')
-		call execute('buffer '.a:fname)
+		try 
+			call execute('buffer '.a:fname)
+		catch 
+			call s:LogMsg("File '" . a:fname . "' is opened in another shell. ".
+					\ " Close it first.")
+		endtry
 	endif
 	return fname
 endfunction

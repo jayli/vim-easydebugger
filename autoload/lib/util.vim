@@ -47,3 +47,10 @@ function! lib#util#GetFileName(path)
 	let fname = matchstr(path,"\\([\\/]\\)\\@<=[^\\/]\\+$")
 	return fname
 endfunction
+
+" 从中得到目录名
+function! lib#util#GetDirName(path)
+	let path  = simplify(a:path)
+	let fname = matchstr(path,"^.\\+\\/\\([^\\/]\\{-}$\\)\\@=")
+	return fname
+endfunction

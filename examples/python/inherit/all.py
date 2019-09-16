@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# debugger_entry = /Users/bachi/.vim/bundle/vim-easydebugger/examples/python/index.py
+# debugger_entry = ../index.py
 
 from dotmap import DotMap as CreateObject
 import sys
