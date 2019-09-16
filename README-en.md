@@ -114,7 +114,7 @@ Debug mode windows:
 	║                               │                               ║
 	╚═══════════════════════════════╧═══════════════════════════════╝
 
-Type `next` + <kbd>Enter</kbd> in Terminal means step over. Quit debug with twice <kbd>Ctrl-C</kbd>, or input `exit` + <kbd>Enter</kbd> in Terminal.
+Type `next` + <kbd>Enter</kbd> in Terminal means step over. Quit debug with twice <kbd>Ctrl-C</kbd>, or input `exit` + <kbd>Enter</kbd> in Terminal. You can input `Ctrl-w N`（Ctrl-w，Shift-N）in terminal window if you want to get more output log. Type `i` to go back for interactive terminal.
 
 Press <kbd>F12</kbd> to toggle break points.
 
