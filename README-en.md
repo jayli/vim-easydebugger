@@ -86,11 +86,35 @@ Commands：
 
 ### debug mode
 
-Press <kbd>Shift-R</kbd> to startup debugger with `node inspect {filename}` (`dlv debug {filename}` for golang) running in terminal.
-
 ![](https://gw.alicdn.com/tfs/TB1FyLLfVY7gK0jSZKzXXaikpXa-1990-1152.png)
 
-Type `next` + <kbd>Enter</kbd> in Terminal means step over. Get more useage here: [node inspect document](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html) and [go delve document](https://github.com/derekparker/delve/tree/master/Documentation/cli). Quit debug with twice <kbd>Ctrl-C</kbd>, or input `exit` + <kbd>Enter</kbd> in Terminal.
+Press <kbd>Shift-R</kbd> to startup debugger with `node inspect {filename}` (`dlv debug {filename}` for golang) running in terminal. If you want to start with another {filename}. You can set `debugger_entry` in top of your source code like below:
+
+For Python:
+
+	# debugger_entry = ../index.py
+
+For Go or JavaScript
+
+	// debugger_entry = ../index.go
+
+Debug mode windows:
+
+	╔═══════════════════════════════╤═══════════════════════════════╗
+	║                               │                               ║
+	║                               │                               ║
+	║                               │                               ║
+	║          Source Code          │         Debug window          ║
+	║                               │                               ║
+	║                               │                               ║
+	║                               │                               ║
+	╟───────────────────────────────┼───────────────────────────────╢
+	║                               │                               ║
+	║        Callback Stacks        │          Local vars           ║
+	║                               │                               ║
+	╚═══════════════════════════════╧═══════════════════════════════╝
+
+Type `next` + <kbd>Enter</kbd> in Terminal means step over. Quit debug with twice <kbd>Ctrl-C</kbd>, or input `exit` + <kbd>Enter</kbd> in Terminal.
 
 Press <kbd>F12</kbd> to toggle break points.
 
@@ -113,7 +137,7 @@ Only three window is really not enough for user to inspect local vars value and 
 - File List Window：for a entire project with a lot of source files, I want a convenient changing buffer operation.
 - Errlog：Errlog is necessary. `:echom` is good, but there is no more space available to show multiline message. Besides, I don't want to type `:message` everytime.
 - GUI support: Easydebugger is now tested in cterm on Linux and MacOS. Gvim support is not ready.
-- Python DBG support (Done)
+- Python DBG support (Done!)
 
 ## Licence
 
