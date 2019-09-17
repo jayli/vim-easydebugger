@@ -2,7 +2,7 @@
 " Author:		@jayli <http://jayli.github.io>
 " Description:	vim-easydebugger 事件绑定和程序入口
 
-" 插件初始化入口
+" 插件初始化入口 {{{
 function! easydebugger#Enable()
 	" VIM 8.1 以下版本不支持
 	if version <= 800
@@ -13,9 +13,9 @@ function! easydebugger#Enable()
 	call s:Bind_Nor_Map_Keys()
 	call s:Build_Command()
 	call s:Bind_Term_Map_Keys()
-endfunction
+endfunction " }}}
 
-" 设置全局对象
+" 设置全局对象 {{{
 function! s:Global_Setup()
 	" g:debugger				Debugger 全局对象，运行 Term 时被初始化
 	" g:language_setup			当前语言的 Debugger 配置，当支持当前语言的情况下随文件加载初始化
@@ -26,14 +26,14 @@ function! s:Global_Setup()
 	let g:Debug_Lang_Supported = ["javascript","go","python"]
 	let g:None_Lang_Sp_Msg = "不支持该语言，或者需要将光标切换到调试窗口, ".
 			\ "not support current lang"
-endfunction
+endfunction " }}}
 
-" 每进入一个 Buffer 都重新绑定一下 Terminal 的映射命令
+" 每进入一个 Buffer 都重新绑定一下 Terminal 的映射命令 {{{
 function! easydebugger#BindTermMapKeys()
 	call s:Bind_Term_Map_Keys()
-endfunction
+endfunction " }}}
 
-" VIM 启动的时候绑定一次，非 Terminal 中的命令
+" VIM 启动的时候绑定一次，非 Terminal 中的命令 {{{
 function! s:Bind_Nor_Map_Keys()
 	" 服务启动唤醒键映射
 	nnoremap <silent> <Plug>EasyDebuggerInspect :call easydebugger#InspectInit()<CR>
@@ -46,18 +46,18 @@ function! s:Bind_Nor_Map_Keys()
 	nnoremap <silent> <Plug>EasyDebuggerPause :call easydebugger#InspectPause()<CR>
 	" 设置断点快捷键映射
 	nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#InspectSetBreakPoint()<CR>
-endfunction
+endfunction " }}}
 
-" 每次进入一个新 Buffer 都要重新绑定一次
+" 每次进入一个新 Buffer 都要重新绑定一次 {{{
 function! s:Bind_Term_Map_Keys()
 	exec "tnoremap <silent> <Plug>EasyDebuggerContinue ".easydebugger#GetCtrlCmd('ctrl_cmd_continue')
 	exec "tnoremap <silent> <Plug>EasyDebuggerNext ".easydebugger#GetCtrlCmd('ctrl_cmd_next')
 	exec "tnoremap <silent> <Plug>EasyDebuggerStepIn ".easydebugger#GetCtrlCmd('ctrl_cmd_stepin')
 	exec "tnoremap <silent> <Plug>EasyDebuggerStepOut ".easydebugger#GetCtrlCmd('ctrl_cmd_stepout')
 	exec "tnoremap <silent> <Plug>EasyDebuggerPause ".easydebugger#GetCtrlCmd('ctrl_cmd_pause')
-endfunction
+endfunction " }}}
 
-" 命令定义
+" 命令定义 {{{
 function! s:Build_Command()
 	command! -nargs=0 -complete=command -buffer InspectInit call easydebugger#InspectInit()
 	command! -nargs=0 -complete=command -buffer WebInspectInit call easydebugger#WebInspectInit()
@@ -66,14 +66,14 @@ function! s:Build_Command()
 	command! -nargs=0 -complete=command InspectStep call easydebugger#InspectStep()
 	command! -nargs=0 -complete=command InspectOut  call easydebugger#InspectOut()
 	command! -nargs=0 -complete=command InspectPause call easydebugger#InspectPause()
-endfunction
+endfunction " }}}
 
-" 当打开新 Buffer 时根据文件类型做初始化
+" 当打开新 Buffer 时根据文件类型做初始化 {{{
 function! easydebugger#Create_Lang_Setup()
 	call s:Create_Lang_Setup()
-endfunction
+endfunction " }}}
 
-" 同上
+" 同上 {{{
 function! s:Create_Lang_Setup()
 	" 初始化 g:language_setup 全局配置
 	if !exists("g:Debug_Lang_Supported")
@@ -98,9 +98,9 @@ function! s:Create_Lang_Setup()
 		let g:language_setup = 0
 		unlet g:language_setup 
 	endif
-endfunction
+endfunction "}}}
 
-function! easydebugger#GetCtrlCmd(cmd)
+function! easydebugger#GetCtrlCmd(cmd) "{{{
 	call s:Create_Lang_Setup()
 	if !exists('g:language_setup') || !s:Language_supported(get(g:language_setup,"language")) 
 		return "should_execute_nothing1"
@@ -110,87 +110,87 @@ function! easydebugger#GetCtrlCmd(cmd)
 	else
 		return "should_execute_nothing"
 	endif
-endfunction
+endfunction "}}}
 
-function! easydebugger#InspectInit()
+function! easydebugger#InspectInit() "{{{
 	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectInit')()
-endfunction
+endfunction "}}}
 
-function! easydebugger#WebInspectInit()
+function! easydebugger#WebInspectInit() "{{{
 	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'WebInspectInit')()
-endfunction
+endfunction "}}}
 
-function! easydebugger#InspectCont()
+function! easydebugger#InspectCont() "{{{
 	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectCont')()
-endfunction
+endfunction "}}}
 
-function! easydebugger#InspectNext()
+function! easydebugger#InspectNext() "{{{
 	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectNext')()
-endfunction
+endfunction "}}}
 
-function! easydebugger#InspectStep()
+function! easydebugger#InspectStep() "{{{
 	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectStep')()
-endfunction
+endfunction "}}}
 
-function! easydebugger#InspectOut()
+function! easydebugger#InspectOut() "{{{
 	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectOut')()
-endfunction
+endfunction "}}}
 
-function! easydebugger#InspectPause()
+function! easydebugger#InspectPause() "{{{
 	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectPause')()
-endfunction
+endfunction "}}}
 
-function! easydebugger#InspectSetBreakPoint()
+function! easydebugger#InspectSetBreakPoint() "{{{
 	call s:Create_Lang_Setup()
 	if !s:Language_supported() || !exists('g:language_setup')
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
 	call get(g:language_setup,'InspectSetBreakPoint')()
-endfunction
+endfunction "}}}
 
-" 判断语言是否被支持
+" 判断语言是否被支持 {{{
 function! s:Language_supported(...)
 	" 如果是 quickfix window 和 tagbar 时忽略
 	let ft = exists(a:0) ? a:0 : s:Get_Filetype() 
 	return index(extend(deepcopy(g:Debug_Lang_Supported),['qf','tagbar']), ft) >= 0 ? 1 : 0
-endfunction
+endfunction "}}}
 
-function! s:Get_Filetype()
+function! s:Get_Filetype() "{{{
 	return &filetype == "javascript.jsx" ? "javascript" : &filetype
-endfunction
+endfunction "}}}

@@ -54,7 +54,7 @@
 "   - BreakFileNameRegex : {regex} : 获得程序停驻所在文件的正则
 "   - BreakLineNrRegex : {regex} : 获得程序停驻行号的正则
 
-" 启动 Chrome DevTools 模式的调试服务（只实现了 NodeJS）
+" 启动 Chrome DevTools 模式的调试服务（只实现了 NodeJS）{{{
 function! lib#runtime#WebInspectInit()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
@@ -90,9 +90,9 @@ function! lib#runtime#WebInspectInit()
 			\ })
 	endif
 	call s:Echo_debugging_info(l:full_command)
-endfunction
+endfunction " }}}
 
-" 如果存在 debugger_entry = ... 优先从这里先启动
+" 如果存在 debugger_entry = ... 优先从这里先启动 {{{
 function! s:GetDebuggerEntry()
 	let filename = ''
 	let code_lines = getbufline(bufnr(''),1,'$')
@@ -112,9 +112,9 @@ function! s:GetDebuggerEntry()
 		endif
 	endfor
 	return ""
-endfunction
+endfunction " }}}
 
-" VIM 调试模式
+" 初始化 VIM 调试模式 {{{
 function! lib#runtime#InspectInit()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
@@ -195,18 +195,18 @@ function! lib#runtime#InspectInit()
 			call get(g:language_setup,"TermSetupScript")()
 		endif
 	endif
-endfunction
+endfunction "}}}
 
-" 设置本地变量和调用堆栈窗口的statusline样式
+" 设置本地变量和调用堆栈窗口的statusline样式{{{
 function! s:Set_Bottom_Window_Statusline(name)
 	if a:name == "stack"
 		exec 'setl statusline=%1*\ Normal\ %*%2*\ Call\ Stack\ %*\ %r%f[%M]%=Depth\ :\ %L\ '
 	elseif a:name == "localvars"
 		exec 'setl statusline=%1*\ Normal\ %*%4*\ Local\ Variables\ %*\ %r%f[%M]%=No\ :\ %L\ '
 	endif
-endfunction
+endfunction "}}}
 
-" Continue
+" Continue {{{
 function! lib#runtime#InspectCont()
 	if !exists('g:language_setup')
 		call easydebugger#Create_Lang_Setup()
@@ -218,9 +218,9 @@ function! lib#runtime#InspectCont()
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_continue."\<CR>")
 	endif
-endfunction
+endfunction " }}}
 
-" Next
+" Next {{{
 function! lib#runtime#InspectNext()
 	if !exists('g:language_setup')
 		call easydebugger#Create_Lang_Setup()
@@ -232,9 +232,9 @@ function! lib#runtime#InspectNext()
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_next."\<CR>")
 	endif
-endfunction
+endfunction " }}}
 
-" Stepin
+" Stepin {{{
 function! lib#runtime#InspectStep()
 	if !exists('g:language_setup')
 		call easydebugger#Create_Lang_Setup()
@@ -246,9 +246,9 @@ function! lib#runtime#InspectStep()
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_stepin."\<CR>")
 	endif
-endfunction
+endfunction " }}}
 
-" Stepout
+" Stepout {{{
 function! lib#runtime#InspectOut()
 	if !exists('g:language_setup')
 		call easydebugger#Create_Lang_Setup()
@@ -260,9 +260,9 @@ function! lib#runtime#InspectOut()
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_stepout."\<CR>")
 	endif
-endfunction
+endfunction " }}}
 
-" Pause
+" Pause {{{
 function! lib#runtime#InspectPause()
 	if !exists('g:language_setup')
 		call easydebugger#Create_Lang_Setup()
@@ -274,9 +274,9 @@ function! lib#runtime#InspectPause()
 	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_pause."\<CR>")
 	endif
-endfunction
+endfunction " }}}
 
-" 设置/取消断点，在当前行按 F12
+" 设置/取消断点，在当前行按 F12 {{{
 function! lib#runtime#InspectSetBreakPoint()
 	if !exists('g:debugger') || term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
@@ -309,25 +309,25 @@ function! lib#runtime#InspectSetBreakPoint()
 	else
 		call s:LogMsg('设置断点无响应')
 	endif
-endfunction
+endfunction " }}}
 
-" 清除断点
+" 清除断点 {{{
 function! lib#runtime#clearBreakpoint(fname,line)
 	if !exists('g:language_setup')
 		call easydebugger#Create_Lang_Setup()
 	endif
 	return get(g:language_setup, "ClearBreakPoint")(a:fname,a:line)
-endfunction
+endfunction " }}}
 
-" 设置断点
+" 设置断点 {{{
 function! lib#runtime#setBreakpoint(fname,line)
 	if !exists('g:language_setup')
 		call easydebugger#Create_Lang_Setup()
 	endif
 	return get(g:language_setup, "SetBreakPoint")(a:fname,a:line)
-endfunction
+endfunction " }}}
 
-" 退出 Terminal 时重置编辑器
+" 退出 Terminal 时重置编辑器 {{{
 " 可传入单独的参数：
 " - silently: 不关闭Term
 function! lib#runtime#Reset_Editor(...)
@@ -362,9 +362,9 @@ function! lib#runtime#Reset_Editor(...)
 	if exists('g:debugger._prev_msg')
 		unlet g:debugger._prev_msg
 	endif
-endfunction
+endfunction " }}}
 
-" Terminal 消息回传
+" Terminal 消息回传 {{{
 function! lib#runtime#Term_callback(channel, msg)
 	" 如果消息为空
 	" 如果消息长度为1，说明正在敲入字符
@@ -411,38 +411,38 @@ function! lib#runtime#Term_callback(channel, msg)
 		call g:language_setup.TermCallbackHandler(full_log)
 	endif
 
-endfunction
+endfunction " }}}
 
-" 判断首字母是否是可见的 ASCII 码
+" 判断首字母是否是可见的 ASCII 码 {{{
 function! s:Is_Ascii_Visiable(c)
 	if char2nr(a:c) >= 32 && char2nr(a:c) <= 126
 		return 1
 	else
 		return 0
 	endif
-endfunction
+endfunction " }}}
 
-" 输出初始调试信息
+" 输出初始调试信息 {{{
 function! s:Echo_debugging_info(command)
 	call s:LogMsg(a:command . ' ' . ' : [Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
-endfunction
+endfunction " }}}
 
-" 设置停驻的行高亮样式
+" 设置停驻的行高亮样式 {{{
 function! s:Set_Debug_CursorLine()
 	" Do Nothing
 	" 停驻行的跳转使用 cursor() 完成
 	" 停驻行的样式使用 setlocal nocursorline 清除掉，以免光标样式覆盖 sign linehl 样式
 	" 清除样式的时机在 Debugger_Stop_Action() 函数内
 	" 调试结束后恢复默认 cursorline 样式： setlocal cursorline
-endfunction
+endfunction " }}}
 
-" 获得 term 宽度
+" 获得 term 宽度 {{{
 function! s:Get_Term_Width()
 	let term_width = float2nr(floor(winwidth(winnr()) * 50 / 100))
 	return term_width
-endfunction
+endfunction " }}}
 
-" 将标记清除
+" 将标记清除 {{{
 function! s:Clear_All_Signs()
 	exec ":sign unplace 100 file=".s:Get_Fullname(g:debugger.original_bufname)
 	for bfname in g:debugger.bufs
@@ -458,22 +458,22 @@ function! s:Clear_All_Signs()
 	endfor
 	" 退出 Debug 时清除当前所有断点
 	let g:debugger.break_points = []
-endfunction
+endfunction " }}}
 
-" 显示 Term 窗口关闭消息
+" 显示 Term 窗口关闭消息 {{{
 function! s:Show_Close_Msg()
 	call s:LogMsg(bufname('%')." ". get(g:debugger,'close_msg'))
-endfunction
+endfunction " }}}
 
-" 设置停留的代码行
+" 设置停留的代码行 {{{
 function! s:Debugger_Stop_Action(log)
 	let break_msg = s:Get_Term_Stop_Msg(a:log)
 	if type(break_msg) == type({})
 		call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'breakline'))
 	endif
-endfunction
+endfunction " }}}
 
-" 处理Termnal里的log,这里的 log 是 g:debugger.log
+" 处理Termnal里的log,这里的 log 是 g:debugger.log {{{
 " 这里比较奇怪，Log 不是整片输出的，是碎片输出的
 function! s:Get_Term_Stop_Msg(log)
 	if len(a:log) == 0
@@ -507,14 +507,14 @@ function! s:Get_Term_Stop_Msg(log)
 	else 
 		return 0
 	endif
-endfunction
+endfunction " }}}
 
-" 相当于 trim，去掉首尾的空字符
+" 相当于 trim，去掉首尾的空字符 {{{
 function! s:StringTrim(str)
 	return lib#util#StringTrim(a:str)
-endfunction
+endfunction " }}}
 
-" 创建全局 g:debugger 对象
+" 创建全局 g:debugger 对象 {{{
 function! s:Create_Debugger()
 	let g:debugger = {}
 	if !exists('g:debugger_window_id')
@@ -563,9 +563,9 @@ function! s:Create_Debugger()
 	" 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
 	exec 'sign define break_point text=** texthl=BreakPointStyle'
 	return g:debugger
-endfunction
+endfunction " }}}
 
-" 执行到什么文件的什么行
+" 执行到什么文件的什么行 {{{
 function! s:Debugger_Stop(fname, line)
 	let fname = s:Get_Fullname(a:fname)
 
@@ -607,9 +607,9 @@ function! s:Debugger_Stop(fname, line)
 
 	" 只要重新停驻到新行，这一阶段的解析就完成了，log清空
 	let g:debugger.log = []
-endfunction
+endfunction " }}}
 
-" 重新设置 Break Point 的 Sign 标记的位置
+" 重新设置 Break Point 的 Sign 标记的位置 {{{
 function! s:Sign_Set_StopPoint(fname, line)
 	try
 		" 如果要停驻的文件名有变化...
@@ -623,41 +623,41 @@ function! s:Sign_Set_StopPoint(fname, line)
 		exec ":sign unplace 9999 file=".s:Get_Fullname(a:fname)
 	catch
 	endtry
-endfunction
+endfunction " }}}
 
-" s:goto_win(winnr) 
+" s:goto_win(winnr) {{{ 
 function! s:Goto_winnr(winnr) abort
     let cmd = type(a:winnr) == type(0) ? a:winnr . 'wincmd w'
                                      \ : 'wincmd ' . a:winnr
 	noautocmd execute cmd
 	call execute('redraw','silent!')
-endfunction
+endfunction " }}}
 
-" 跳转到原始源码所在的窗口
+" 跳转到原始源码所在的窗口 {{{
 function! g:Goto_sourcecode_window()
 	call g:Goto_window(g:debugger.original_winid)
-endfunction
+endfunction " }}}
 
-" 跳转到 Term 所在的窗口
+" 跳转到 Term 所在的窗口 {{{
 function! g:Goto_terminal_window()
 	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
 		call g:Goto_window(get(g:debugger,'term_winid'))
 	endif
-endfunction
+endfunction " }}}
 
-" 本地变量和调用堆栈窗口属性
+" 本地变量和调用堆栈窗口属性 {{{
 function! s:Get_cfg_list_window_status_cmd()
 	" nowrite 是一个全局配置，所有窗口不可写，退出时需重置
 	return "setl nomodifiable nolist nu noudf " . 
 				\ "nowrite nowrap buftype=nofile filetype=help"
-endfunction
+endfunction " }}}
 
-" stack 窗口中的回车事件监听
+" stack 窗口中的回车事件监听 {{{
 function! s:Add_jump_mapping()
 	call execute("nnoremap <buffer> <CR> :call lib#runtime#stack_jumpping()<CR>")
-endfunction
+endfunction " }}}
 
-" 调用堆栈窗口的文件行跳转
+" 调用堆栈窗口的文件行跳转 {{{
 function! lib#runtime#stack_jumpping()
 	let lnum = getbufinfo(bufnr(''))[0].lnum
 	if exists("g:debugger.callback_stacks")
@@ -673,9 +673,9 @@ function! lib#runtime#stack_jumpping()
 	else
 		call lib#util#WarningMsg("g:debugger.callback_stacks is undefined!")
 	endif
-endfunction
+endfunction " }}}
 
-function! s:Close_varwindow()
+function! s:Close_varwindow() " {{{
 	if exists('g:debugger.localvars_winid')
 		call g:Goto_window(g:debugger.localvars_winid)
 		if !exists('g:language_setup')
@@ -691,17 +691,17 @@ function! s:Close_varwindow()
 		" 代码窗口回复可写状态
 		call execute('setl write', 'silent!')
 	endif
-endfunction
+endfunction " }}}
 
-function! s:Close_stackwindow()
+function! s:Close_stackwindow() " {{{
 	if exists('g:debugger.stacks_winid')
 		call execute("close " . g:debugger.stacks_winid)
 		" 代码窗口回复可写状态
 		call execute('setl write', 'silent!')
 	endif
-endfunction
+endfunction " }}}
 
-" 跳转到 Window
+" 跳转到 Window {{{
 function! g:Goto_window(winid) abort
 	if a:winid == bufwinid(bufnr(""))
 		return
@@ -712,17 +712,17 @@ function! g:Goto_window(winid) abort
 			break
 		endif
 	endfor
-endfunction
+endfunction " }}}
 
-" 如果跳转到一个新文件，新增一个 Buffer
+" 如果跳转到一个新文件，新增一个 Buffer {{{
 " fname 是文件绝对地址
 function! s:Debugger_add_filebuf(fname)
 	exec ":badd ". a:fname
 	exec ":b ". a:fname
 	call add(g:debugger.bufs, a:fname)
-endfunction
+endfunction " }}}
 
-" 退出调试后需要删除这些新增的 Buffer
+" 退出调试后需要删除这些新增的 Buffer {{{
 function! s:Debugger_del_tmpbuf()
 	let tmp_bufs = deepcopy(g:debugger.bufs)
 	for t_buf in tmp_bufs
@@ -733,9 +733,9 @@ function! s:Debugger_del_tmpbuf()
 		endif
 	endfor
 	let g:debugger.bufs = []
-endfunction
+endfunction " }}}
 
-" 获得当前Buffer里的文件名字
+" 获得当前Buffer里的文件名字 {{{
 function! s:Debugger_get_filebuf(fname)
 	" bufname用的相对路径为绝对路径:fixed
 	let fname = s:Get_Fullname(a:fname)
@@ -755,14 +755,14 @@ function! s:Debugger_get_filebuf(fname)
 		endtry
 	endif
 	return fname
-endfunction
+endfunction " }}}
 
-" 获得完整路径
+" 获得完整路径 {{{
 function! s:Get_Fullname(fname)
 	return fnameescape(fnamemodify(a:fname,':p'))
-endfunction
+endfunction " }}}
 
-" 关闭 Terminal
+" 关闭 Terminal {{{
 function! s:Close_Term()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>\<C-C>\<C-C>")
 	if exists('g:debugger') && g:debugger.original_winid != bufwinid(bufnr(""))
@@ -771,9 +771,9 @@ function! s:Close_Term()
 	endif
 	call execute('redraw','silent!')
 	call s:LogMsg("调试结束,Debug over..")
-endfunction
+endfunction " }}}
 
-" 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal
+" 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal {{{
 function! lib#runtime#Special_Cmd_Handler()
 	let cmd = getline('.')[0 : col('.')-1]
 	let cmd = s:StringTrim(substitute(cmd,"^.*debug>\\s","","g"))
@@ -785,10 +785,10 @@ function! lib#runtime#Special_Cmd_Handler()
 		call s:Set_Debug_CursorLine()
 	endif
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>")
-endfunction
+endfunction " }}}
 
-" 输出 LogMsg
+" 输出 LogMsg {{{
 function! s:LogMsg(msg)
 	call lib#util#LogMsg(a:msg)
-endfunction
+endfunction " }}}
 
