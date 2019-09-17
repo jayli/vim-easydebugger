@@ -8,9 +8,7 @@ VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.
 
 ![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif?t=3)
 
-### 一个精简的 VIM 调试器
-
-又一个 VIM 调试器？
+### 又一个 VIM 调试器？
 
 VIM 从 8.1 版本开始支持 Terminal，并内置了 GDB 调试器，强大的 Terminal 特性让 Debugger 插件开发难度大大降低，不用依赖其他代理嫁接在 Debug 服务 （GDB Server） 和调试器（Inspector）之间，从而避免重写 Debugger 协议（[Debugger Protocol](https://chromedevtools.github.io/debugger-protocol-viewer/v8/)），这简化了 VIM 视窗的管理。Vim-Easydebugger 就是基于 Terminal 的调试器，只依赖 VimL。需要支持的语言只须支持对应的运行环境即可：比如 JS 运行环境 [node](https://nodejs.org)、Go 调试器 [Delve](https://github.com/derekparker/delve)、Python 调试工具 [PDB](https://docs.python.org/3/library/pdb.html)。
 
@@ -26,7 +24,7 @@ VIM 从 8.1 版本开始支持 Terminal，并内置了 GDB 调试器，强大的
 
 ### Vim-EasyDebugger 特性
 
-Vim-EasyDebugger 即是基于 Terminal 实现的一个精简的调试器，目前支持 NodeJS、Python 和 Go 的断点调试，配置简单，目前支持的功能有：
+Vim-EasyDebugger 是基于 Terminal 的断点调试器，目前支持 NodeJS、Python 和 Go 的断点调试，配置简单，目前支持的功能有：
 
 1. 断点逐行跟踪
 2. 变量监听
