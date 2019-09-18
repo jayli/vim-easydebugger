@@ -54,6 +54,7 @@ Mappings                                                  *debugger-mappings*
 Key-Maps:
 
   - Shift-R ：startup debugger
+  - Shift-E ：exit debugger
   - Shift-W ：startup Chrome DevTools debug service (for nodejs only)
   - F6 : pause
   - F7 ：stepout
@@ -67,6 +68,7 @@ Commands                                                  *debugger-commands*
 
   - InspectInit:    startup debugger
   - WebInspectInit: startup Chrome DevTools debug service
+  - InspectExit:    exit
   - InspectCont:    continue
   - InspectNext:    stepover
   - InspectStep:    stepin
@@ -79,7 +81,7 @@ Operations                            *debugger-operations*   *exit-debugging*
 To get local variables, take nodejs for example. Type `repl` in terminal, then 
 input variable name. With Golang type `print {virable}` in terminal.
 
-Type `exit` in terminal to exit debugging.
+Type `exit` in terminal or `Shift-E` to exit debugging.
 
 Author                                                      *debugger-author*
 =============================================================================
