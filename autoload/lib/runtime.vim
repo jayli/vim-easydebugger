@@ -48,6 +48,7 @@
 "   - DebuggerNotInstalled : {string} : Debugger 未安装的提示文案
 "   - WebDebuggerCommandPrefix : {string} : Debugger Web 服务启动的命令前缀
 "   - ShowLocalVarsWindow : {Number} : 是否显示本地变量窗口
+"   - TerminalCursorSticky: {Number} : 单个命令结束后是否总是将光标定位在Term
 "   - LocalDebuggerCommandPrefix : {string} : Debugger 启动的命令前缀
 "   - LocalDebuggerCommandSufix : {string} : Debugger 命令启动的后缀
 "   - ExecutionTerminatedMsg : {regex} : 判断 Debugger 运行结束的结束语正则
@@ -56,7 +57,7 @@
 
 " 启动 Chrome DevTools 模式的调试服务（只实现了 NodeJS）{{{
 function! lib#runtime#WebInspectInit()
-	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if s:Term_is_running()
 		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
 		return ""
 	endif
@@ -116,7 +117,7 @@ endfunction " }}}
 
 " 初始化 VIM 调试模式 {{{
 function! lib#runtime#InspectInit()
-	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if s:Term_is_running()
 		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
 		return ""
 	endif
@@ -215,7 +216,7 @@ function! lib#runtime#InspectCont()
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
 	endif
-	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
 		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_continue."\<CR>")
 	endif
 endfunction " }}}
@@ -229,7 +230,7 @@ function! lib#runtime#InspectNext()
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
 	endif
-	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
 		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_next."\<CR>")
 	endif
 endfunction " }}}
@@ -243,7 +244,7 @@ function! lib#runtime#InspectStep()
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
 	endif
-	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
 		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_stepin."\<CR>")
 	endif
 endfunction " }}}
@@ -257,7 +258,7 @@ function! lib#runtime#InspectOut()
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
 	endif
-	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
 		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_stepout."\<CR>")
 	endif
 endfunction " }}}
@@ -271,14 +272,14 @@ function! lib#runtime#InspectPause()
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return
 	endif
-	if len(get(g:debugger,'bufs')) != 0 && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
 		call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_pause."\<CR>")
 	endif
 endfunction " }}}
 
 " 设置/取消断点，在当前行按 F12 {{{
 function! lib#runtime#InspectSetBreakPoint()
-	if !exists('g:debugger') || term_getstatus(get(g:debugger,'debugger_window_name')) != 'running'
+	if !s:Term_is_running()
 		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
 		return ""
 	endif
@@ -401,7 +402,12 @@ function! lib#runtime#Term_callback(channel, msg)
 		call lib#runtime#Reset_Editor('silently')
 		" 调试终止之后应该将光标停止在 Term 内
 		if winnr() != get(g:debugger, 'original_winnr')
-			call g:Goto_terminal_window()
+			if has_key(g:language_setup, "TerminalCursorSticky") && 
+						\ g:language_setup.TerminalCursorSticky == 1
+				call g:Goto_terminal_window()
+			else
+				call s:Cursor_Restore()
+			endif
 		endif
 	else
 		call s:Debugger_Stop_Action(g:debugger.log)
@@ -528,22 +534,23 @@ function! s:Create_Debugger()
 	let g:debugger.original_bnr         = bufnr('')
 	" winnr 并不和 最初的 Buf 强绑定，原始 winnr 不能作为 window 的标识
 	" 要用 bufinfo 里的 windows 数组来代替唯一性
-	let g:debugger.original_winnr       = winnr()
-	let g:debugger.original_winid       = bufwinid(bufnr(""))
-	let g:debugger.original_buf         = getbufinfo(bufnr(''))
-	let g:debugger.cwd                  = getcwd()
-	let g:debugger.language             = g:language_setup.language
-	let g:debugger.original_bufname     = bufname('%')
-	let g:debugger.original_line_nr     = line(".")
-	let g:debugger.original_col_nr      = col(".")
-	let g:debugger.buf_winnr            = bufwinnr('%')
-	let g:debugger.current_winnr        = -1
-	let g:debugger.bufs                 = []
-	let g:debugger.stop_line            = 0
-	let g:debugger.stop_fname           = ''
-	let g:debugger.log                  = []
-	let g:debugger.close_msg            = "调试结束,两个<Ctrl-C>结束掉,或者输入exit回车结束掉, " .
-										\ "Debug Finished, <C-C><C-C> to Close Term..."
+	let g:debugger.original_winnr        = winnr()
+	let g:debugger.original_winid        = bufwinid(bufnr(""))
+	let g:debugger.original_buf          = getbufinfo(bufnr(''))
+	let g:debugger.cwd                   = getcwd()
+	let g:debugger.language              = g:language_setup.language
+	let g:debugger.original_bufname      = bufname('%')
+	let g:debugger.original_line_nr      = line(".")
+	let g:debugger.original_col_nr       = col(".")
+	let g:debugger.buf_winnr             = bufwinnr('%')
+	let g:debugger.current_winnr         = -1
+	let g:debugger.bufs                  = []
+	let g:debugger.stop_line             = 0
+	let g:debugger.cursor_original_winid = 0	" 执行命令前光标所在的窗口 
+	let g:debugger.stop_fname            = ''
+	let g:debugger.log                   = []
+	let g:debugger.close_msg             = "调试结束,两个<Ctrl-C>结束掉,或者输入exit回车结束掉, " .
+									  	\ "Debug Finished, <C-C><C-C> to Close Term..."
 	" break_points: ['a.js|3','t/b.js|34']
 	" break_points 里的索引作为 sign id
 	let g:debugger.break_points= []
@@ -600,7 +607,14 @@ function! s:Debugger_Stop(fname, line)
 		call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
 	endif
 	" 凡是执行完停驻行跳转的动作，都重新定位到 Term 里，方便用户直接输入命令
-	call g:Goto_terminal_window()
+	call s:LogMsg("------------")
+	if has_key(g:language_setup, "TerminalCursorSticky") && 
+				\ g:language_setup.TerminalCursorSticky == 1
+		call g:Goto_terminal_window()
+	else
+		call s:Cursor_Restore()
+	endif
+	" call g:Goto_terminal_window()
 	
 	let g:debugger.stop_fname = fname
 	let g:debugger.stop_line = a:line
@@ -640,7 +654,7 @@ endfunction " }}}
 
 " 跳转到 Term 所在的窗口 {{{
 function! g:Goto_terminal_window()
-	if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+	if s:Term_is_running()
 		call g:Goto_window(get(g:debugger,'term_winid'))
 	endif
 endfunction " }}}
@@ -771,6 +785,34 @@ function! s:Close_Term()
 	endif
 	call execute('redraw','silent!')
 	call s:LogMsg("调试结束,Debug over..")
+endfunction " }}}
+
+function! lib#runtime#Mark_Cursor_Position() "{{{
+	if s:Term_is_running()
+		let g:debugger.cursor_original_winid = bufwinid(bufnr(""))
+	endif
+endfunction " }}}
+
+function! s:Cursor_Restore() " {{{
+	call lib#runtime#Cursor_Restore()
+endfunction " }}}
+
+function! lib#runtime#Cursor_Restore() " {{{
+	if s:Term_is_running() && 
+				\ g:debugger.cursor_original_winid != bufwinid(bufnr("")) &&
+				\ g:debugger.cursor_original_winid != 0
+		call s:LogMsg(">>>>>>". string(g:debugger.cursor_original_winid))
+		call g:Goto_window(g:debugger.cursor_original_winid)
+	endif
+endfunction " }}}
+
+function! s:Term_is_running() " {{{
+	if exists("g:debugger") && 
+				\ term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+		return 1
+	else 
+		return 0
+	endif
 endfunction " }}}
 
 " 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal {{{

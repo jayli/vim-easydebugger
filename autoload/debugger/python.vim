@@ -28,6 +28,7 @@ function! debugger#python#Setup()
 		\	'WebDebuggerCommandPrefix':   'python3 -m pdb',
 		\	'LocalDebuggerCommandPrefix': 'python3 -m pdb',
 		\	'ShowLocalVarsWindow':		  1,
+		\   'TerminalCursorSticky':       0,
 		\	'LocalDebuggerCommandSufix':  '',
 		\	'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
 		\	'BreakFileNameRegex':		  "\\(>\\s\\+\\)\\@<=\\S\\{-}\\.py\\(\\S\\+\\)\\@=",
@@ -190,6 +191,7 @@ endfunction
 
 function! debugger#python#TermSetupScript()
 	call s:SetPythonLocalvarsCmd()
+	" call lib#runtime#Mark_Cursor_Position()
 endfunction
 
 function! s:SetPythonLocalvarsCmd()

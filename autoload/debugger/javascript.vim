@@ -25,6 +25,7 @@ function! debugger#javascript#Setup()
 		\	'AfterStopScript':            function('debugger#javascript#AfterStopScript'),
 		\	'TermCallbackHandler':        function('debugger#javascript#TermCallbackHandler'),
 		\	'ShowLocalVarsWindow':		  0,
+		\   'TerminalCursorSticky':       1,
 		\	'DebuggerNotInstalled':       '系统没有安装 Node！Please install node first.',
 		\	'WebDebuggerCommandPrefix':   'node --inspect-brk',
 		\	'LocalDebuggerCommandPrefix': 'node inspect',

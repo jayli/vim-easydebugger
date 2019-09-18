@@ -29,6 +29,7 @@ function! debugger#go#Setup()
 		\	'LocalDebuggerCommandPrefix': 'dlv debug',
 		\	'LocalDebuggerCommandSufix':  '',
 		\	'ShowLocalVarsWindow':		  0,
+		\   'TerminalCursorSticky':       1,
 		\	'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
 		\	'BreakFileNameRegex':         "\\(>\\s\\S\\+\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
 		\	'BreakLineNrRegex':           "\\(>\\s\\S\\+\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",

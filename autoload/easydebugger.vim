@@ -136,6 +136,7 @@ function! easydebugger#InspectCont() "{{{
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
+	call lib#runtime#Mark_Cursor_Position()
 	call get(g:language_setup,'InspectCont')()
 endfunction "}}}
 
@@ -145,6 +146,7 @@ function! easydebugger#InspectNext() "{{{
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
+	call lib#runtime#Mark_Cursor_Position()
 	call get(g:language_setup,'InspectNext')()
 endfunction "}}}
 
@@ -154,6 +156,7 @@ function! easydebugger#InspectStep() "{{{
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
+	call lib#runtime#Mark_Cursor_Position()
 	call get(g:language_setup,'InspectStep')()
 endfunction "}}}
 
@@ -163,6 +166,7 @@ function! easydebugger#InspectOut() "{{{
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
+	call lib#runtime#Mark_Cursor_Position()
 	call get(g:language_setup,'InspectOut')()
 endfunction "}}}
 
@@ -172,6 +176,7 @@ function! easydebugger#InspectPause() "{{{
 		call lib#util#LogMsg(g:None_Lang_Sp_Msg)
 		return ""
 	endif
+	call lib#runtime#Mark_Cursor_Position()
 	call get(g:language_setup,'InspectPause')()
 endfunction "}}}
 
