@@ -1,27 +1,27 @@
 " File:			lib/util.vim
-" Author:		@jayli <http://jayli.github.io>
+" Author:		@jayli
 " Description:	常用函数
 
-" 输出 LogMsg
+" 输出 LogMsg {{{
 function! lib#util#LogMsg(msg)
 	echohl MoreMsg 
 	echom '>>> '. a:msg
 	echohl NONE
-endfunction
+endfunction "}}}
 
-" 输出警告 LogMsg
+" 输出警告 LogMsg {{{
 function! lib#util#WarningMsg(msg)
 	echohl WarningMsg 
 	echom '>>> '. a:msg
 	echohl NONE
-endfunction
+endfunction "}}}
 
-" 获得当前 CursorLine 样式
+" 获得当前 CursorLine 样式 {{{
 function! lib#util#Get_CursorLine_bgColor()
 	return lib#util#Get_BgColor('CursorLine')
-endfunction
+endfunction "}}}
 
-" 获得某个颜色主题的背景色
+" 获得某个颜色主题的背景色 {{{
 function! lib#util#Get_BgColor(name)
 	if &t_Co > 255 && !has('gui_running')
 		let hlString = lib#util#Highlight_Args(a:name)
@@ -31,14 +31,14 @@ function! lib#util#Get_BgColor(name)
 		endif
 	endif
 	return 'none'
-endfunction
+endfunction "}}}
 
-" 执行高亮
+" 执行高亮 {{{
 function! lib#util#Highlight_Args(name)
 	return 'hi ' . substitute(split(execute('hi ' . a:name), '\n')[0], '\<xxx\>', '', '')
-endfunction
+endfunction "}}}
 
-" 相当于 trim，去掉首尾的空字符
+" 相当于 trim，去掉首尾的空字符 {{{
 function! lib#util#StringTrim(str)
 	if !empty(a:str)
 		let a1 = substitute(a:str, "^\\s\\+\\(.\\{\-}\\)$","\\1","g")
@@ -46,18 +46,18 @@ function! lib#util#StringTrim(str)
 		return a1
 	endif
 	return ""
-endfunction
+endfunction "}}}
 
-" 从path中得到文件名
+" 从path中得到文件名 {{{
 function! lib#util#GetFileName(path)
 	let path  = simplify(a:path)
 	let fname = matchstr(path,"\\([\\/]\\)\\@<=[^\\/]\\+$")
 	return fname
-endfunction
+endfunction "}}}
 
-" 从中得到目录名
+" 从中得到目录名 {{{
 function! lib#util#GetDirName(path)
 	let path  = simplify(a:path)
 	let fname = matchstr(path,"^.\\+\\/\\([^\\/]\\{-}$\\)\\@=")
 	return fname
-endfunction
+endfunction "}}}

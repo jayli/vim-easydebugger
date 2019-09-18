@@ -4,6 +4,10 @@
 "				EasyDebugger 行在 VIM 8.1 上
 "
 "				更多信息请访问 <https://github.com/jayli/vim-easydebugger>
+"
+" ╦  ╦┬┌┬┐  ╔═╗┌─┐┌─┐┬ ┬╔╦╗┌─┐┌┐ ┬ ┬┌─┐┌─┐┌─┐┬─┐
+" ╚╗╔╝││││  ║╣ ├─┤└─┐└┬┘ ║║├┤ ├┴┐│ ││ ┬│ ┬├┤ ├┬┘
+"  ╚╝ ┴┴ ┴  ╚═╝┴ ┴└─┘ ┴ ═╩╝└─┘└─┘└─┘└─┘└─┘└─┘┴└─
 
 if has( 'vim_starting' ) " vim 启动时加载
 	augroup EasyDebuggerStart " EasyDebuggerStart {{{

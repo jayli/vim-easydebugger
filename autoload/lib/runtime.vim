@@ -1,7 +1,8 @@
-" 文件说明：
-" file: debugger/runtime.vim 这里是 Debugger 运行时的标准实现，无特殊情况应当
-" 优先使用这些默认实现，如果不能满足当前调试器（比如 go 语言的 delve 不支持
-" pause），就需要重新实现一下，在 debugger/[编程语言].vim 中重写
+" File:			lib/runtime.vim
+" Author:		@jayli
+" Description:	Debugger 运行时的标准实现，无特殊情况应当优先使用这些默认实现，
+"               如果不能满足当前调试器（比如 go 语言的 delve 不支持 pause），
+"               需要在 debugger/[编程语言].vim 中重新实现
 "
 "  ╔═══════════════════════════════╤═══════════════════════════════╗
 "  ║                               │                               ║
@@ -18,14 +19,13 @@
 "  ║    g:debugger.stacks_winid    │   g:debugger.localvars_winid  ║
 "  ║                               │                               ║
 "  ╚═══════════════════════════════╧═══════════════════════════════╝
-
-" 实现原理：
-" Debugger 程序运行在 Term 内，VIM 创建 Term 时可以绑定输出回调，通过监听 Term
+"
+" 原理：Debugger 运行在 Term 内，Term 创建时可以绑定输出回调，通过监听 Term
 " 内的输出字符来执行单步执行、继续执行、暂停、输出回调堆栈等等操作，VIM 作为
 " UI 层的交互，由于 Term 回调机制可以更好的完成，难度不大，关键是做好各个语言
 " 的 Debugger 输出的格式过滤，目前已经将 runtime.vim 基本抽象出来了，debugger
-" 目录下的 [编程语言].vim 的实现基于这个 runtime 抽象，目前有这些已经定义好的
-" 接口：
+" 目录下的 [编程语言].vim 的实现基于这个 runtime ，目前有这些已经定义好的接口：
+"
 "   - ctrl_cmd_continue : {string} : Debugger 继续执行的命令
 "   - ctrl_cmd_next : {string} : Debugger 单步执行的命令
 "   - ctrl_cmd_stepin : {string} : Debugger 进入函数的命令
@@ -58,7 +58,7 @@
 " 启动 Chrome DevTools 模式的调试服务（只实现了 NodeJS）{{{
 function! lib#runtime#WebInspectInit()
 	if s:Term_is_running()
-		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
+		call s:LogMsg("Please terminate the running debugger first.")
 		return ""
 	endif
 
@@ -118,7 +118,7 @@ endfunction " }}}
 " 初始化 VIM 调试模式 {{{
 function! lib#runtime#InspectInit()
 	if s:Term_is_running()
-		call s:LogMsg("请先关掉正在运行的调试器, Only One Running Debugger is Allowed..")
+		call s:LogMsg("Please terminate the running debugger first.")
 		return ""
 	endif
 
@@ -213,7 +213,7 @@ function! lib#runtime#InspectCont()
 		call easydebugger#Create_Lang_Setup()
 	endif
 	if !exists('g:debugger')
-		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
+		call s:LogMsg("Please startup debugger first.")
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
@@ -227,7 +227,7 @@ function! lib#runtime#InspectNext()
 		call easydebugger#Create_Lang_Setup()
 	endif
 	if !exists('g:debugger')
-		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
+		call s:LogMsg("Please startup debugger first.")
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
@@ -241,7 +241,7 @@ function! lib#runtime#InspectStep()
 		call easydebugger#Create_Lang_Setup()
 	endif
 	if !exists('g:debugger')
-		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
+		call s:LogMsg("Please startup debugger first.")
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
@@ -255,7 +255,7 @@ function! lib#runtime#InspectOut()
 		call easydebugger#Create_Lang_Setup()
 	endif
 	if !exists('g:debugger')
-		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
+		call s:LogMsg("Please startup debugger first.")
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
@@ -269,7 +269,7 @@ function! lib#runtime#InspectPause()
 		call easydebugger#Create_Lang_Setup()
 	endif
 	if !exists('g:debugger')
-		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
+		call s:LogMsg("Please startup debugger first.")
 		return
 	endif
 	if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
@@ -280,7 +280,7 @@ endfunction " }}}
 " 设置/取消断点，在当前行按 F12 {{{
 function! lib#runtime#InspectSetBreakPoint()
 	if !s:Term_is_running()
-		call s:LogMsg("请先启动 Debugger, Please Run Debugger First..")
+		call s:LogMsg("Please startup debugger first.")
 		return ""
 	endif
 	" 如果是当前文件所在的 Buf 或者是临时加载的 Buf
@@ -297,7 +297,7 @@ function! lib#runtime#InspectSetBreakPoint()
 			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
 			exec ":sign unplace ".sid." file=".s:Get_Fullname(fname)
 			call remove(g:debugger.break_points, breakpoint_contained)
-			call s:LogMsg("取消断点成功")
+			call s:LogMsg("Remove break point successfully.")
 		else
 			" 如果不存在 BreakPoint，则新增 BreakPoint
 			call term_sendkeys(get(g:debugger,'debugger_window_name'),lib#runtime#setBreakpoint(fname,line))
@@ -305,10 +305,10 @@ function! lib#runtime#InspectSetBreakPoint()
 			let g:debugger.break_points =  uniq(g:debugger.break_points)
 			let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
 			exec ":sign place ".sid." line=".line." name=break_point file=".s:Get_Fullname(fname)
-			call s:LogMsg("设置断点成功")
+			call s:LogMsg("Add break point successfully.")
 		endif
 	else
-		call s:LogMsg('设置断点无响应')
+		call s:LogMsg('No response for break point setting.')
 	endif
 endfunction " }}}
 
@@ -430,7 +430,7 @@ endfunction " }}}
 
 " 输出初始调试信息 {{{
 function! s:Echo_debugging_info(command)
-	call s:LogMsg(a:command . ' ' . ' : [Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
+	call s:LogMsg(a:command)
 endfunction " }}}
 
 " 设置停驻的行高亮样式 {{{
@@ -549,8 +549,8 @@ function! s:Create_Debugger()
 	let g:debugger.cursor_original_winid = 0	" 执行命令前光标所在的窗口 
 	let g:debugger.stop_fname            = ''
 	let g:debugger.log                   = []
-	let g:debugger.close_msg             = "调试结束,两个<Ctrl-C>结束掉,或者输入exit回车结束掉, " .
-									  	\ "Debug Finished, <C-C><C-C> to Close Term..."
+	let g:debugger.close_msg             = "Debug Finished. Use <S-E> or 'exit' ".
+											\ "in terminal to quit debugging"
 	" break_points: ['a.js|3','t/b.js|34']
 	" break_points 里的索引作为 sign id
 	let g:debugger.break_points= []
@@ -601,8 +601,7 @@ function! s:Debugger_Stop(fname, line)
 	call s:Sign_Set_StopPoint(fname, a:line)
 	call cursor(a:line,1)
 	let shorten_filename = len(fname) > 40 ? pathshorten(fname) : fname
-	call s:LogMsg('Stop at '. shorten_filename .', line '.a:line.'. ' . 
-				\  '[Quit with "exit<CR>" or <Ctrl-C><Ctrl-C>].')
+	call s:LogMsg('Stop at '. shorten_filename .', line '.a:line. '.')
 	if has_key(g:language_setup, 'AfterStopScript')
 		call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
 	endif
@@ -788,7 +787,9 @@ endfunction " }}}
 
 function! lib#runtime#Close_Term() " {{{
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>exit\<CR>")
-	unlet g:debugger.term_winid
+	if has_key(g:debugger, 'term_winid')
+		unlet g:debugger.term_winid
+	endif
 	call execute('redraw','silent!')
 	call s:LogMsg("Debug terminated.")
 endfunction " }}}
@@ -823,7 +824,6 @@ endfunction " }}}
 " 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal {{{
 function! lib#runtime#Special_Cmd_Handler()
 	let cmd = getline('.')[0 : col('.')-1]
-	call s:LogMsg("---111------>". cmd)
 	" node 中是 kill 关闭，let NodeJS support 'exit' cmd, Heck for NodeJS
 	let cmd = s:StringTrim(substitute(cmd,"^.*debug>\\s","","g"))
 	if cmd == 'exit'

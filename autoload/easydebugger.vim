@@ -1,6 +1,10 @@
 " File:			autoload/easydebugger.vim
 " Author:		@jayli <http://jayli.github.io>
 " Description:	vim-easydebugger 事件绑定和程序入口
+"
+" ╦  ╦┬┌┬┐  ╔═╗┌─┐┌─┐┬ ┬╔╦╗┌─┐┌┐ ┬ ┬┌─┐┌─┐┌─┐┬─┐
+" ╚╗╔╝││││  ║╣ ├─┤└─┐└┬┘ ║║├┤ ├┴┐│ ││ ┬│ ┬├┤ ├┬┘
+"  ╚╝ ┴┴ ┴  ╚═╝┴ ┴└─┘ ┴ ═╩╝└─┘└─┘└─┘└─┘└─┘└─┘┴└─
 
 " 插件初始化入口 {{{
 function! easydebugger#Enable()
@@ -24,8 +28,8 @@ function! s:Global_Setup()
 	" g:None_Lang_Sp_Msg		当前代码不支持调试
 	
 	let g:Debug_Lang_Supported = ["javascript","go","python"]
-	let g:None_Lang_Sp_Msg = "不支持该语言，或者需要将光标切换到调试窗口, ".
-			\ "not support current lang"
+	let g:None_Lang_Sp_Msg = "Not support current filetype, ".
+							\ "or move cursor to sourcecode/terminal window"
 endfunction " }}}
 
 " 每进入一个 Buffer 都重新绑定一下 Terminal 的映射命令 {{{
