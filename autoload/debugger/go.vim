@@ -10,6 +10,7 @@ function! debugger#go#Setup()
 		\	'ctrl_cmd_stepin':            "step",
 		\	'ctrl_cmd_stepout':           "stepout",
 		\	'ctrl_cmd_pause':             "doNothing",
+		\	'ctrl_cmd_exit':              "exit",
 		\	'InspectInit':                function('lib#runtime#InspectInit'),
 		\	'WebInspectInit':             function('lib#runtime#WebInspectInit'),
 		\	'InspectCont':                function('lib#runtime#InspectCont'),

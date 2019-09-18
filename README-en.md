@@ -43,6 +43,7 @@ Put these code in your `~/.vimrc`
 	" Debugger startup
 	nmap <S-R>	<Plug>EasyDebuggerInspect
 	nmap <S-W>	<Plug>EasyDebuggerWebInspect
+	nmap <S-E>	<Plug>EasyDebuggerExit
 	" pause
 	nmap <F6>	<Plug>EasyDebuggerPause
 	tmap <F6>	<Plug>EasyDebuggerPause
@@ -64,6 +65,7 @@ Put these code in your `~/.vimrc`
 Key-Maps:
 
 - <kbd>Shift-R</kbd> ：startup debugger
+- <kbd>Shift-E</kbd> ：quit debugger
 - <kbd>Shift-W</kbd> ：startup Chrome DevTools debug service
 - <kbd>F6</kbd> ：pause
 - <kbd>F7</kbd> ：stepout
@@ -81,6 +83,7 @@ Commands：
 - `InspectStep`: stepin
 - `InspectOut`: stepout
 - `InspectPause`: pause
+- `InspectExit`: exit 
 
 ## Useage
 
@@ -94,7 +97,7 @@ For Python:
 
 	# debugger_entry = ../index.py
 
-For Go or JavaScript
+For Go and JavaScript
 
 	// debugger_entry = ../index.go
 
@@ -114,7 +117,7 @@ Debug mode windows:
 	║                               │                               ║
 	╚═══════════════════════════════╧═══════════════════════════════╝
 
-Type `next` + <kbd>Enter</kbd> in Terminal means step over. Quit debug with twice <kbd>Ctrl-C</kbd>, or input `exit` + <kbd>Enter</kbd> in Terminal. You can input `Ctrl-w N`（Ctrl-w，Shift-N）in terminal window if you want to get more output log. Type `i` to go back for interactive terminal.
+Type `next` + <kbd>Enter</kbd> in Terminal means step over. Quit debug with <kbd>Shift-E</kbd>, or input `exit` + <kbd>Enter</kbd> in Terminal. You can input `Ctrl-w N`（Ctrl-w，Shift-N）in terminal window if you want to get more output log. Type `i` to go back for interactive terminal.
 
 Press <kbd>F12</kbd> to toggle break points.
 

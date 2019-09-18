@@ -9,6 +9,7 @@ function! debugger#python#Setup()
 		\	'ctrl_cmd_next':              "next",
 		\	'ctrl_cmd_stepin':            "step",
 		\	'ctrl_cmd_stepout':           "up",
+		\	'ctrl_cmd_exit':              "exit",
 		\	'ctrl_cmd_pause':             "doNothing",
 		\	'InspectInit':                function('lib#runtime#InspectInit'),
 		\	'WebInspectInit':             function('lib#runtime#WebInspectInit'),

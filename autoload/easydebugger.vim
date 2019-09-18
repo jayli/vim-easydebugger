@@ -46,6 +46,8 @@ function! s:Bind_Nor_Map_Keys()
 	nnoremap <silent> <Plug>EasyDebuggerPause :call easydebugger#InspectPause()<CR>
 	" 设置断点快捷键映射
 	nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#InspectSetBreakPoint()<CR>
+	" 关闭debug
+	nnoremap <silent> <Plug>EasyDebuggerExit :call easydebugger#InspectExit()<CR>
 endfunction " }}}
 
 " 每次进入一个新 Buffer 都要重新绑定一次 {{{
@@ -55,6 +57,7 @@ function! s:Bind_Term_Map_Keys()
 	exec "tnoremap <silent> <Plug>EasyDebuggerStepIn ".easydebugger#GetCtrlCmd('ctrl_cmd_stepin')
 	exec "tnoremap <silent> <Plug>EasyDebuggerStepOut ".easydebugger#GetCtrlCmd('ctrl_cmd_stepout')
 	exec "tnoremap <silent> <Plug>EasyDebuggerPause ".easydebugger#GetCtrlCmd('ctrl_cmd_pause')
+	exec "tnoremap <silent> <Plug>EasyDebuggerExit ".easydebugger#GetCtrlCmd('ctrl_cmd_exit')
 endfunction " }}}
 
 " 命令定义 {{{
@@ -66,6 +69,7 @@ function! s:Build_Command()
 	command! -nargs=0 -complete=command InspectStep call easydebugger#InspectStep()
 	command! -nargs=0 -complete=command InspectOut  call easydebugger#InspectOut()
 	command! -nargs=0 -complete=command InspectPause call easydebugger#InspectPause()
+	command! -nargs=0 -complete=command InspectExit call easydebugger#InspectExit()
 endfunction " }}}
 
 " 当打开新 Buffer 时根据文件类型做初始化 {{{
@@ -188,6 +192,10 @@ function! easydebugger#InspectSetBreakPoint() "{{{
 	endif
 	call get(g:language_setup,'InspectSetBreakPoint')()
 endfunction "}}}
+
+function! easydebugger#InspectExit() " {{{
+	call lib#runtime#Close_Term()
+endfunction " }}}
 
 " 判断语言是否被支持 {{{
 function! s:Language_supported(...)

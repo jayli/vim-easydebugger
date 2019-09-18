@@ -607,7 +607,6 @@ function! s:Debugger_Stop(fname, line)
 		call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
 	endif
 	" 凡是执行完停驻行跳转的动作，都重新定位到 Term 里，方便用户直接输入命令
-	call s:LogMsg("------------")
 	if has_key(g:language_setup, "TerminalCursorSticky") && 
 				\ g:language_setup.TerminalCursorSticky == 1
 		call g:Goto_terminal_window()
@@ -776,7 +775,7 @@ function! s:Get_Fullname(fname)
 	return fnameescape(fnamemodify(a:fname,':p'))
 endfunction " }}}
 
-" 关闭 Terminal {{{
+" 关闭 Terminal , Hack for NodeJS {{{
 function! s:Close_Term()
 	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>\<C-C>\<C-C>")
 	if exists('g:debugger') && g:debugger.original_winid != bufwinid(bufnr(""))
@@ -784,7 +783,14 @@ function! s:Close_Term()
 		unlet g:debugger.term_winid
 	endif
 	call execute('redraw','silent!')
-	call s:LogMsg("调试结束,Debug over..")
+	call s:LogMsg("Debug terminated.")
+endfunction " }}}
+
+function! lib#runtime#Close_Term() " {{{
+	call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>exit\<CR>")
+	unlet g:debugger.term_winid
+	call execute('redraw','silent!')
+	call s:LogMsg("Debug terminated.")
 endfunction " }}}
 
 function! lib#runtime#Mark_Cursor_Position() "{{{
@@ -801,7 +807,6 @@ function! lib#runtime#Cursor_Restore() " {{{
 	if s:Term_is_running() && 
 				\ g:debugger.cursor_original_winid != bufwinid(bufnr("")) &&
 				\ g:debugger.cursor_original_winid != 0
-		call s:LogMsg(">>>>>>". string(g:debugger.cursor_original_winid))
 		call g:Goto_window(g:debugger.cursor_original_winid)
 	endif
 endfunction " }}}
@@ -818,6 +823,8 @@ endfunction " }}}
 " 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal {{{
 function! lib#runtime#Special_Cmd_Handler()
 	let cmd = getline('.')[0 : col('.')-1]
+	call s:LogMsg("---111------>". cmd)
+	" node 中是 kill 关闭，let NodeJS support 'exit' cmd, Heck for NodeJS
 	let cmd = s:StringTrim(substitute(cmd,"^.*debug>\\s","","g"))
 	if cmd == 'exit'
 		call s:Close_Term()

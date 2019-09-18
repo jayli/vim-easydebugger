@@ -85,9 +85,12 @@ Done!
 在 `~/.vimrc` 中添加快捷键配置：
 
 	" Vim-EasyDebugger 快捷键配置
-	" 开启 NodeJS 调试
+	" 启动 NodeJS/Python/Go 调试
 	nmap <S-R>	<Plug>EasyDebuggerInspect
+	" 启动 NodeJS 的 Web 调试模式
 	nmap <S-W>	<Plug>EasyDebuggerWebInspect
+	" 关闭调试
+	nmap <S-E>	<Plug>EasyDebuggerExit
 	" 暂停程序
 	nmap <F6>	<Plug>EasyDebuggerPause
 	tmap <F6>	<Plug>EasyDebuggerPause
@@ -110,6 +113,7 @@ Done!
 
 - <kbd>Shift-R</kbd> ：启动 VIM 调试器
 - <kbd>Shift-W</kbd> ：启动 Chrome DevTools 调试服务（仅支持NodeJS）
+- <kbd>Shift-E</kbd> ：关闭 VIM 调试器
 - <kbd>F6</kbd> ：暂停执行，pause
 - <kbd>F7</kbd> ：跳出函数，Python 中为`up`命令
 - <kbd>F8</kbd> ：单步进入，stepin
@@ -126,6 +130,7 @@ Done!
 - `InspectStep`：单步进入
 - `InspectOut`：跳出函数
 - `InspectPause`：暂停执行
+- `InspectExit`：退出调试
 
 ### 使用
 
@@ -135,7 +140,7 @@ Done!
 
 	# debugger_entry = ../index.py
 
-退出调试模式：光标在 Terminal 时，一般使用 `Ctrl-D` 退出。
+退出调试模式：快捷键 `Shift-E` 退出调试。当光标在 Terminal 时，也可以使用 `Ctrl-D` 或者 `exit + 回车` 退出。
 
 Terminal 窗口如何滚动：进入 Terminal-Normal 模式即可，光标在 Terminal 时通过 `Ctrl-w N`（Ctrl-w，Shift-N）进入，`i` 或者 `a` 再次进入 Terminal 交互模式。
 
@@ -161,9 +166,9 @@ Debug Window 为 Terminal，可输入命令。命令参考语言对应的调试�
 
 ![](https://gw.alicdn.com/tfs/TB1FyLLfVY7gK0jSZKzXXaikpXa-1990-1152.png)
 
-Python 调试支持调用堆栈查看和本地变量监视。退出调试需要光标停留在 Debug Window 中执行`exit`。常用的快捷键有`F9`单步执行，`F12`设置断点，`F10`继续执行等。[参照视频Demo](https://gw.alicdn.com/tfs/TB1cS7ofED1gK0jSZFGXXbd3FXa-1137-627.gif)
+Python 调试支持调用堆栈查看和本地变量监视。常用的快捷键有`F9`单步执行，`F12`设置断点，`F10`继续执行，`Shift-E`退出调试等。
 
-Python PDB 常用指令：`next` 下一步，`continue` 继续执行，`w` 查看当前堆栈... 
+Python PDB 常用指令：`next` 下一步，`continue` 继续执行，`w` 查看当前堆栈，`exit`退出调试... 
 
 #### - JavaScript
 

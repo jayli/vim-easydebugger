@@ -10,6 +10,7 @@ function! debugger#javascript#Setup()
 		\	'ctrl_cmd_stepin':            "step",
 		\	'ctrl_cmd_stepout':           "out",
 		\	'ctrl_cmd_pause':             "pause",
+		\	'ctrl_cmd_exit':              "kill",
 		\	'InspectInit':                function('lib#runtime#InspectInit'),
 		\	'WebInspectInit':             function('lib#runtime#WebInspectInit'),
 		\	'InspectCont':                function('lib#runtime#InspectCont'),
