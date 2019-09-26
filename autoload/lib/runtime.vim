@@ -201,9 +201,9 @@ endfunction "}}}
 " 设置本地变量和调用堆栈窗口的statusline样式{{{
 function! s:Set_Bottom_Window_Statusline(name)
 	if a:name == "stack"
-		exec 'setl statusline=%1*\ Normal\ %*%2*\ Call\ Stack\ %*\ %r%f[%M]%=Depth\ :\ %L\ '
+		exec 'setl statusline=%1*\ Normal\ %*%5*\ Call\ Stack\ %*\ %r%f[%M]%=Depth\ :\ %L\ '
 	elseif a:name == "localvars"
-		exec 'setl statusline=%1*\ Normal\ %*%4*\ Local\ Variables\ %*\ %r%f[%M]%=No\ :\ %L\ '
+		exec 'setl statusline=%1*\ Normal\ %*%5*\ Local\ Variables\ %*\ %r%f[%M]%=No\ :\ %L\ '
 	endif
 endfunction "}}}
 
