@@ -56,6 +56,13 @@ function! debugger#python#TermCallbackHandler(msg)
         call s:Fillup_Stacks_window(a:msg)
         if len(localvars) != 0
             let g:debugger.show_localvars = 0
+
+            " if exists("g:debugger.stop_fname") && g:debugger.stop_fname != ""
+            "     call s:LogMsg(g:debugger.stop_fname)
+            "     exec ":sign place 9999 line=1 name=place_holder file=".(g:debugger.stop_fname)
+            "     exec ":sign unplace 100 file=". (g:debugger.stop_fname)
+            " endif
+
         endif
     endif
 endfunction
