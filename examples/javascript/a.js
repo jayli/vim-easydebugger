@@ -1,20 +1,10 @@
-
-
-function Action(){
-	console.log(999);
-	debugger;
-	for(i = 1;i < 30;i++){
-		var line = '*';
-		for(j = 1;j <=i;j++){
-			line += '**';
-			line = (' ' + line);
-		}
-		console.log(line);
-	}
-}
-
-
-
-(function(){
-	new Action();
-})();
+const http = require('http');
+const net  = require('net');
+const util = require('util');
+ 
+http.createServer(function(req,res){
+    res.writeHead(200,{'Content-Type':'text/plain'})
+    res.write("we are is content");
+    debugger
+    res.end(new Date().getTime().toString());
+}).listen(3000);

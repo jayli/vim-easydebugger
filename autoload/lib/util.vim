@@ -51,6 +51,9 @@ endfunction "}}}
 " 从path中得到文件名 {{{
 function! lib#util#GetFileName(path)
     let path  = simplify(a:path)
+    if len(split(path,"/")) == 1
+        return path
+    endif
     let fname = matchstr(path,"\\([\\/]\\)\\@<=[^\\/]\\+$")
     return fname
 endfunction "}}}
