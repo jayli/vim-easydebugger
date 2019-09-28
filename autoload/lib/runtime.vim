@@ -367,6 +367,9 @@ endfunction " }}}
 
 " Terminal 消息回传 {{{
 function! lib#runtime#Term_callback(channel, msg)
+    call s:LogMsg('----------out_cb----------{{')
+    call s:LogMsg(a:channel)
+    call s:LogMsg(a:msg)
     " 如果消息为空
     " 如果消息长度为1，说明正在敲入字符
     " 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符
@@ -416,8 +419,32 @@ function! lib#runtime#Term_callback(channel, msg)
     if has_key(g:language_setup,"TermCallbackHandler")
         call g:language_setup.TermCallbackHandler(full_log)
     endif
-
+    call s:LogMsg('----------out_cb----------}}')
 endfunction " }}}
+
+function! s:HangUp_Sign()
+    " sign 9999 是为了防止界面抖动
+    call s:LogMsg("清空停驻标记")
+    if !has_key(g:debugger, "_place_holder_for_temp")
+        let g:debugger._place_holder_for_temp = []
+    endif
+    if get(g:debugger,"stop_fname") != ""
+        exec ":sign place 9998 line=1 name=place_holder file=".s:Get_Fullname(g:debugger.stop_fname)
+        exec ":sign unplace 100 file=".s:Get_Fullname(g:debugger.stop_fname)
+        if index(g:debugger._place_holder_for_temp, s:Get_Fullname(g:debugger.stop_fname)) < 0
+            call add(g:debugger._place_holder_for_temp, s:Get_Fullname(g:debugger.stop_fname))
+        endif
+    endif
+endfunction
+
+function! s:Clear_HangUp_Sign()
+    if !has_key(g:debugger, "_place_holder_for_temp")
+        return
+    endif
+    for fname in g:debugger._place_holder_for_temp
+        exec ":sign unplace 9998 file=".s:Get_Fullname(fname)
+    endfor
+endfunction
 
 " 判断首字母是否是可见的 ASCII 码 {{{
 function! s:Is_Ascii_Visiable(c)
@@ -464,6 +491,8 @@ function! s:Clear_All_Signs()
     endfor
     " 退出 Debug 时清除当前所有断点
     let g:debugger.break_points = []
+    " 清除挂起占位标记
+    call s:Clear_HangUp_Sign()
 endfunction " }}}
 
 " 显示 Term 窗口关闭消息 {{{
@@ -477,9 +506,25 @@ function! s:Debugger_Stop_Action(log)
     call s:LogMsg(string(a:log))
     if type(break_msg) == type({})
         call s:LogMsg("有停驻信息")
+
+        " 如果当前停驻行和文件较上次没变化，则什么也不做
+        if get(break_msg,'fname') == g:debugger.stop_fname && 
+                    \ get(break_msg,'breakline') == g:debugger.stop_line
+
+            call s:LogMsg("停驻行不变，继续")
+            let g:debugger.log = []
+            return
+        endif
+        call s:HangUp_Sign()
         call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'breakline'))
+    elseif len(a:log) > 0 && trim(a:log[len(a:log) - 1]) =~ get(g:language_setup, "DebugPrompt")
+        call s:HangUp_Sign()
+        " TODO 看647行的问题
+        call s:Debugger_Stop(g:debugger.stop_fname, g:debugger.stop_line)
+        call s:LogMsg("无停驻信息, 元命令执行完，等待输入指令")
     else
-        call s:LogMsg("无停驻信息")
+        call s:HangUp_Sign()
+        call s:LogMsg("无停驻信息, 程序还在运行，持续挂起状态")
     endif
 endfunction " }}}
 
@@ -549,9 +594,9 @@ function! s:Create_Debugger()
     let g:debugger.buf_winnr             = bufwinnr('%')
     let g:debugger.current_winnr         = -1
     let g:debugger.bufs                  = []
-    let g:debugger.stop_line             = 0
     let g:debugger.cursor_original_winid = 0    " 执行命令前光标所在的窗口 
-    let g:debugger.stop_fname            = ''
+    let g:debugger.stop_fname            = ''   " 当前停驻文件
+    let g:debugger.stop_line             = 0    " 当前停驻行
     let g:debugger.log                   = []
     let g:debugger.close_msg             = "Debug Finished. Use <S-E> or 'exit' ".
                                             \ "in terminal to quit debugging"
@@ -584,11 +629,6 @@ function! s:Debugger_Stop(fname, line)
         call easydebugger#Create_Lang_Setup()
     endif
 
-    " 如果当前停驻行和文件较上次没变化，则什么也不做
-    if fname == g:debugger.stop_fname && a:line == g:debugger.stop_line
-        return
-    endif
-
     call g:Goto_sourcecode_window()
     let fname = s:Debugger_get_filebuf(fname)
     " 如果读到一个不存在的文件，认为进入到 Native 部分的 Debugging，
@@ -602,14 +642,23 @@ function! s:Debugger_Stop(fname, line)
     endif
     call execute('setlocal nocursorline','silent!')
 
-    call s:Sign_Set_StopPoint(fname, a:line)
-    call cursor(a:line,1)
     let shorten_filename = len(fname) > 40 ? pathshorten(fname) : fname
     call s:LogMsg('Stop at '. shorten_filename .', line '.a:line. '.')
-    if has_key(g:language_setup, 'AfterStopScript')
+    " 如果定义了AfterStopScript，且停驻行变更
+    " TODO：
+    " 1. 解决了挂起的问题，这里的设计有问题，如果是一个循环里的语句，continue后还停留在这行，
+    " 则不会重新算堆栈和localvar
+    " 2. cursor(a:line,1) 有时候不起作用
+    " 3. 挂起时，localvar和call stack 应该清空
+    if has_key(g:language_setup, 'AfterStopScript') 
+            \ &&  !(fname == g:debugger.stop_fname && a:line == g:debugger.stop_line)
         call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
     endif
-    " 凡是执行完停驻行跳转的动作，都重新定位到 Term 里，方便用户直接输入命令
+
+    call s:Sign_Set_StopPoint(fname, a:line)
+    call cursor(a:line,1)
+
+    " 执行完停驻行跳转的动作，都重新定位到 Term 里，方便用户直接输入命令
     if has_key(g:language_setup, "TerminalCursorSticky") && 
                 \ g:language_setup.TerminalCursorSticky == 1
         call g:Goto_terminal_window()
@@ -627,6 +676,7 @@ endfunction " }}}
 
 " 重新设置 Break Point 的 Sign 标记的位置 {{{
 function! s:Sign_Set_StopPoint(fname, line)
+    call s:LogMsg('设置停驻标记')
     try
         " 如果要停驻的文件名有变化...
         if a:fname != g:debugger.stop_fname && g:debugger.stop_fname != ""
@@ -638,6 +688,7 @@ function! s:Sign_Set_StopPoint(fname, line)
         exec ":sign place 100 line=".string(a:line)." name=stop_point file=".s:Get_Fullname(a:fname)
         exec ":sign unplace 9999 file=".s:Get_Fullname(a:fname)
     catch
+        call cursor(a:line,1)
     endtry
 endfunction " }}}
 

@@ -64,3 +64,21 @@ function! lib#util#GetDirName(path)
     let fname = matchstr(path,"^.\\+\\/\\([^\\/]\\{-}$\\)\\@=")
     return fname
 endfunction "}}}
+
+" List 去重，类似 uniq，纯数字要去掉
+function! lib#util#ArrayDistinct( list )
+    if empty(a:list)
+        return []
+    else
+        let tmparray = [] 
+        let uniqlist = uniq(a:list)
+        for item in uniqlist
+            if !empty(item) && 
+                    \ !str2nr(item) &&
+                    \ len(item) != 1
+                call add(tmparray,item)
+            endif
+        endfor
+        return tmparray
+    endif
+endfunction
