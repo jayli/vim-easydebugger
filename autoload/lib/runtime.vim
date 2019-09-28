@@ -650,6 +650,7 @@ function! s:Debugger_Stop(fname, line)
     " 则不会重新算堆栈和localvar
     " 2. cursor(a:line,1) 有时候不起作用
     " 3. 挂起时，localvar和call stack 应该清空
+    " 4. F12 设置断点时，光标又跑到停驻行去了
     if has_key(g:language_setup, 'AfterStopScript') 
             \ &&  !(fname == g:debugger.stop_fname && a:line == g:debugger.stop_line)
         call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
@@ -672,7 +673,21 @@ function! s:Debugger_Stop(fname, line)
 
     " 只要重新停驻到新行，这一阶段的解析就完成了，log清空
     let g:debugger.log = []
+
+    if has_key(g:debugger,"_stop_rander_timmer")
+        call timer_pause(g:debugger._stop_rander_timmer, 1)
+    endif
+    let g:debugger._stop_rander_timmer = timer_start(1500,
+                                    \ {-> s:Reset_StopInfo()},
+                                    \ {'repeat' : 1})
 endfunction " }}}
+
+function! s:Reset_StopInfo(...)
+    " TODO 这两句 crash
+    " let g:debugger.stop_fname = ''
+    " let g:debugger.stop_line = 0
+    unlet g:debugger._stop_rander_timmer
+endfunction
 
 " 重新设置 Break Point 的 Sign 标记的位置 {{{
 function! s:Sign_Set_StopPoint(fname, line)
