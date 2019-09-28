@@ -474,8 +474,12 @@ endfunction " }}}
 " 设置停留的代码行 {{{
 function! s:Debugger_Stop_Action(log)
     let break_msg = s:Get_Term_Stop_Msg(a:log)
+    call s:LogMsg(string(a:log))
     if type(break_msg) == type({})
+        call s:LogMsg("有停驻信息")
         call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'breakline'))
+    else
+        call s:LogMsg("无停驻信息")
     endif
 endfunction " }}}
 
