@@ -116,6 +116,7 @@ function! s:Set_stackslist(stacks)
     endif
     call setbufvar(bufnr, '&modifiable', 0)
     let g:debugger.stacks_bufinfo = getbufinfo(bufnr)
+    call execute('redraw','silent!')
 endfunction
 
 function! s:Set_localvarlist(localvars)
