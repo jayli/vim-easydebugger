@@ -2,6 +2,18 @@
 " Author:       @jayli
 " Description:  常用函数
 
+" debug log
+
+function! lib#util#log(msg)
+    if !exists("g:easydebugger_logging") || g:easydebugger_logging != 1
+        return a:msg
+    endif
+    echohl Question
+    echom '>>> '. a:msg
+    echohl NONE
+    return a:msg
+endfunction
+
 " 输出 LogMsg {{{
 function! lib#util#LogMsg(msg)
     echohl MoreMsg 
@@ -72,22 +84,4 @@ endfunction
 
 function! lib#util#DelTermCallbackHijacking()
     unlet g:debugger.term_callback_hijacking
-endfunction
-
-" List 去重，类似 uniq，纯数字要去掉
-function! lib#util#ArrayDistinct( list )
-    if empty(a:list)
-        return []
-    else
-        let tmparray = [] 
-        let uniqlist = uniq(a:list)
-        for item in uniqlist
-            if !empty(item) && 
-                    \ !str2nr(item) &&
-                    \ len(item) != 1
-                call add(tmparray,item)
-            endif
-        endfor
-        return tmparray
-    endif
 endfunction

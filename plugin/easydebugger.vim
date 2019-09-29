@@ -9,6 +9,13 @@
 " ╚╗╔╝││││  ║╣ ├─┤└─┐└┬┘ ║║├┤ ├┴┐│ ││ ┬│ ┬├┤ ├┬┘
 "  ╚╝ ┴┴ ┴  ╚═╝┴ ┴└─┘ ┴ ═╩╝└─┘└─┘└─┘└─┘└─┘└─┘┴└─
 
+" 是否输出调试 Log 信息
+let g:easydebugger_logging = 0
+
+if version < 800
+    finish
+endif
+
 if has( 'vim_starting' ) " vim 启动时加载
     augroup EasyDebuggerStart " EasyDebuggerStart {{{
         autocmd!

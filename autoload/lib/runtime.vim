@@ -58,8 +58,7 @@
 " 启动 Chrome DevTools 模式的调试服务（只实现了 NodeJS）{{{
 function! lib#runtime#WebInspectInit()
     if s:Term_is_running()
-        call s:LogMsg("Please terminate the running debugger first.")
-        return ""
+        return s:LogMsg("Please terminate the running debugger first.")
     endif
 
     if !exists('g:language_setup')
@@ -68,9 +67,8 @@ function! lib#runtime#WebInspectInit()
 
     if !get(g:language_setup,'DebuggerTester')()
         if has_key(g:language_setup, 'DebuggerNotInstalled')
-            call s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
+            return s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
         endif
-        return ""
     endif
 
     let l:command = get(g:language_setup,'WebDebuggerCommandPrefix') . ' ' . 
@@ -118,8 +116,7 @@ endfunction " }}}
 " 初始化 VIM 调试模式 {{{
 function! lib#runtime#InspectInit()
     if s:Term_is_running()
-        call s:LogMsg("Please terminate the running debugger first.")
-        return ""
+        return s:LogMsg("Please terminate the running debugger first.")
     endif
 
     if !exists('g:language_setup')
@@ -128,9 +125,8 @@ function! lib#runtime#InspectInit()
 
     if !get(g:language_setup,'DebuggerTester')()
         if has_key(g:language_setup, 'DebuggerNotInstalled')
-            call s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
+            return s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
         endif
-        return ""
     endif
 
     let in_file_debugger_entry = s:GetDebuggerEntry()
@@ -145,56 +141,54 @@ function! lib#runtime#InspectInit()
 
     call s:Create_Debugger()
     call lib#runtime#Reset_Editor('silently')
-    if version <= 800
-        call system(l:full_command)
-    else 
-        call s:Set_Debug_CursorLine()
 
-        " 创建call stack window {{{
-        sil! exec "bo 10new"
-        call s:Set_Bottom_Window_Statusline("stack")
-        " 设置stack window 属性
-        let g:debugger.stacks_winid = winnr()
-        let g:debugger.stacks_bufinfo = getbufinfo(bufnr('')) 
-        exec s:Get_cfg_list_window_status_cmd()
-        call s:Add_jump_mapping()
-        call g:Goto_sourcecode_window()
-        " }}}
-        " 创建localvar window {{{
-        sil! exec "vertical botright new"
-        call s:Set_Bottom_Window_Statusline("localvars")
-        " 设置localvar window 属性
-        exec s:Get_cfg_list_window_status_cmd()
-        exec 'setl nonu'
-        let localvars_winid = winnr()
-        let g:debugger.localvars_winid = localvars_winid
-        let g:debugger.localvars_bufinfo = getbufinfo(bufnr('')) 
-        if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
-            " 如果调试器支持输出本地变量，则创建本地变量窗口
-            exec "abo " . (winheight(localvars_winid) - 11) . "new"
-        endif
-        " }}}
+    " ---开始创建 Terminal---
+    call s:Set_Debug_CursorLine()
 
-        call term_start(l:full_command,{ 
-            \ 'term_finish': 'close',
-            \ 'term_name':get(g:debugger,'debugger_window_name') ,
-            \ 'vertical':'1',
-            \ 'curwin':'1',
-            \ 'out_cb':'lib#runtime#Term_callback',
-            \ 'out_timeout':400,
-            \ 'close_cb':'lib#runtime#Reset_Editor',
-            \ })
-        " 记录 Term 的 Winid
-        let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
-        " 监听 Terminal 模式里的回车键
-        tnoremap <silent> <CR> <C-\><C-n>:call lib#runtime#Special_Cmd_Handler()<CR>i<C-P><Down>
-        call term_wait(get(g:debugger,'debugger_window_name'))
-        call s:Debugger_Stop_Action(g:debugger.log)
+    " 创建call stack window {{{
+    sil! exec "bo 10new"
+    call s:Set_Bottom_Window_Statusline("stack")
+    " 设置stack window 属性
+    let g:debugger.stacks_winid = winnr()
+    let g:debugger.stacks_bufinfo = getbufinfo(bufnr('')) 
+    exec s:Get_cfg_list_window_status_cmd()
+    call s:Add_jump_mapping()
+    call g:Goto_sourcecode_window()
+    " }}}
+    " 创建localvar window {{{
+    sil! exec "vertical botright new"
+    call s:Set_Bottom_Window_Statusline("localvars")
+    " 设置localvar window 属性
+    exec s:Get_cfg_list_window_status_cmd()
+    exec 'setl nonu'
+    let localvars_winid = winnr()
+    let g:debugger.localvars_winid = localvars_winid
+    let g:debugger.localvars_bufinfo = getbufinfo(bufnr('')) 
+    if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
+        " 如果调试器支持输出本地变量，则创建本地变量窗口
+        exec "abo " . (winheight(localvars_winid) - 11) . "new"
+    endif
+    " }}}
 
-        " 启动调试器后执行需要运行的脚本，有的调试器是需要的（比如go）
-        if has_key(g:language_setup, "TermSetupScript")
-            call get(g:language_setup,"TermSetupScript")()
-        endif
+    call term_start(l:full_command,{ 
+        \ 'term_finish': 'close',
+        \ 'term_name':get(g:debugger,'debugger_window_name') ,
+        \ 'vertical':'1',
+        \ 'curwin':'1',
+        \ 'out_cb':'lib#runtime#Term_callback',
+        \ 'out_timeout':400,
+        \ 'close_cb':'lib#runtime#Reset_Editor',
+        \ })
+    " 记录 Term 的 Winid
+    let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
+    " 监听 Terminal 模式里的回车键
+    tnoremap <silent> <CR> <C-\><C-n>:call lib#runtime#Special_Cmd_Handler()<CR>i<C-P><Down>
+    call term_wait(get(g:debugger,'debugger_window_name'))
+    call s:Debugger_Stop_Action(g:debugger.log)
+
+    " 启动调试器后执行需要运行的脚本，有的调试器是需要的（比如go）
+    if has_key(g:language_setup, "TermSetupScript")
+        call get(g:language_setup,"TermSetupScript")()
     endif
 endfunction "}}}
 
@@ -210,11 +204,10 @@ endfunction "}}}
 " Continue {{{
 function! lib#runtime#InspectCont()
     if !exists('g:language_setup')
-        call easydebugger#Create_Lang_Setup()
+        return easydebugger#Create_Lang_Setup()
     endif
     if !exists('g:debugger')
-        call s:LogMsg("Please startup debugger first.")
-        return
+        return s:LogMsg("Please startup debugger first.")
     endif
     if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_continue."\<CR>")
@@ -227,8 +220,7 @@ function! lib#runtime#InspectNext()
         call easydebugger#Create_Lang_Setup()
     endif
     if !exists('g:debugger')
-        call s:LogMsg("Please startup debugger first.")
-        return
+        return s:LogMsg("Please startup debugger first.")
     endif
     if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_next."\<CR>")
@@ -241,8 +233,7 @@ function! lib#runtime#InspectStep()
         call easydebugger#Create_Lang_Setup()
     endif
     if !exists('g:debugger')
-        call s:LogMsg("Please startup debugger first.")
-        return
+        return s:LogMsg("Please startup debugger first.")
     endif
     if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_stepin."\<CR>")
@@ -255,8 +246,7 @@ function! lib#runtime#InspectOut()
         call easydebugger#Create_Lang_Setup()
     endif
     if !exists('g:debugger')
-        call s:LogMsg("Please startup debugger first.")
-        return
+        return s:LogMsg("Please startup debugger first.")
     endif
     if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_stepout."\<CR>")
@@ -269,8 +259,7 @@ function! lib#runtime#InspectPause()
         call easydebugger#Create_Lang_Setup()
     endif
     if !exists('g:debugger')
-        call s:LogMsg("Please startup debugger first.")
-        return
+        return s:LogMsg("Please startup debugger first.")
     endif
     if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_pause."\<CR>")
@@ -379,14 +368,14 @@ endfunction
 
 " Terminal 消息回传 {{{
 function! lib#runtime#Term_callback(channel, msg)
-    call s:LogMsg('----------out_cb----------{{')
-    call s:LogMsg(a:channel)
-    call s:LogMsg(a:msg)
+    call s:log('----------out_cb----------{{')
+    call s:log(a:channel)
+    call s:log(a:msg)
     " 如果消息为空
     " 如果消息长度为1，说明正在敲入字符
     " 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符
     " TODO 这句话不精确
-    "call s:LogMsg("--- " . a:msg . " --- 首字母 Ascii 码是: ". char2nr(a:msg))
+    "call s:log("--- " . a:msg . " --- 首字母 Ascii 码是: ". char2nr(a:msg))
     if !exists('g:debugger._prev_msg')
         let g:debugger._prev_msg = a:msg
     endif
@@ -394,7 +383,7 @@ function! lib#runtime#Term_callback(channel, msg)
                 \ len(a:msg) == 1 || 
                 \ (!s:Is_Ascii_Visiable(a:msg) && len(a:msg) == len(g:debugger._prev_msg) - 1)
                 "\ char2nr(a:msg) == 13"
-        "call s:LogMsg("=== 被拦截了, 首字母iscii码是: ". char2nr(a:msg))
+        "call s:log("=== 被拦截了, 首字母iscii码是: ". char2nr(a:msg))
         return
     endif
     let g:debugger._prev_msg = a:msg
@@ -438,12 +427,12 @@ function! lib#runtime#Term_callback(channel, msg)
         endif
     endif
 
-    call s:LogMsg('----------out_cb----------}}')
+    call s:log('----------out_cb----------}}')
 endfunction " }}}
 
 function! s:HangUp_Sign()
     " sign 9999 是为了防止界面抖动
-    call s:LogMsg("清空停驻标记")
+    call s:log("清空停驻标记")
     if !has_key(g:debugger, "_place_holder_for_temp")
         let g:debugger._place_holder_for_temp = []
     endif
@@ -523,17 +512,17 @@ endfunction " }}}
 " 设置停留的代码行 {{{
 function! s:Debugger_Stop_Action(log)
     let break_msg = s:Get_Term_Stop_Msg(a:log)
-    call s:LogMsg(string(a:log))
+    call s:log(string(a:log))
     " 清除hangup标记
     let g:debugger.hangup = 0
     if type(break_msg) == type({})
-        call s:LogMsg("有停驻信息")
+        call s:log("有停驻信息")
 
         " 如果当前停驻行和文件较上次没变化，则什么也不做
         if get(break_msg,'fname') == g:debugger.stop_fname && 
                     \ get(break_msg,'breakline') == g:debugger.stop_line
 
-            call s:LogMsg("停驻行不变，继续")
+            call s:log("停驻行不变，继续")
             call s:HangUp_Sign()
             call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'breakline'))
             return
@@ -544,10 +533,10 @@ function! s:Debugger_Stop_Action(log)
         call s:HangUp_Sign()
         " TODO 看647行的问题
         call s:Debugger_Stop(g:debugger.stop_fname, g:debugger.stop_line)
-        call s:LogMsg("无停驻信息, 元命令执行完，等待输入指令")
+        call s:log("无停驻信息, 元命令执行完，等待输入指令")
     else
         call s:HangUp_Sign()
-        call s:LogMsg("无停驻信息, 程序还在运行，持续挂起状态")
+        call s:log("无停驻信息, 程序还在运行，持续挂起状态")
     endif
 endfunction " }}}
 
@@ -699,27 +688,11 @@ function! s:Debugger_Stop(fname, line)
 
     " 只要重新停驻到新行，这一阶段的解析就完成了，log清空
     let g:debugger.log = []
-
-    " if has_key(g:debugger,"_stop_rander_timmer")
-    "     call timer_stop(g:debugger._stop_rander_timmer)
-    " endif
-    " let g:debugger._stop_rander_timmer = timer_start(1500,
-    "                                 \ { tid -> s:Reset_StopInfo()},
-    "                                 \ {'repeat' : 1})
 endfunction " s:Debugger_Stop }}}
-
-function! s:Reset_StopInfo(...)
-    " TODO 这两句 crash
-    call s:LogMsg(g:debugger.stop_fname)
-    call execute(":let g:debugger.stop_fname = ''")
-    call execute(":let g:debugger.stop_line = 0")
-    call execute(":let g:debugger.log = []")
-    unlet g:debugger._stop_rander_timmer
-endfunction
 
 " 重新设置 Break Point 的 Sign 标记的位置 {{{
 function! s:Sign_Set_StopPoint(fname, line)
-    call s:LogMsg('设置停驻标记')
+    call s:log('设置停驻标记')
     try
         " 如果要停驻的文件名有变化...
         if a:fname != g:debugger.stop_fname && g:debugger.stop_fname != ""
@@ -939,3 +912,6 @@ function! s:LogMsg(msg)
     return lib#util#LogMsg(a:msg)
 endfunction " }}}
 
+function! s:log(msg)
+    return lib#util#log(a:msg)
+endfunction 

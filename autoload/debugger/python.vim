@@ -249,3 +249,8 @@ endfunction
 function! s:LogMsg(msg)
     call lib#util#LogMsg(a:msg)
 endfunction
+
+" 输出 debug log {{{
+function! s:log(msg)
+    return lib#util#log(a:msg)
+endfunction " }}}
