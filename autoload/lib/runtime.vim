@@ -444,6 +444,18 @@ function! s:HangUp_Sign()
         endif
     endif
     let g:debugger.hangup = 1
+    " 删除 stack 和 localvar
+    let stack_bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
+    call setbufvar(stack_bufnr, '&modifiable', 1)
+    call deletebufline(stack_bufnr, 1, len(getbufline(stack_bufnr, 0,'$')))
+    call setbufvar(stack_bufnr, '&modifiable', 0)
+    " 如果支持本地变量，一并清空
+    if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
+        let localvar_bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
+        call setbufvar(localvar_bufnr, '&modifiable', 1)
+        call deletebufline(localvar_bufnr, 1, len(getbufline(localvar_bufnr, 0,'$')))
+        call setbufvar(localvar_bufnr, '&modifiable', 0)
+    endif
 endfunction
 
 function! s:Clear_HangUp_Sign()
