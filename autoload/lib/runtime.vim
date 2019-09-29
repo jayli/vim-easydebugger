@@ -49,6 +49,7 @@
 "   - WebDebuggerCommandPrefix : {string} : Debugger Web 服务启动的命令前缀
 "   - ShowLocalVarsWindow : {Number} : 是否显示本地变量窗口
 "   - TerminalCursorSticky: {Number} : 单个命令结束后是否总是将光标定位在Term
+"   - DebugPrompt: {string} : 提示符
 "   - LocalDebuggerCommandPrefix : {string} : Debugger 启动的命令前缀
 "   - LocalDebuggerCommandSufix : {string} : Debugger 命令启动的后缀
 "   - ExecutionTerminatedMsg : {regex} : 判断 Debugger 运行结束的结束语正则
@@ -360,11 +361,12 @@ function! lib#runtime#Reset_Editor(...)
     endif
 endfunction " }}}
 
+" hijacking 函数劫持监听 {{{
 function! lib#runtime#Term_callback_event_handler(channel, msg)
     if exists("g:debugger.term_callback_hijacking")
         call g:debugger.term_callback_hijacking(a:channel, a:msg)
     endif
-endfunction
+endfunction " }}}
 
 " Terminal 消息回传 {{{
 function! lib#runtime#Term_callback(channel, msg)
@@ -430,6 +432,7 @@ function! lib#runtime#Term_callback(channel, msg)
     call s:log('----------out_cb----------}}')
 endfunction " }}}
 
+" 挂起样式设置 {{{
 function! s:HangUp_Sign()
     " sign 9999 是为了防止界面抖动
     call s:log("清空停驻标记")
@@ -456,8 +459,9 @@ function! s:HangUp_Sign()
         call deletebufline(localvar_bufnr, 1, len(getbufline(localvar_bufnr, 0,'$')))
         call setbufvar(localvar_bufnr, '&modifiable', 0)
     endif
-endfunction
+endfunction " }}}
 
+" 清空挂起状态 {{{
 function! s:Clear_HangUp_Sign()
     if !has_key(g:debugger, "_place_holder_for_temp")
         return
@@ -465,7 +469,7 @@ function! s:Clear_HangUp_Sign()
     for fname in g:debugger._place_holder_for_temp
         exec ":sign unplace 9998 file=".s:Get_Fullname(fname)
     endfor
-endfunction
+endfunction " }}}
 
 " 判断首字母是否是可见的 ASCII 码 {{{
 function! s:Is_Ascii_Visiable(c)
@@ -924,6 +928,7 @@ function! s:LogMsg(msg)
     return lib#util#LogMsg(a:msg)
 endfunction " }}}
 
+" 输出调试信息 {{{
 function! s:log(msg)
     return lib#util#log(a:msg)
-endfunction 
+endfunction " }}}
