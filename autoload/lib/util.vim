@@ -7,6 +7,7 @@ function! lib#util#LogMsg(msg)
     echohl MoreMsg 
     echom '>>> '. a:msg
     echohl NONE
+    return a:msg
 endfunction "}}}
 
 " 输出警告 LogMsg {{{
@@ -14,6 +15,7 @@ function! lib#util#WarningMsg(msg)
     echohl WarningMsg 
     echom '>>> '. a:msg
     echohl NONE
+    return a:msg
 endfunction "}}}
 
 " 获得当前 CursorLine 样式 {{{
@@ -64,6 +66,13 @@ function! lib#util#GetDirName(path)
     let fname = matchstr(path,"^.\\+\\/\\([^\\/]\\{-}$\\)\\@=")
     return fname
 endfunction "}}}
+
+function! lib#util#DoNothing(...)
+endfunction
+
+function! lib#util#DelTermCallbackHijacking()
+    unlet g:debugger.term_callback_hijacking
+endfunction
 
 " List 去重，类似 uniq，纯数字要去掉
 function! lib#util#ArrayDistinct( list )

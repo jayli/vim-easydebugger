@@ -39,7 +39,7 @@ function! debugger#python#Setup()
     return setup_options
 endfunction
 
-function! debugger#python#TermCallbackHandler(msg)
+function! debugger#python#TermCallbackHandler(full_log)
     " 刷新函数调用堆栈
     if exists('g:debugger.show_stack_log') && g:debugger.show_stack_log == 1
         " 确保只在应该刷新stack时执行
@@ -53,23 +53,16 @@ function! debugger#python#TermCallbackHandler(msg)
 
     " 刷新本地变量列表
     if exists('g:debugger.show_localvars') && g:debugger.show_localvars == 1
-        let localvars =  s:Fillup_localvars_window(a:msg)
-        call s:Fillup_Stacks_window(a:msg)
+        let localvars =  s:Fillup_localvars_window(a:full_log)
+        call s:Fillup_Stacks_window(a:full_log)
         if len(localvars) != 0
             let g:debugger.show_localvars = 0
-
-            " if exists("g:debugger.stop_fname") && g:debugger.stop_fname != ""
-            "     call s:LogMsg(g:debugger.stop_fname)
-            "     exec ":sign place 9999 line=1 name=place_holder file=".(g:debugger.stop_fname)
-            "     exec ":sign unplace 100 file=". (g:debugger.stop_fname)
-            " endif
-
         endif
     endif
 endfunction
 
-function! s:Fillup_localvars_window(msg)
-    let localvars = s:Get_Localvars(a:msg)
+function! s:Fillup_localvars_window(full_log)
+    let localvars = s:Get_Localvars(a:full_log)
     call s:Set_localvarlist(localvars)
 
     let g:debugger.log = []
@@ -77,10 +70,10 @@ function! s:Fillup_localvars_window(msg)
     return localvars
 endfunction
 
-function! s:Get_Localvars(msg)
+function! s:Get_Localvars(full_log)
     let vars = []
     let var_names = []
-    for item in a:msg
+    for item in a:full_log
         if item =~ "^$\\s\\S\\{-}"
             let var_name = matchstr(item,"\\(^$\\s\\)\\@<=.\\+\\(\\s=\\)\\@=")
             let var_value = matchstr(item,"\\(^$\\s\\S\\+\\s=\\s\\)\\@<=.\\+")
@@ -93,8 +86,8 @@ function! s:Get_Localvars(msg)
     return vars
 endfunction
 
-function! s:Fillup_Stacks_window(msg)
-    let stacks = s:Get_Stack(a:msg)
+function! s:Fillup_Stacks_window(full_log)
+    let stacks = s:Get_Stack(a:full_log)
     if len(stacks) == 0 
         return
     endif
@@ -151,28 +144,28 @@ function! s:Get_FileName(path)
     return fname
 endfunction
 
-function! s:Get_Stack(msg)
+function! s:Get_Stack(full_log)
     let stacks = []
     let go_stack_regx = "^->\\s\\+\\S\\{-}"
 
     " 如果是键盘输入了单个字符
-    if len(a:msg) == 1
+    if len(a:full_log) == 1
         return []
     endif
 
-    let endline = len(a:msg) - 1
+    let endline = len(a:full_log) - 1
     let i = 0
 
     "stack 信息提取，备注：这个循环执行的是很快的
     while i <= endline
-        if a:msg[i] =~ go_stack_regx
+        if a:full_log[i] =~ go_stack_regx
             let pointer = " "
-            let callstack = lib#util#StringTrim(matchstr(a:msg[i],"\\(->\\s\\+\\)\\@<=.\\+"))
+            let callstack = lib#util#StringTrim(matchstr(a:full_log[i],"\\(->\\s\\+\\)\\@<=.\\+"))
             " if i == endline 
             "   break
             " endif
-            let filename = lib#util#StringTrim(matchstr(a:msg[i-1],"\\(\\s\\+\\)\\@<=\\S.\\+\\.py\\((\\d\\)\\@="))
-            let linnr = lib#util#StringTrim(matchstr(a:msg[i-1],"\\(\\S\\.py(\\)\\@<=\\d\\+\\()\\)\\@="))
+            let filename = lib#util#StringTrim(matchstr(a:full_log[i-1],"\\(\\s\\+\\)\\@<=\\S.\\+\\.py\\((\\d\\)\\@="))
+            let linnr = lib#util#StringTrim(matchstr(a:full_log[i-1],"\\(\\S\\.py(\\)\\@<=\\d\\+\\()\\)\\@="))
             if filename == "" || linnr == "" || callstack == ""
                 let i = i + 1
                 continue
@@ -209,8 +202,16 @@ function! s:SetPythonLocalvarsCmd()
 endfunction
 
 function! debugger#python#AfterStopScript(msg)
+    let g:debugger.term_callback_hijacking = function('debugger#python#handleStackAndLocalvars')
     call debugger#python#ShowStacks()
     call s:SetPythonLocalvarsCmd()
+    call timer_start(350,
+            \ {-> lib#util#DelTermCallbackHijacking()},
+            \ {'repeat' : 1})
+endfunction
+
+function! debugger#python#handleStackAndLocalvars(channel, msg, full_log)
+    call debugger#python#TermCallbackHandler(a:full_log)
 endfunction
 
 function s:set_stacks_flag(flag)

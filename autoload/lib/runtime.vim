@@ -280,8 +280,10 @@ endfunction " }}}
 " 设置/取消断点，在当前行按 F12 {{{
 function! lib#runtime#InspectSetBreakPoint()
     if !s:Term_is_running()
-        call s:LogMsg("Please startup debugger first.")
-        return ""
+        return s:LogMsg("Please startup debugger first.")
+    endif
+    if g:debugger.hangup == 1
+        return s:LogMsg("Terminal is hanging up!")
     endif
     " 如果是当前文件所在的 Buf 或者是临时加载的 Buf
     if exists("g:debugger") && (bufnr('') == g:debugger.original_bnr || 
@@ -291,6 +293,7 @@ function! lib#runtime#InspectSetBreakPoint()
         " let fname = bufname('%')
         let fname = expand("%:p")
         let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
+        let g:debugger.term_callback_hijacking = function("lib#util#DoNothing")
         if breakpoint_contained >= 0
             " 已经存在 BreakPoint，则清除掉 BreakPoint
             call term_sendkeys(get(g:debugger,'debugger_window_name'),lib#runtime#clearBreakpoint(fname,line))
@@ -307,6 +310,9 @@ function! lib#runtime#InspectSetBreakPoint()
             exec ":sign place ".sid." line=".line." name=break_point file=".s:Get_Fullname(fname)
             call s:LogMsg("Add break point successfully.")
         endif
+        call timer_start(200,
+                \ {-> lib#util#DelTermCallbackHijacking()},
+                \ {'repeat' : 1})
     else
         call s:LogMsg('No response for break point setting.')
     endif
@@ -365,6 +371,12 @@ function! lib#runtime#Reset_Editor(...)
     endif
 endfunction " }}}
 
+function! lib#runtime#Term_callback_event_handler(channel, msg)
+    if exists("g:debugger.term_callback_hijacking")
+        call g:debugger.term_callback_hijacking(a:channel, a:msg)
+    endif
+endfunction
+
 " Terminal 消息回传 {{{
 function! lib#runtime#Term_callback(channel, msg)
     call s:LogMsg('----------out_cb----------{{')
@@ -412,13 +424,20 @@ function! lib#runtime#Term_callback(channel, msg)
                 call s:Cursor_Restore()
             endif
         endif
-    else
-        call s:Debugger_Stop_Action(g:debugger.log)
+        return
     endif
 
-    if has_key(g:language_setup,"TermCallbackHandler")
-        call g:language_setup.TermCallbackHandler(full_log)
+    " 有输出时的回调句柄
+    if exists("g:debugger.term_callback_hijacking")
+        " 不想被 Stop Action 干扰，先劫持掉，比如只计算call stack和localvars
+        call g:debugger.term_callback_hijacking(a:channel, a:msg, full_log)
+    else
+        call s:Debugger_Stop_Action(g:debugger.log)
+        if has_key(g:language_setup,"TermCallbackHandler")
+            call g:language_setup.TermCallbackHandler(full_log)
+        endif
     endif
+
     call s:LogMsg('----------out_cb----------}}')
 endfunction " }}}
 
@@ -435,6 +454,7 @@ function! s:HangUp_Sign()
             call add(g:debugger._place_holder_for_temp, s:Get_Fullname(g:debugger.stop_fname))
         endif
     endif
+    let g:debugger.hangup = 1
 endfunction
 
 function! s:Clear_HangUp_Sign()
@@ -504,6 +524,8 @@ endfunction " }}}
 function! s:Debugger_Stop_Action(log)
     let break_msg = s:Get_Term_Stop_Msg(a:log)
     call s:LogMsg(string(a:log))
+    " 清除hangup标记
+    let g:debugger.hangup = 0
     if type(break_msg) == type({})
         call s:LogMsg("有停驻信息")
 
@@ -512,7 +534,8 @@ function! s:Debugger_Stop_Action(log)
                     \ get(break_msg,'breakline') == g:debugger.stop_line
 
             call s:LogMsg("停驻行不变，继续")
-            let g:debugger.log = []
+            call s:HangUp_Sign()
+            call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'breakline'))
             return
         endif
         call s:HangUp_Sign()
@@ -598,6 +621,7 @@ function! s:Create_Debugger()
     let g:debugger.stop_fname            = ''   " 当前停驻文件
     let g:debugger.stop_line             = 0    " 当前停驻行
     let g:debugger.log                   = []
+    let g:debugger.hangup                = 0 " 判断当前是否挂起，挂起状态不应该执行任何callback
     let g:debugger.close_msg             = "Debug Finished. Use <S-E> or 'exit' ".
                                             \ "in terminal to quit debugging"
     " break_points: ['a.js|3','t/b.js|34']
@@ -624,6 +648,7 @@ endfunction " }}}
 " 执行到什么文件的什么行 {{{
 function! s:Debugger_Stop(fname, line)
     let fname = s:Get_Fullname(a:fname)
+    let g:debugger.hangup = 0
 
     if !exists("g:language_setup")
         call easydebugger#Create_Lang_Setup()
@@ -633,7 +658,7 @@ function! s:Debugger_Stop(fname, line)
     let fname = s:Debugger_get_filebuf(fname)
     " 如果读到一个不存在的文件，认为进入到 Native 部分的 Debugging，
     " 比如进入到了 Node Native 部分 Debugging, node inspect 没有给
-    " 出完整路径，调试不得不中断
+    " 出完整路径，调试不得不中断，TODO，这里不应该中断
     if (type(fname) == type(0) && fname == 0) || (type(fname) == type('string') && fname == '0')
         call term_sendkeys(get(g:debugger,'debugger_window_name'),"kill\<CR>")
         call lib#runtime#Reset_Editor('silently')
@@ -648,16 +673,17 @@ function! s:Debugger_Stop(fname, line)
     " TODO：
     " 1. 解决了挂起的问题，这里的设计有问题，如果是一个循环里的语句，continue后还停留在这行，
     " 则不会重新算堆栈和localvar
-    " 2. cursor(a:line,1) 有时候不起作用
+    " 2. cursor(a:line,1) 有时候不起作用，done
     " 3. 挂起时，localvar和call stack 应该清空
-    " 4. F12 设置断点时，光标又跑到停驻行去了
+    " 4. F12 设置断点时，光标又跑到停驻行去了 ,done
     if has_key(g:language_setup, 'AfterStopScript') 
-            \ &&  !(fname == g:debugger.stop_fname && a:line == g:debugger.stop_line)
+            " \ &&  !(fname == g:debugger.stop_fname && a:line == g:debugger.stop_line)
         call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
     endif
 
     call s:Sign_Set_StopPoint(fname, a:line)
     call cursor(a:line,1)
+    call execute('redraw','silent!')
 
     " 执行完停驻行跳转的动作，都重新定位到 Term 里，方便用户直接输入命令
     if has_key(g:language_setup, "TerminalCursorSticky") && 
@@ -674,18 +700,20 @@ function! s:Debugger_Stop(fname, line)
     " 只要重新停驻到新行，这一阶段的解析就完成了，log清空
     let g:debugger.log = []
 
-    if has_key(g:debugger,"_stop_rander_timmer")
-        call timer_pause(g:debugger._stop_rander_timmer, 1)
-    endif
-    let g:debugger._stop_rander_timmer = timer_start(1500,
-                                    \ {-> s:Reset_StopInfo()},
-                                    \ {'repeat' : 1})
-endfunction " }}}
+    " if has_key(g:debugger,"_stop_rander_timmer")
+    "     call timer_stop(g:debugger._stop_rander_timmer)
+    " endif
+    " let g:debugger._stop_rander_timmer = timer_start(1500,
+    "                                 \ { tid -> s:Reset_StopInfo()},
+    "                                 \ {'repeat' : 1})
+endfunction " s:Debugger_Stop }}}
 
 function! s:Reset_StopInfo(...)
     " TODO 这两句 crash
-    " let g:debugger.stop_fname = ''
-    " let g:debugger.stop_line = 0
+    call s:LogMsg(g:debugger.stop_fname)
+    call execute(":let g:debugger.stop_fname = ''")
+    call execute(":let g:debugger.stop_line = 0")
+    call execute(":let g:debugger.log = []")
     unlet g:debugger._stop_rander_timmer
 endfunction
 
@@ -908,6 +936,6 @@ endfunction " }}}
 
 " 输出 LogMsg {{{
 function! s:LogMsg(msg)
-    call lib#util#LogMsg(a:msg)
+    return lib#util#LogMsg(a:msg)
 endfunction " }}}
 
