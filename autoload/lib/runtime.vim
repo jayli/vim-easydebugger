@@ -624,6 +624,8 @@ function! s:Create_Debugger()
     let g:debugger.cursor_original_winid = 0    " 执行命令前光标所在的窗口 
     let g:debugger.stop_fname            = ''   " 当前停驻文件
     let g:debugger.stop_line             = 0    " 当前停驻行
+    let g:debugger.prompt_stop_arrow     = ">>" 
+    let g:debugger.prompt_break_point    = "**" 
     let g:debugger.log                   = []
     let g:debugger.hangup                = 0 " 判断当前是否挂起，挂起状态不应该执行任何callback
     let g:debugger.close_msg             = "Debug Finished. Use <S-E> or 'exit' ".
@@ -641,11 +643,12 @@ function! s:Create_Debugger()
     " 定义一个占位符，防止 sigin 切换时的抖动, id 为 9999
     exec 'hi PlaceHolder ctermfg='. lib#util#Get_BgColor('SignColumn') . 
                 \ ' ctermbg='. lib#util#Get_BgColor('SignColumn')
-    exec 'sign define place_holder text=>> texthl=PlaceHolder'
+    exec 'sign define place_holder text='.g:debugger.prompt_stop_arrow.' texthl=PlaceHolder'
     " 语句执行位置标记 id=100
-    exec 'sign define stop_point text=>> texthl=StopPointTextStyle linehl=StopPointLineStyle'
+    exec 'sign define stop_point text='.g:debugger.prompt_stop_arrow.
+                \ ' texthl=StopPointTextStyle linehl=StopPointLineStyle'
     " 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
-    exec 'sign define break_point text=** texthl=BreakPointStyle'
+    exec 'sign define break_point text='.g:debugger.prompt_break_point.' texthl=BreakPointStyle'
     return g:debugger
 endfunction " }}}
 
