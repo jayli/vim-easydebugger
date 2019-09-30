@@ -91,7 +91,7 @@ function! lib#runtime#WebInspectInit()
 endfunction " }}}
 
 " 如果存在 debugger_entry = ... 优先从这里先启动 {{{
-function! s:GetDebuggerEntry()
+function! s:Get_DebuggerEntry()
     let filename = ''
     let code_lines = getbufline(bufnr(''),1,'$')
     for line in code_lines
@@ -128,7 +128,7 @@ function! lib#runtime#InspectInit()
         endif
     endif
 
-    let in_file_debugger_entry = s:GetDebuggerEntry()
+    let in_file_debugger_entry = s:Get_DebuggerEntry()
     let debug_filename = in_file_debugger_entry == "" ? getbufinfo('%')[0].name : in_file_debugger_entry
     let l:command = get(g:language_setup,'LocalDebuggerCommandPrefix') . ' ' . debug_filename
     if has_key(g:language_setup, "LocalDebuggerCommandSufix")

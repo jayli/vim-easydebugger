@@ -2,8 +2,7 @@
 " Author:       @jayli
 " Description:  常用函数
 
-" debug log
-
+" debug log {{{
 function! lib#util#log(msg)
     if !exists("g:easydebugger_logging") || g:easydebugger_logging != 1
         return a:msg
@@ -12,7 +11,7 @@ function! lib#util#log(msg)
     echom '>>> '. a:msg
     echohl NONE
     return a:msg
-endfunction
+endfunction " }}}
 
 " 输出 LogMsg {{{
 function! lib#util#LogMsg(msg)
@@ -39,7 +38,7 @@ endfunction "}}}
 function! lib#util#Get_BgColor(name)
     if &t_Co > 255 && !has('gui_running')
         let hlString = lib#util#Highlight_Args(a:name)
-        let bgColor = matchstr(hlString,"\\(\\sctermbg=\\)\\@<=\\d\\{\-}\\(\\s\\)\\@=")
+        let bgColor = matchstr(hlString,"\\(\\sctermbg=\\)\\@<=\\d\\+")
         if bgColor != ''
             return str2nr(bgColor)
         endif
@@ -79,9 +78,9 @@ function! lib#util#GetDirName(path)
     return fname
 endfunction "}}}
 
-function! lib#util#DoNothing(...)
-endfunction
+function! lib#util#DoNothing(...) " {{{
+endfunction " }}}
 
-function! lib#util#DelTermCallbackHijacking()
+function! lib#util#DelTermCallbackHijacking() " {{{
     unlet g:debugger.term_callback_hijacking
-endfunction
+endfunction " }}}
