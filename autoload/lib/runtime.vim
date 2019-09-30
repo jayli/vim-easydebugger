@@ -80,15 +80,13 @@ function! lib#runtime#WebInspectInit()
     else
         let l:full_command = s:StringTrim(l:command)
     endif
-    if version <= 800
-        call system(l:full_command)
-    else 
-        call term_start(l:full_command,{ 
-            \ 'term_finish': 'close',
-            \ 'term_cols':s:Get_Term_Width(),
-            \ 'vertical':'1',
-            \ })
-    endif
+
+    call term_start(l:full_command,{ 
+        \ 'term_finish': 'close',
+        \ 'term_cols':s:Get_Term_Width(),
+        \ 'vertical':'1',
+        \ })
+
     call s:Echo_debugging_info(l:full_command)
 endfunction " }}}
 
@@ -165,7 +163,8 @@ function! lib#runtime#InspectInit()
     let localvars_winid = winnr()
     let g:debugger.localvars_winid = localvars_winid
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr('')) 
-    if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
+    if has_key(g:language_setup,"ShowLocalVarsWindow") && 
+                \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
         " 如果调试器支持输出本地变量，则创建本地变量窗口
         exec "abo " . (winheight(localvars_winid) - 11) . "new"
     endif
@@ -187,7 +186,7 @@ function! lib#runtime#InspectInit()
     call term_wait(get(g:debugger,'debugger_window_name'))
     call s:Debugger_Stop_Action(g:debugger.log)
 
-    " 启动调试器后执行需要运行的脚本，有的调试器是需要的（比如go）
+    " 启动调试器后执行需要运行的脚本
     if has_key(g:language_setup, "TermSetupScript")
         call get(g:language_setup,"TermSetupScript")()
     endif

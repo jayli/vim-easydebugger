@@ -16,6 +16,10 @@ if version < 800
     finish
 endif
 
+if !has('terminal')
+    finish
+endif
+
 if has( 'vim_starting' ) " vim 启动时加载
     augroup EasyDebuggerStart " EasyDebuggerStart {{{
         autocmd!

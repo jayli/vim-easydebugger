@@ -8,11 +8,6 @@
 
 " 插件初始化入口 {{{
 function! easydebugger#Enable()
-    " VIM 8.1 以下版本不支持
-    if version <= 800
-        return
-    endif
-
     call s:Global_Setup()
     call s:Bind_Nor_Map_Keys()
     call s:Build_Command()
@@ -141,8 +136,7 @@ endfunction "}}}
 function! easydebugger#InspectCont() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        call lib#util#LogMsg(g:None_Lang_Sp_Msg)
-        return ""
+        return lib#util#LogMsg(g:None_Lang_Sp_Msg)
     endif
     call lib#runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectCont')()
@@ -151,8 +145,7 @@ endfunction "}}}
 function! easydebugger#InspectNext() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        call lib#util#LogMsg(g:None_Lang_Sp_Msg)
-        return ""
+        return lib#util#LogMsg(g:None_Lang_Sp_Msg)
     endif
     call lib#runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectNext')()
@@ -161,8 +154,7 @@ endfunction "}}}
 function! easydebugger#InspectStep() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        call lib#util#LogMsg(g:None_Lang_Sp_Msg)
-        return ""
+        return lib#util#LogMsg(g:None_Lang_Sp_Msg)
     endif
     call lib#runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectStep')()
@@ -171,8 +163,7 @@ endfunction "}}}
 function! easydebugger#InspectOut() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        call lib#util#LogMsg(g:None_Lang_Sp_Msg)
-        return ""
+        return lib#util#LogMsg(g:None_Lang_Sp_Msg)
     endif
     call lib#runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectOut')()
@@ -181,8 +172,7 @@ endfunction "}}}
 function! easydebugger#InspectPause() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        call lib#util#LogMsg(g:None_Lang_Sp_Msg)
-        return ""
+        return lib#util#LogMsg(g:None_Lang_Sp_Msg)
     endif
     call lib#runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectPause')()
@@ -191,8 +181,7 @@ endfunction "}}}
 function! easydebugger#InspectSetBreakPoint() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        call lib#util#LogMsg(g:None_Lang_Sp_Msg)
-        return ""
+        return lib#util#LogMsg(g:None_Lang_Sp_Msg)
     endif
     call get(g:language_setup,'InspectSetBreakPoint')()
 endfunction "}}}
