@@ -118,8 +118,7 @@ endfunction "}}}
 function! easydebugger#InspectInit() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        call lib#util#LogMsg(g:None_Lang_Sp_Msg)
-        return ""
+        return util#LogMsg(g:None_Lang_Sp_Msg)
     endif
     call get(g:language_setup,'InspectInit')()
 endfunction "}}}
@@ -127,8 +126,7 @@ endfunction "}}}
 function! easydebugger#WebInspectInit() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        call lib#util#LogMsg(g:None_Lang_Sp_Msg)
-        return ""
+        return util#LogMsg(g:None_Lang_Sp_Msg)
     endif
     call get(g:language_setup,'WebInspectInit')()
 endfunction "}}}
@@ -136,58 +134,58 @@ endfunction "}}}
 function! easydebugger#InspectCont() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        return lib#util#LogMsg(g:None_Lang_Sp_Msg)
+        return util#LogMsg(g:None_Lang_Sp_Msg)
     endif
-    call lib#runtime#Mark_Cursor_Position()
+    call runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectCont')()
 endfunction "}}}
 
 function! easydebugger#InspectNext() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        return lib#util#LogMsg(g:None_Lang_Sp_Msg)
+        return util#LogMsg(g:None_Lang_Sp_Msg)
     endif
-    call lib#runtime#Mark_Cursor_Position()
+    call runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectNext')()
 endfunction "}}}
 
 function! easydebugger#InspectStep() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        return lib#util#LogMsg(g:None_Lang_Sp_Msg)
+        return util#LogMsg(g:None_Lang_Sp_Msg)
     endif
-    call lib#runtime#Mark_Cursor_Position()
+    call runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectStep')()
 endfunction "}}}
 
 function! easydebugger#InspectOut() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        return lib#util#LogMsg(g:None_Lang_Sp_Msg)
+        return util#LogMsg(g:None_Lang_Sp_Msg)
     endif
-    call lib#runtime#Mark_Cursor_Position()
+    call runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectOut')()
 endfunction "}}}
 
 function! easydebugger#InspectPause() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        return lib#util#LogMsg(g:None_Lang_Sp_Msg)
+        return util#LogMsg(g:None_Lang_Sp_Msg)
     endif
-    call lib#runtime#Mark_Cursor_Position()
+    call runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectPause')()
 endfunction "}}}
 
 function! easydebugger#InspectSetBreakPoint() "{{{
     call s:Create_Lang_Setup()
     if !s:Language_supported() || !exists('g:language_setup')
-        return lib#util#LogMsg(g:None_Lang_Sp_Msg)
+        return util#LogMsg(g:None_Lang_Sp_Msg)
     endif
     call get(g:language_setup,'InspectSetBreakPoint')()
 endfunction "}}}
 
 function! easydebugger#InspectExit() " {{{
-    call lib#runtime#Close_Term()
+    call runtime#Close_Term()
 endfunction " }}}
 
 " 判断语言是否被支持 {{{

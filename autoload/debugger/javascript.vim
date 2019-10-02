@@ -11,14 +11,14 @@ function! debugger#javascript#Setup()
         \   'ctrl_cmd_stepout':           "out",
         \   'ctrl_cmd_pause':             "pause",
         \   'ctrl_cmd_exit':              "kill",
-        \   'InspectInit':                function('lib#runtime#InspectInit'),
-        \   'WebInspectInit':             function('lib#runtime#WebInspectInit'),
-        \   'InspectCont':                function('lib#runtime#InspectCont'),
-        \   'InspectNext':                function('lib#runtime#InspectNext'),
-        \   'InspectStep':                function('lib#runtime#InspectStep'),
-        \   'InspectOut':                 function('lib#runtime#InspectOut'),
-        \   'InspectPause':               function('lib#runtime#InspectPause'),
-        \   'InspectSetBreakPoint':       function('lib#runtime#InspectSetBreakPoint'),
+        \   'InspectInit':                function('runtime#InspectInit'),
+        \   'WebInspectInit':             function('runtime#WebInspectInit'),
+        \   'InspectCont':                function('runtime#InspectCont'),
+        \   'InspectNext':                function('runtime#InspectNext'),
+        \   'InspectStep':                function('runtime#InspectStep'),
+        \   'InspectOut':                 function('runtime#InspectOut'),
+        \   'InspectPause':               function('runtime#InspectPause'),
+        \   'InspectSetBreakPoint':       function('runtime#InspectSetBreakPoint'),
         \   'DebuggerTester':             function('debugger#javascript#CommandExists'),
         \   'ClearBreakPoint':            function("debugger#javascript#ClearBreakPoint"),
         \   'SetBreakPoint':              function("debugger#javascript#SetBreakPoint"),
@@ -76,7 +76,7 @@ function! s:Set_stackslist(stacks)
     let ix = 0 
     for item in a:stacks
         let ix = ix + 1
-        let bufline_str = "*" . lib#util#GetFileName(item.filename) . "* : " .
+        let bufline_str = "*" . util#GetFileName(item.filename) . "* : " .
                     \ "|" . item.linnr . "|" .
                     \ " → " . item.callstack . " [at] " . item.filename
         call setbufline(bufnr, ix, bufline_str)
@@ -103,10 +103,10 @@ function! s:Get_Stack(msg)
     "#7 startup bootstrap_node.js:191:15
     while i <= endline
         if msg[i] =~ js_stack_regx
-            let filename = lib#util#StringTrim(matchstr(msg[i],"\\(\\s\\)\\@<=\\S\\{-}\\(:\\d\\)\\@="))
-            let linnr = lib#util#StringTrim(matchstr(msg[i],"\\(js:\\)\\@<=\\d\\{-}\\(:\\d\\)\\@="))
-            let callstack = lib#util#StringTrim(matchstr(msg[i],"\\(#\\d\\{-}\\s\\)\\@<=\\S\\{-}\\(\\s\\)\\@="))
-            let pointer = lib#util#StringTrim(matchstr(msg[i],"\\(#\\)\\@<=\\d\\{-}\\(\\s\\)\\@="))
+            let filename = util#StringTrim(matchstr(msg[i],"\\(\\s\\)\\@<=\\S\\{-}\\(:\\d\\)\\@="))
+            let linnr = util#StringTrim(matchstr(msg[i],"\\(js:\\)\\@<=\\d\\{-}\\(:\\d\\)\\@="))
+            let callstack = util#StringTrim(matchstr(msg[i],"\\(#\\d\\{-}\\s\\)\\@<=\\S\\{-}\\(\\s\\)\\@="))
+            let pointer = util#StringTrim(matchstr(msg[i],"\\(#\\)\\@<=\\d\\{-}\\(\\s\\)\\@="))
             call add(stacks, {
                 \   'filename': substitute(filename, "^file:\\/\\/","","g"),
                 \   'linnr': linnr,
@@ -130,5 +130,5 @@ endfunction
 
 " 输出 LogMsg
 function! s:LogMsg(msg)
-    call lib#util#LogMsg(a:msg)
+    call util#LogMsg(a:msg)
 endfunction

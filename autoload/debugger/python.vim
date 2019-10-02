@@ -11,14 +11,14 @@ function! debugger#python#Setup()
         \   'ctrl_cmd_stepout':           "up",
         \   'ctrl_cmd_exit':              "exit",
         \   'ctrl_cmd_pause':             "doNothing",
-        \   'InspectInit':                function('lib#runtime#InspectInit'),
-        \   'WebInspectInit':             function('lib#runtime#WebInspectInit'),
-        \   'InspectCont':                function('lib#runtime#InspectCont'),
-        \   'InspectNext':                function('lib#runtime#InspectNext'),
-        \   'InspectStep':                function('lib#runtime#InspectStep'),
-        \   'InspectOut':                 function('lib#runtime#InspectOut'),
+        \   'InspectInit':                function('runtime#InspectInit'),
+        \   'WebInspectInit':             function('runtime#WebInspectInit'),
+        \   'InspectCont':                function('runtime#InspectCont'),
+        \   'InspectNext':                function('runtime#InspectNext'),
+        \   'InspectStep':                function('runtime#InspectStep'),
+        \   'InspectOut':                 function('runtime#InspectOut'),
         \   'InspectPause':               function('debugger#python#InpectPause'),
-        \   'InspectSetBreakPoint':       function('lib#runtime#InspectSetBreakPoint'),
+        \   'InspectSetBreakPoint':       function('runtime#InspectSetBreakPoint'),
         \   'DebuggerTester':             function('debugger#python#CommandExists'),
         \   'ClearBreakPoint':            function("debugger#python#ClearBreakPoint"),
         \   'SetBreakPoint':              function("debugger#python#SetBreakPoint"),
@@ -104,7 +104,7 @@ function! s:Set_stackslist(stacks)
     let ix = 0 
     for item in a:stacks
         let ix = ix + 1
-        let bufline_str = "*" . lib#util#GetFileName(item.filename) . "* : " .
+        let bufline_str = "*" . util#GetFileName(item.filename) . "* : " .
                     \ "|" . item.linnr . "|" .
                     \ " → " . item.callstack
         call setbufline(bufnr, ix, bufline_str)
@@ -161,12 +161,12 @@ function! s:Get_Stack(full_log)
     while i <= endline
         if a:full_log[i] =~ go_stack_regx
             let pointer = " "
-            let callstack = lib#util#StringTrim(matchstr(a:full_log[i],"\\(->\\s\\+\\)\\@<=.\\+"))
+            let callstack = util#StringTrim(matchstr(a:full_log[i],"\\(->\\s\\+\\)\\@<=.\\+"))
             " if i == endline 
             "   break
             " endif
-            let filename = lib#util#StringTrim(matchstr(a:full_log[i-1],"\\(\\s\\+\\)\\@<=\\S.\\+\\.py\\((\\d\\)\\@="))
-            let linnr = lib#util#StringTrim(matchstr(a:full_log[i-1],"\\(\\S\\.py(\\)\\@<=\\d\\+\\()\\)\\@="))
+            let filename = util#StringTrim(matchstr(a:full_log[i-1],"\\(\\s\\+\\)\\@<=\\S.\\+\\.py\\((\\d\\)\\@="))
+            let linnr = util#StringTrim(matchstr(a:full_log[i-1],"\\(\\S\\.py(\\)\\@<=\\d\\+\\()\\)\\@="))
             if filename == "" || linnr == "" || callstack == ""
                 let i = i + 1
                 continue
@@ -194,7 +194,7 @@ endfunction
 
 function! debugger#python#TermSetupScript()
     call s:SetPythonLocalvarsCmd()
-    " call lib#runtime#Mark_Cursor_Position()
+    " call runtime#Mark_Cursor_Position()
 endfunction
 
 function! s:SetPythonLocalvarsCmd()
@@ -207,7 +207,7 @@ function! debugger#python#AfterStopScript(msg)
     call debugger#python#ShowStacks()
     call s:SetPythonLocalvarsCmd()
     call timer_start(350,
-            \ {-> lib#util#DelTermCallbackHijacking()},
+            \ {-> util#DelTermCallbackHijacking()},
             \ {'repeat' : 1})
 endfunction
 
@@ -234,7 +234,7 @@ function! debugger#python#ShowLocalVarNames()
 endfunction
 
 function! debugger#python#InpectPause()
-    call lib#util#LogMsg("PDB 不支持 Pause，'Pause' is not supported by PDB")
+    call util#LogMsg("PDB 不支持 Pause，'Pause' is not supported by PDB")
 endfunction
 
 function! debugger#python#ClearBreakPoint(fname,line)
@@ -247,10 +247,10 @@ endfunction
 
 " 输出 LogMsg
 function! s:LogMsg(msg)
-    call lib#util#LogMsg(a:msg)
+    call util#LogMsg(a:msg)
 endfunction
 
 " 输出 debug log {{{
 function! s:log(msg)
-    return lib#util#log(a:msg)
+    return util#log(a:msg)
 endfunction " }}}

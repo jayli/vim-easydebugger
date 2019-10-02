@@ -11,14 +11,14 @@ function! debugger#go#Setup()
         \   'ctrl_cmd_stepout':           "stepout",
         \   'ctrl_cmd_pause':             "doNothing",
         \   'ctrl_cmd_exit':              "exit",
-        \   'InspectInit':                function('lib#runtime#InspectInit'),
-        \   'WebInspectInit':             function('lib#runtime#WebInspectInit'),
-        \   'InspectCont':                function('lib#runtime#InspectCont'),
-        \   'InspectNext':                function('lib#runtime#InspectNext'),
-        \   'InspectStep':                function('lib#runtime#InspectStep'),
-        \   'InspectOut':                 function('lib#runtime#InspectOut'),
+        \   'InspectInit':                function('runtime#InspectInit'),
+        \   'WebInspectInit':             function('runtime#WebInspectInit'),
+        \   'InspectCont':                function('runtime#InspectCont'),
+        \   'InspectNext':                function('runtime#InspectNext'),
+        \   'InspectStep':                function('runtime#InspectStep'),
+        \   'InspectOut':                 function('runtime#InspectOut'),
         \   'InspectPause':               function('debugger#go#InpectPause'),
-        \   'InspectSetBreakPoint':       function('lib#runtime#InspectSetBreakPoint'),
+        \   'InspectSetBreakPoint':       function('runtime#InspectSetBreakPoint'),
         \   'DebuggerTester':             function('debugger#go#CommandExists'),
         \   'ClearBreakPoint':            function("debugger#go#ClearBreakPoint"),
         \   'SetBreakPoint':              function("debugger#go#SetBreakPoint"),
@@ -69,7 +69,7 @@ function! s:Set_stackslist(stacks)
     let ix = 0 
     for item in a:stacks
         let ix = ix + 1
-        let bufline_str = "*" . lib#util#GetFileName(item.filename) . "* : " .
+        let bufline_str = "*" . util#GetFileName(item.filename) . "* : " .
                     \ "|" . item.linnr . "|" .
                     \ " → " . item.callstack . " [at] " . item.pointer
         call setbufline(bufnr, ix, bufline_str)
@@ -96,13 +96,13 @@ function! s:Get_Stack(msg)
     "       at /usr/local/go/src/runtime/asm_amd64.s:1333
     while i <= endline
         if a:msg[i] =~ go_stack_regx
-            let pointer = lib#util#StringTrim(matchstr(a:msg[i],"0x\\S\\+"))
-            let callstack = lib#util#StringTrim(matchstr(a:msg[i],"\\(in\\s\\)\\@<=.\\+$"))
+            let pointer = util#StringTrim(matchstr(a:msg[i],"0x\\S\\+"))
+            let callstack = util#StringTrim(matchstr(a:msg[i],"\\(in\\s\\)\\@<=.\\+$"))
             if i == endline
                 break
             endif
-            let filename = lib#util#StringTrim(matchstr(a:msg[i+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
-            let linnr = lib#util#StringTrim(matchstr(a:msg[i+1],"\\(:\\)\\@<=\\d\\{-}$"))
+            let filename = util#StringTrim(matchstr(a:msg[i+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
+            let linnr = util#StringTrim(matchstr(a:msg[i+1],"\\(:\\)\\@<=\\d\\{-}$"))
             if filename == "" || linnr == "" || callstack == "" || pointer == ""
                 let i = i + 1
                 continue
@@ -139,7 +139,7 @@ function! debugger#go#AfterStopScript(msg)
 endfunction
 
 function! debugger#go#InpectPause()
-    call lib#util#LogMsg("Delve 不支持 Pause，'Pause' is not supported by Delve")
+    call util#LogMsg("Delve 不支持 Pause，'Pause' is not supported by Delve")
 endfunction
 
 function! debugger#go#ClearBreakPoint(fname,line)
@@ -164,5 +164,5 @@ endfunction
 
 " 输出 LogMsg
 function! s:LogMsg(msg)
-    call lib#util#LogMsg(a:msg)
+    call util#LogMsg(a:msg)
 endfunction
