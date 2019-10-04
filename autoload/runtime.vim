@@ -56,6 +56,67 @@
 "   - BreakFileNameRegex : {regex} : 获得程序停驻所在文件的正则
 "   - BreakLineNrRegex : {regex} : 获得程序停驻行号的正则
 
+" 创建全局 g:debugger 对象 {{{
+function! s:Create_Debugger()
+    let g:debugger = {}
+    if !exists('g:debugger_window_id')
+        let g:debugger_window_id = 1
+    else
+        let g:debugger_window_id += 1
+    endif
+    
+    " 调试窗口随机一下，其实不用随机，固定名字也可以
+    let g:debugger.debugger_window_name = "dw" . g:debugger_window_id
+    let g:debugger.original_bnr         = bufnr('')
+    " winnr 并不和 最初的 Buf 强绑定，原始 winnr 不能作为 window 的标识
+    " 要用 bufinfo 里的 windows 数组来代替唯一性
+    let g:debugger.original_winnr        = winnr()
+    let g:debugger.original_winid        = bufwinid(bufnr(""))
+    let g:debugger.original_buf          = getbufinfo(bufnr(''))
+    let g:debugger.cwd                   = getcwd()
+    let g:debugger.language              = g:language_setup.language
+    let g:debugger.original_bufname      = bufname('%')
+    let g:debugger.original_line_nr      = line(".")
+    let g:debugger.original_col_nr       = col(".")
+    let g:debugger.buf_winnr             = bufwinnr('%')
+    let g:debugger.current_winnr         = -1
+    let g:debugger.bufs                  = []
+    let g:debugger.cursor_original_winid = 0    " 执行命令前光标所在的窗口 
+    let g:debugger.stop_fname            = ''   " 当前停驻文件
+    let g:debugger.stop_line             = 0    " 当前停驻行
+    let g:debugger.log                   = []
+    let g:debugger.hangup                = 0 " 判断当前是否挂起，挂起状态不应该执行任何callback
+    let g:debugger.close_msg             = "Debug Finished. Use <S-E> or 'exit' ".
+                                            \ "in terminal to quit debugging"
+    " break_points: ['a.js|3','t/b.js|34']
+    " break_points 里的索引作为 sign id
+    let g:debugger.break_points= []
+    " 样式配置: 原始的光标行背景色
+    let g:debugger.original_cursor_color    = util#Get_CursorLine_bgColor()
+    let g:debugger.prompt_stop_arrow        = ">>"
+    let g:debugger.prompt_break_point       = "**"
+    let g:debugger.break_point_style_fg     = has("gui_running") ? "#df005f" : 197
+    let g:debugger.stop_point_line_style_bg = has("gui_running") ? "#0000af" : 19
+    let g:debugger.stop_point_text_style_fg = has("gui_running") ? "green" : "green"
+    " 这句话没用其实
+    call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
+
+    call util#hi('BreakPointStyle', g:debugger.break_point_style_fg, util#Get_BgColor('SignColumn'), "")
+    call util#hi('StopPointLineStyle', -1, g:debugger.stop_point_line_style_bg, "")
+    call util#hi('StopPointTextStyle', g:debugger.stop_point_text_style_fg, util#Get_BgColor('SignColumn'), "bold")
+    " 定义一个占位符，防止 sigin 切换时的抖动, id 为 9999
+    call util#hi('PlaceHolder', util#Get_BgColor('SignColumn'), util#Get_BgColor('SignColumn'), "")
+
+    exec 'sign define place_holder text='.g:debugger.prompt_stop_arrow.' texthl=PlaceHolder'
+    " 语句执行位置标记 id=100
+    exec 'sign define stop_point text='.g:debugger.prompt_stop_arrow.
+                \ ' texthl=StopPointTextStyle linehl=StopPointLineStyle'
+    " 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
+    exec 'sign define break_point text='.g:debugger.prompt_break_point.' texthl=BreakPointStyle'
+    return g:debugger
+endfunction " }}}
+
+
 " 启动 Chrome DevTools 模式的调试服务（只实现了 NodeJS）{{{
 function! runtime#WebInspectInit()
     if s:Term_is_running()
@@ -340,7 +401,8 @@ function! runtime#Reset_Editor(...)
     if g:debugger.original_cursor_color
         " 恢复 CursorLine 的高亮样式
         call execute("setlocal cursorline","silent!")
-        call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
+        " call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
+        call util#hi('CursorLine', -1 , g:debugger.original_cursor_color, "")
     endif
     if g:debugger.original_winid != bufwinid(bufnr(""))
         if !(type(a:1) == type('string') && a:1 == 'silently')
@@ -594,62 +656,6 @@ endfunction " }}}
 " 相当于 trim，去掉首尾的空字符 {{{
 function! s:StringTrim(str)
     return util#StringTrim(a:str)
-endfunction " }}}
-
-" 创建全局 g:debugger 对象 {{{
-function! s:Create_Debugger()
-    let g:debugger = {}
-    if !exists('g:debugger_window_id')
-        let g:debugger_window_id = 1
-    else
-        let g:debugger_window_id += 1
-    endif
-    
-    " 调试窗口随机一下，其实不用随机，固定名字也可以
-    let g:debugger.debugger_window_name = "dw" . g:debugger_window_id
-    let g:debugger.original_bnr         = bufnr('')
-    " winnr 并不和 最初的 Buf 强绑定，原始 winnr 不能作为 window 的标识
-    " 要用 bufinfo 里的 windows 数组来代替唯一性
-    let g:debugger.original_winnr        = winnr()
-    let g:debugger.original_winid        = bufwinid(bufnr(""))
-    let g:debugger.original_buf          = getbufinfo(bufnr(''))
-    let g:debugger.cwd                   = getcwd()
-    let g:debugger.language              = g:language_setup.language
-    let g:debugger.original_bufname      = bufname('%')
-    let g:debugger.original_line_nr      = line(".")
-    let g:debugger.original_col_nr       = col(".")
-    let g:debugger.buf_winnr             = bufwinnr('%')
-    let g:debugger.current_winnr         = -1
-    let g:debugger.bufs                  = []
-    let g:debugger.cursor_original_winid = 0    " 执行命令前光标所在的窗口 
-    let g:debugger.stop_fname            = ''   " 当前停驻文件
-    let g:debugger.stop_line             = 0    " 当前停驻行
-    let g:debugger.prompt_stop_arrow     = ">>" 
-    let g:debugger.prompt_break_point    = "**" 
-    let g:debugger.log                   = []
-    let g:debugger.hangup                = 0 " 判断当前是否挂起，挂起状态不应该执行任何callback
-    let g:debugger.close_msg             = "Debug Finished. Use <S-E> or 'exit' ".
-                                            \ "in terminal to quit debugging"
-    " break_points: ['a.js|3','t/b.js|34']
-    " break_points 里的索引作为 sign id
-    let g:debugger.break_points= []
-    " 原始的光标行背景色
-    let g:debugger.original_cursor_color = util#Get_CursorLine_bgColor()
-    " 这句话没用其实
-    call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
-    exec "hi BreakPointStyle ctermfg=197 ctermbg=". util#Get_BgColor('SignColumn')
-    exec "hi StopPointLineStyle ctermbg=19"
-    exec "hi StopPointTextStyle cterm=bold ctermfg=green ctermbg=".util#Get_BgColor('SignColumn')
-    " 定义一个占位符，防止 sigin 切换时的抖动, id 为 9999
-    exec 'hi PlaceHolder ctermfg='. util#Get_BgColor('SignColumn') . 
-                \ ' ctermbg='. util#Get_BgColor('SignColumn')
-    exec 'sign define place_holder text='.g:debugger.prompt_stop_arrow.' texthl=PlaceHolder'
-    " 语句执行位置标记 id=100
-    exec 'sign define stop_point text='.g:debugger.prompt_stop_arrow.
-                \ ' texthl=StopPointTextStyle linehl=StopPointLineStyle'
-    " 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
-    exec 'sign define break_point text='.g:debugger.prompt_break_point.' texthl=BreakPointStyle'
-    return g:debugger
 endfunction " }}}
 
 " 执行到什么文件的什么行 {{{

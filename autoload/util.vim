@@ -36,15 +36,41 @@ endfunction "}}}
 
 " 获得某个颜色主题的背景色 {{{
 function! util#Get_BgColor(name)
-    if &t_Co > 255 && !has('gui_running')
-        let hlString = util#Highlight_Args(a:name)
-        let bgColor = matchstr(hlString,"\\(\\sctermbg=\\)\\@<=\\d\\+")
-        if bgColor != ''
-            return str2nr(bgColor)
+    return util#Get_HiColor(a:name, "bg")
+endfunction "}}}
+
+" 获得主题颜色 {{{
+function! util#Get_HiColor(hiName, sufix)
+    let sufix = empty(a:sufix) ? "bg" : a:sufix
+    let hlString = util#Highlight_Args(a:hiName)
+    if has("gui_running")
+        " Gui color name
+        let my_color = matchstr(hlString,"\\(\\sgui" . sufix . "=\\)\\@<=#\\w\\+")
+        if my_color != ''
+            return my_color
+        endif
+    else
+        let my_color= matchstr(hlString,"\\(\\scterm" .sufix. "=\\)\\@<=\\w\\+")
+        if my_color!= ''
+            return my_color
         endif
     endif
     return 'none'
-endfunction "}}}
+endfunction " }}}
+
+" 设置主题色 {{{
+function! util#hi(group, fg, bg, attr)
+    let prefix = has("gui_running") ? "gui" : "cterm"
+    if !empty(a:fg) && a:fg != -1
+        call execute(join(['hi', a:group, prefix . "fg=" . a:fg ], " "))
+    endif
+    if !empty(a:bg) && a:bg != -1
+        call execute(join(['hi', a:group, prefix . "bg=" . a:bg ], " "))
+    endif
+    if !empty(a:attr) && a:attr != ""
+        call execute(join(['hi', a:group, prefix . "=" . a:attr ], " "))
+    endif
+endfunction " }}}
 
 " 执行高亮 {{{
 function! util#Highlight_Args(name)
