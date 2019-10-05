@@ -61,6 +61,8 @@ endfunction " }}}
 
 " 命令定义 {{{
 function! s:Build_Command()
+    " Debugger 和 InspectInit 都可以启动 Debugger
+    command! -nargs=0 -complete=command -buffer Debugger call easydebugger#InspectInit()
     command! -nargs=0 -complete=command -buffer InspectInit call easydebugger#InspectInit()
     command! -nargs=0 -complete=command -buffer WebInspectInit call easydebugger#WebInspectInit()
     command! -nargs=0 -complete=command InspectCont call easydebugger#InspectCont()

@@ -123,7 +123,7 @@ Done!
 
 命令列表：
 
-- `InspectInit`：启动 VIM 调试器
+- `InspectInit`、`Debugger`：启动 VIM 调试器
 - `WebInspectInit`：启动 Chrome DevTools 调试服务
 - `InspectCont`：继续执行
 - `InspectNext`：单步执行
