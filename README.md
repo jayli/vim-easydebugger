@@ -20,7 +20,7 @@ VIM 从 8.1 版本开始支持 Terminal，并内置了 GDB 调试器，强大的
 - [Vim-Godebug](https://github.com/jodosha/vim-godebug)：Go 语言的调试器，基于 [Neovim](https://github.com/jodosha/vim-godebug) 和 [Vim-go](https://github.com/jodosha/vim-godebug)，项目更新缓慢，环境依赖太复杂，反正我是没搞定。
 - [Fisa-Vim-Config](http://fisadev.github.io/fisa-vim-config/)：Github 上关注度最高的一个 VIM 配置，Python 的支持很好，不支持 NodeJS，当前项目已经不维护了。
 
-我基于 VIM 8.1 实现了一个简单的 VIM 调试器，不依赖 Python，只依赖要调试语言的调试环境。
+EasyDebugger 不依赖 Python，只依赖要调试语言的调试环境。
 
 ### Vim-EasyDebugger 特性
 
@@ -197,9 +197,9 @@ NodeJS 提供了基于 Chrome DevTools 的调试，我也封装了进来：
 
 ![](https://gw.alicdn.com/tfs/TB1uX3YekzoK1RjSZFlXXai4VXa-744-95.png)
 
-### 关于 VIM Debugger 插件的一些思考
+### 后记
 
-VIM 8.1 所支持的 Terminal 是这个大版本最主要的特性，我个人非常喜欢，他让我很大程度抛弃了对 Python 和其他辅助工具的依赖，用纯净的 VimL 就能完成 Debugger 插件的开发，相比过去开发体验还是很赞的。目前只支持 NodeJS 和 Go，后续陆续添加更多语言支持。
+VIM 8.1 支持 Terminal 是这个大版本最主要的特性，我个人非常喜欢，他让我很大程度抛弃了对 Python 和其他辅助工具的依赖，用纯净的 VimL 就能完成 Debugger 插件的开发，相比过去开发体验还是很赞的。目前只支持 NodeJS 和 Go，后续陆续添加更多语言支持。
 
 但是 Terminal 仍然不尽完善，比如 Terminal 的输出是碎片式的，另外性能上也有问题，比如 quickfix 和 localist 窗口性能极差，最后我换成了普通的 buffer 来管理辅助窗口，另外我也没有实现 Go 和 Python 的多线程，只满足单线程的调试。
 

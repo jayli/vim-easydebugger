@@ -76,7 +76,7 @@ Key-Maps:
 
 Commands：
 
-- `InspectInit`: startup debugger
+- `InspectInit`/`Debugger`: startup debugger
 - `WebInspectInit`: startup Chrome DevTools debug service
 - `InspectCont`: continue
 - `InspectNext`: stepover
