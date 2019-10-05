@@ -21,7 +21,7 @@ function! s:Global_Setup()
     "                           在debugger/[编程语言].vim中配置
     " g:Debug_Lang_Supported    当前支持的debug语言种类
     " g:None_Lang_Sp_Msg        当前代码不支持调试
-    
+
     let g:Debug_Lang_Supported = ["javascript","go","python"]
     let g:None_Lang_Sp_Msg = "Not support current filetype, ".
                             \ "or move cursor to sourcecode/terminal window"
