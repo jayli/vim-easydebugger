@@ -2,7 +2,7 @@
 " Author:       @jayli
 " Description:  Debugger 运行时的标准实现，无特殊情况应当优先使用这些默认实现，
 "               如果不能满足当前调试器（比如 go 语言的 delve 不支持 pause），
-"               需要在 debugger/[编程语言].vim 中重新实现
+"               需要在 debugger/[language].vim 中重新实现
 "
 "  ╔═══════════════════════════════╤═══════════════════════════════╗
 "  ║                               │                               ║
@@ -20,7 +20,7 @@
 "  ║                               │                               ║
 "  ╚═══════════════════════════════╧═══════════════════════════════╝
 "
-" 原理：Debugger 运行在 Term 内，Term 创建时可以绑定输出回调，通过监听 Term
+" 原理：Term 内运行 Inspect 程序，Term 创建时绑定输出回调，监听 Term
 " 内的输出字符来执行单步执行、继续执行、暂停、输出回调堆栈等等操作，VIM 作为
 " UI 层的交互，由于 Term 回调机制可以更好的完成，难度不大，关键是做好各个语言
 " 的 Debugger 输出的格式过滤，目前已经将 runtime.vim 基本抽象出来了，debugger
@@ -64,8 +64,7 @@ function! s:Create_Debugger()
     else
         let g:debugger_window_id += 1
     endif
-    
-    " 调试窗口随机一下，其实不用随机，固定名字也可以
+    " 调试窗口名字随机一下（其实固定名字也可以）
     let g:debugger.debugger_window_name = "dw" . g:debugger_window_id
     let g:debugger.original_bnr         = bufnr('')
     " winnr 并不和 最初的 Buf 强绑定，原始 winnr 不能作为 window 的标识
@@ -81,17 +80,17 @@ function! s:Create_Debugger()
     let g:debugger.buf_winnr             = bufwinnr('%')
     let g:debugger.current_winnr         = -1
     let g:debugger.bufs                  = []
-    let g:debugger.cursor_original_winid = 0    " 执行命令前光标所在的窗口 
+    let g:debugger.cursor_original_winid = 0    " 执行命令前光标所在的窗口
     let g:debugger.stop_fname            = ''   " 当前停驻文件
     let g:debugger.stop_line             = 0    " 当前停驻行
     let g:debugger.log                   = []
-    let g:debugger.hangup                = 0 " 判断当前是否挂起，挂起状态不应该执行任何callback
+    let g:debugger.hangup                = 0 " 判断当前是否挂起,挂起状态不应该执行任何callback
     let g:debugger.close_msg             = "Debug Finished. Use <S-E> or 'exit' ".
                                             \ "in terminal to quit debugging"
     " break_points: ['a.js|3','t/b.js|34']
     " break_points 里的索引作为 sign id
     let g:debugger.break_points= []
-    " 样式配置: 原始的光标行背景色
+    " 样式配置
     let g:debugger.original_cursor_color    = util#Get_CursorLine_bgColor()
     let g:debugger.prompt_stop_arrow        = ">>"
     let g:debugger.prompt_break_point       = "**"
@@ -104,7 +103,7 @@ function! s:Create_Debugger()
     call util#hi('BreakPointStyle', g:debugger.break_point_style_fg, util#Get_BgColor('SignColumn'), "")
     call util#hi('StopPointLineStyle', -1, g:debugger.stop_point_line_style_bg, "")
     call util#hi('StopPointTextStyle', g:debugger.stop_point_text_style_fg, util#Get_BgColor('SignColumn'), "bold")
-    " 定义一个占位符，防止 sigin 切换时的抖动, id 为 9999
+    " 定义占位符，防止 sigin 切换时的抖动, id 为 9999
     call util#hi('PlaceHolder', util#Get_BgColor('SignColumn'), util#Get_BgColor('SignColumn'), "")
 
     exec 'sign define place_holder text='.g:debugger.prompt_stop_arrow.' texthl=PlaceHolder'
@@ -115,7 +114,6 @@ function! s:Create_Debugger()
     exec 'sign define break_point text='.g:debugger.prompt_break_point.' texthl=BreakPointStyle'
     return g:debugger
 endfunction " }}}
-
 
 " 启动 Chrome DevTools 模式的调试服务（只实现了 NodeJS）{{{
 function! runtime#WebInspectInit()
@@ -151,13 +149,13 @@ function! runtime#WebInspectInit()
     call s:Echo_debugging_info(l:full_command)
 endfunction " }}}
 
-" 如果存在 debugger_entry = ... 优先从这里先启动 {{{
+" 如果存在 debugger_entry = ... 优先启动文件入口 {{{
 function! s:Get_DebuggerEntry()
     let filename = ''
     let code_lines = getbufline(bufnr(''),1,'$')
     for line in code_lines
-        if line  =~ "^\\(#\\|\"\\|//\\)\\s\\{-}debugger_entry\\s\\{-}=" 
-            let filename = matchstr(line , 
+        if line  =~ "^\\(#\\|\"\\|//\\)\\s\\{-}debugger_entry\\s\\{-}="
+            let filename = matchstr(line ,
                         \ "\\(\\s\\{-}debugger_entry\\s\\{-}=\\s\\{-}\\)\\@<=\\S\\+")
             if filename =~ "^\\~/"
                 let filename = expand(filename)
@@ -173,7 +171,7 @@ function! s:Get_DebuggerEntry()
     return ""
 endfunction " }}}
 
-" 初始化 VIM 调试模式 {{{
+" 初始化 VIM 调试窗 {{{
 function! runtime#InspectInit()
     if s:Term_is_running()
         return s:LogMsg("Please terminate the running debugger first.")
@@ -204,13 +202,12 @@ function! runtime#InspectInit()
 
     " ---开始创建 Terminal---
     call s:Set_Debug_CursorLine()
-
     " 创建call stack window {{{
     sil! exec "bo 10new"
     call s:Set_Bottom_Window_Statusline("stack")
     " 设置stack window 属性
     let g:debugger.stacks_winid = winnr()
-    let g:debugger.stacks_bufinfo = getbufinfo(bufnr('')) 
+    let g:debugger.stacks_bufinfo = getbufinfo(bufnr(''))
     exec s:Get_cfg_list_window_status_cmd()
     call s:Add_jump_mapping()
     call g:Goto_sourcecode_window()
@@ -223,15 +220,15 @@ function! runtime#InspectInit()
     exec 'setl nonu'
     let localvars_winid = winnr()
     let g:debugger.localvars_winid = localvars_winid
-    let g:debugger.localvars_bufinfo = getbufinfo(bufnr('')) 
-    if has_key(g:language_setup,"ShowLocalVarsWindow") && 
+    let g:debugger.localvars_bufinfo = getbufinfo(bufnr(''))
+    if has_key(g:language_setup,"ShowLocalVarsWindow") &&
                 \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
-        " 如果调试器支持输出本地变量，则创建本地变量窗口
+        " 如果调试器支持输出本地变量，则创建本地变量窗口,默认高度10
         exec "abo " . (winheight(localvars_winid) - 11) . "new"
     endif
     " }}}
 
-    call term_start(l:full_command,{ 
+    call term_start(l:full_command,{
         \ 'term_finish': 'close',
         \ 'term_name':get(g:debugger,'debugger_window_name') ,
         \ 'vertical':'1',
@@ -240,7 +237,6 @@ function! runtime#InspectInit()
         \ 'out_timeout':400,
         \ 'close_cb':'runtime#Reset_Editor',
         \ })
-    " 记录 Term 的 Winid
     let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
     " 监听 Terminal 模式里的回车键
     tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i<C-P><Down>
@@ -336,11 +332,10 @@ function! runtime#InspectSetBreakPoint()
         return s:LogMsg("Terminal is hanging up!")
     endif
     " 如果是当前文件所在的 Buf 或者是临时加载的 Buf
-    if exists("g:debugger") && (bufnr('') == g:debugger.original_bnr || 
+    if exists("g:debugger") && (bufnr('') == g:debugger.original_bnr ||
                 \ index(g:debugger.bufs,bufname('%')) >= 0 ||
                 \ bufwinnr(bufnr('')) == g:debugger.original_winnr)
         let line = line('.')
-        " let fname = bufname('%')
         let fname = expand("%:p")
         let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
         let g:debugger.term_callback_hijacking = function("util#DoNothing")
@@ -401,19 +396,16 @@ function! runtime#Reset_Editor(...)
     if g:debugger.original_cursor_color
         " 恢复 CursorLine 的高亮样式
         call execute("setlocal cursorline","silent!")
-        " call execute("hi CursorLine ctermbg=".g:debugger.original_cursor_color,"silent!")
         call util#hi('CursorLine', -1 , g:debugger.original_cursor_color, "")
     endif
     if g:debugger.original_winid != bufwinid(bufnr(""))
         if !(type(a:1) == type('string') && a:1 == 'silently')
             call feedkeys("\<S-ZZ>")
         endif
-        " call s:Show_Close_Msg()
     endif
     call s:Clear_All_Signs()
     call execute('redraw','silent!')
     " 最后清空本次 Terminal 里的 log
-    "call s:LogMsg("调试结束,Debug over..")
     call s:Close_varwindow()
     call s:Close_stackwindow()
     let g:debugger.log = []
@@ -636,7 +628,7 @@ function! s:Get_Term_Stop_Msg(log)
 
     for line in a:log
         " 防止 E363 错误
-        if len(line) > 100
+        if len(line) > 200
             continue
         endif
         let fn = matchstr(line, fn_regex)
@@ -648,10 +640,10 @@ function! s:Get_Term_Stop_Msg(log)
             let break_line = str2nr(nr)
         endif
     endfor
-    
+
     if break_line != 0 && fname != ''
         return {"fname":fname, "breakline":break_line}
-    else 
+    else
         return 0
     endif
 endfunction " }}}
@@ -692,7 +684,7 @@ function! s:Debugger_Stop(fname, line)
     " 2. cursor(a:line,1) 有时候不起作用，done
     " 3. 挂起时，localvar和call stack 应该清空
     " 4. F12 设置断点时，光标又跑到停驻行去了 ,done
-    if has_key(g:language_setup, 'AfterStopScript') 
+    if has_key(g:language_setup, 'AfterStopScript')
             " \ &&  !(fname == g:debugger.stop_fname && a:line == g:debugger.stop_line)
         call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
     endif
@@ -702,14 +694,14 @@ function! s:Debugger_Stop(fname, line)
     call execute('redraw','silent!')
 
     " 执行完停驻行跳转的动作，都重新定位到 Term 里，方便用户直接输入命令
-    if has_key(g:language_setup, "TerminalCursorSticky") && 
+    if has_key(g:language_setup, "TerminalCursorSticky") &&
                 \ g:language_setup.TerminalCursorSticky == 1
         call g:Goto_terminal_window()
     else
         call s:Cursor_Restore()
     endif
     " call g:Goto_terminal_window()
-    
+
     let g:debugger.stop_fname = fname
     let g:debugger.stop_line = a:line
 
@@ -735,7 +727,7 @@ function! s:Sign_Set_StopPoint(fname, line)
     endtry
 endfunction " }}}
 
-" s:goto_win(winnr) {{{ 
+" s:goto_win(winnr) {{{
 function! s:Goto_winnr(winnr) abort
     let cmd = type(a:winnr) == type(0) ? a:winnr . 'wincmd w'
                                      \ : 'wincmd ' . a:winnr

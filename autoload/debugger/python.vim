@@ -199,7 +199,7 @@ endfunction
 
 function! s:SetPythonLocalvarsCmd()
     call term_sendkeys(get(g:debugger,'debugger_window_name'), 
-                \ "alias pi for __localvars__ in dir(): print('$ '+__localvars__+' =',str(eval(__localvars__))[0:80])\<CR>")
+        \ "alias pi for __localvars__ in dir(): print('$ '+__localvars__+' =',str(eval(__localvars__))[0:80])\<CR>")
 endfunction
 
 function! debugger#python#AfterStopScript(msg)
