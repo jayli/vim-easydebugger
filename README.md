@@ -10,25 +10,26 @@ VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.
 
 ### 又一个 VIM 调试器？
 
-VIM 从 8.1 版本开始支持 Terminal，并内置了 GDB 调试器，强大的 Terminal 特性让 Debugger 插件开发难度大大降低，不用依赖其他代理嫁接在 Debug 服务 （GDB Server） 和调试器（Inspector）之间，从而避免重写 Debugger 协议（[Debugger Protocol](https://chromedevtools.github.io/debugger-protocol-viewer/v8/)），这简化了 VIM 视窗的管理。Vim-Easydebugger 就是基于 Terminal 的调试器，只依赖 VimL。需要支持的语言只须支持对应的运行环境即可：比如 JS 运行环境 [node](https://nodejs.org)、Go 调试器 [Delve](https://github.com/derekparker/delve)、Python 调试工具 [PDB](https://docs.python.org/3/library/pdb.html)。
+基于 VimL 和 Terminal 实现的一个极简的 Debugger，支持 VIM 8.1 及以上版本。目前支持三个语言（js、python、go），需要 JS 运行环境 [node](https://nodejs.org)、Go 调试器 [Delve](https://github.com/derekparker/delve)、Python 调试工具 [PDB](https://docs.python.org/3/library/pdb.html)。
 
 开源社区已有的 VIM 调试器现状：
 
-- [Vdebug](https://github.com/vim-vdebug/vdebug)：多语言支持，无需要求最新的 VIM 8.1。Vdebug 运行在 Python3 上，PHP 和 Python 支持很好，包括 Node 在内的多个语言的调试不可用。
-- [Vim-vebugger](https://github.com/idanarye/vim-vebugger)：[作者](https://github.com/idanarye)比较勤快，代码更新率很高。Bug 实在太多，多平台、多语言的兼容基本没做，不支持 MacOS，我的 Pull Request 也因为作者缺少环境迟迟不能 Merge。此外，Vim-Debugger 的实现过于复杂，外部依赖太多，这也是它的健壮性不够的原因。终放弃。
-- [Node-Vim-Debugger](https://github.com/sidorares/node-vim-debugger)：一个 NodeJS 调试器，基于 Debugger Protocol 实现，启动过程极为复杂，需要多道命令来辅助启动，中间的代理是基于 Node 实现，项目太长时间不更新，不支持最新的 Node Inspect，目前处于无人维护状态。
+- [Vdebug](https://github.com/vim-vdebug/vdebug)：多语言支持，无需要求最新的 VIM 8.1。Vdebug 运行在 Python3 上，PHP 和 Python 支持很好，不支持 Node 和 Go。
+- [Vim-vebugger](https://github.com/idanarye/vim-vebugger)：[作者](https://github.com/idanarye)比较勤快，代码更新率很高。Bug 实在太多，多平台、多语言的兼容基本没做，不支持 MacOS，我的 Pull Request 也因为作者缺少环境迟迟不能 Merge。好吧，不等他了。
+- [Node-Vim-Debugger](https://github.com/sidorares/node-vim-debugger)：一个 NodeJS 调试器，基于 Debugger Protocol，但不支持最新的 Node Inspect，目前无人维护。
 - [Vim-Godebug](https://github.com/jodosha/vim-godebug)：Go 语言的调试器，基于 [Neovim](https://github.com/jodosha/vim-godebug) 和 [Vim-go](https://github.com/jodosha/vim-godebug)，项目更新缓慢，环境依赖太复杂，反正我是没搞定。
 - [Fisa-Vim-Config](http://fisadev.github.io/fisa-vim-config/)：Github 上关注度最高的一个 VIM 配置，Python 的支持很好，不支持 NodeJS，当前项目已经不维护了。
 
-EasyDebugger 不依赖 Python，只依赖要调试语言的调试环境。
+我的需求：支持Go、Js、Python，引擎部分只基于 VimL，容易扩展新的语言，需要有命令输入窗。
 
 ### Vim-EasyDebugger 特性
 
-Vim-EasyDebugger 是基于 Terminal 的断点调试器，目前支持 NodeJS、Python 和 Go 的断点调试，配置简单，目前支持的功能有：
+目前支持的功能有：
 
 1. 断点逐行跟踪
 2. 变量监听
 3. 支持 VIM 调试和 WebServer 连接外部调试器（外部调试连接只支持 NodeJS）两种方法
+4. 命令输入窗
 
 ### 环境依赖
 
