@@ -634,8 +634,11 @@ function! s:Get_Term_Stop_Msg(log)
     let fn_regex = get(g:language_setup, "BreakFileNameRegex")
     let nr_regex = get(g:language_setup, "BreakLineNrRegex")
 
-
     for line in a:log
+        " 防止 E363 错误
+        if len(line) > 100
+            continue
+        endif
         let fn = matchstr(line, fn_regex)
         let nr = matchstr(line, nr_regex)
         if s:StringTrim(fn) != ''
