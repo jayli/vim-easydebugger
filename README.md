@@ -218,4 +218,3 @@ VIM 8.1 支持 Terminal 是这个大版本最主要的特性，我个人非常�
 - v1.1：支持 Go、NodeJS 调试
 - v1.2：支持 Quickfix 窗口显示回调堆栈
 - v1.3: 放弃 Quickfix 和 Localist，支持 python 以及本地变量查看，已经大量 bugfix
-
