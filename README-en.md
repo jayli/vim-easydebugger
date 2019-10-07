@@ -8,7 +8,7 @@
 
 ## Introduction
 
-[Vim-EasyDebugger](https://github.com/jayli/vim-easydebugger) is yet another debugger frontend plugin for Vim. It's based on VIM 8.1 and support multi-language. It has been tested with NodeJS, Python, Go ([Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html), and [Delve](https://github.com/derekparker/delve)). Some other debugger plugins are too difficult to configure and most of them are no longer maintained today. So I simplified the design for this plugin with only three windows, the terminal window, the source code and the backtraces stack. I did'nt use any DBGP protocol such as Xdebug because I think it's not easy to accomplish minimalist experience that I want. Anyway, Thanks to VIM 8.1, Terminal features is powerful enough for me and the development experience is cool.
+[Vim-EasyDebugger](https://github.com/jayli/vim-easydebugger) is yet another debugger frontend plugin for Vim. It's based on VIM 8.1 and support multi-language. It has been tested with NodeJS, Python, Go ([Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html), and [Delve](https://github.com/derekparker/delve)). Some other debugger plugins are too difficult to configure and most of them are no longer maintained today. So I redesign it. I did'nt want to use any DBGP protocol such as Xdebug because I think it's not easy to accomplish minimalist experience that I want. Anyway, Thanks to VIM 8.1, Terminal features is powerful enough for me and the development experience is cool.
 
 [Vim-EasyDebugger](https://github.com/jayli/vim-easydebugger) has a nicer interface to be easily extended. You can add your favourite debugger toolkit.  By default EasyDebugger currently support:
 
@@ -16,7 +16,7 @@
 - Debugger flow commands - step-in, step-over, step-out and continue...
 - Breakpoints management
 - Evaluating expressions in the current context, watch expression and variable values while debugging.
-- Backtrace
+- Backtrace and localvars
 
 ## Installation
 
@@ -132,15 +132,6 @@ How to inspect local variables?
 ### Chrome DevTools Debug for NodeJS
 
 You can use chrome devtool for nodejs debug. Press <kbd>Shift-W</kbd> . Then connect it to chrome devtool [like this](https://gw.alicdn.com/tfs/TB1ci.QegHqK1RjSZJnXXbNLpXa-1414-797.png).
-
-### TODO
-
-Only three window is really not enough for user to inspect local vars value and function backtraces.... The following feature will be added soon:
-
-- File List Window：for a entire project with a lot of source files, I want a convenient changing buffer operation.
-- Errlog：Errlog is necessary. `:echom` is good, but there is no more space available to show multiline message. Besides, I don't want to type `:message` everytime.
-- GUI support: Easydebugger is now tested in cterm on Linux and MacOS. Gvim support is not ready.
-- Python DBG support (Done!)
 
 ## Licence
 
