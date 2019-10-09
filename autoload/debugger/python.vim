@@ -73,14 +73,29 @@ endfunction
 function! s:Get_Localvars(full_log)
     let vars = []
     let var_names = []
+    let longest_nr = 0
     for item in a:full_log
         if item =~ "^$\\s\\S\\{-}"
             let var_name = matchstr(item,"\\(^$\\s\\)\\@<=.\\+\\(\\s=\\)\\@=")
             let var_value = matchstr(item,"\\(^$\\s\\S\\+\\s=\\s\\)\\@<=.\\+")
             if index(var_names, var_name) == -1 && var_name != '__localvars__'
-                call add(vars, {"var_name":var_name, "var_value": var_value})
+                call add(vars, {"var_name": "*" . var_name . "*", "var_value": var_value})
                 call add(var_names, var_name)
+                if len(var_name) > longest_nr
+                    let longest_nr = len(var_name)
+                endif
             endif
+        endif
+    endfor
+    " 使 vars 对齐
+    let longest_nr = longest_nr + 2
+    for item in vars
+        if len(item['var_name']) < longest_nr
+            let cursor = len(item['var_name'])
+            while cursor < longest_nr
+                let item['var_name'] = item['var_name'] . " "
+                let cursor = cursor + 1
+            endwhile
         endif
     endfor
     return vars
@@ -88,7 +103,7 @@ endfunction
 
 function! s:Fillup_Stacks_window(full_log)
     let stacks = s:Get_Stack(a:full_log)
-    if len(stacks) == 0 
+    if len(stacks) == 0
         return
     endif
     call s:Set_stackslist(stacks)
@@ -101,7 +116,7 @@ function! s:Set_stackslist(stacks)
     let bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
     let buf_oldlnum = len(getbufline(bufnr,0,'$'))
     call setbufvar(bufnr, '&modifiable', 1)
-    let ix = 0 
+    let ix = 0
     for item in a:stacks
         let ix = ix + 1
         let bufline_str = "*" . util#GetFileName(item.filename) . "* : " .
@@ -123,10 +138,10 @@ function! s:Set_localvarlist(localvars)
     let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
     let buf_oldlnum = len(getbufline(bufnr,0,'$'))
     call setbufvar(bufnr, '&modifiable', 1)
-    let ix = 0 
+    let ix = 0
     for item in a:localvars
         let ix = ix + 1
-        let bufline_str = "*" . item.var_name . "* " . item.var_value
+        let bufline_str = "" . item.var_name . " " . item.var_value
         call setbufline(bufnr, ix, bufline_str)
     endfor
     if buf_oldlnum >= ix + 1
@@ -198,7 +213,7 @@ function! debugger#python#TermSetupScript()
 endfunction
 
 function! s:SetPythonLocalvarsCmd()
-    call term_sendkeys(get(g:debugger,'debugger_window_name'), 
+    call term_sendkeys(get(g:debugger,'debugger_window_name'),
         \ "alias pi for __localvars__ in dir(): print('$ '+__localvars__+' =',str(eval(__localvars__))[0:80])\<CR>")
 endfunction
 
