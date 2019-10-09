@@ -77,6 +77,17 @@ function! util#Highlight_Args(name)
     return 'hi ' . substitute(split(execute('hi ' . a:name), '\n')[0], '\<xxx\>', '', '')
 endfunction "}}}
 
+" 字符串的 ASCII 码输出，调试用 {{{
+function! util#ascii(msg)
+    let ta = []
+    let cursor = 0
+    while cursor < len(a:msg)
+        call add(ta,char2nr(a:msg[cursor]))
+        let cursor = cursor + 1
+    endwhile
+    return join(ta, " ")
+endfunction " }}}
+
 " 相当于 trim，去掉首尾的空字符 {{{
 function! util#StringTrim(str)
     if !empty(a:str)

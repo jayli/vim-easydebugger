@@ -191,7 +191,7 @@ function! runtime#InspectInit()
     let debug_filename = in_file_debugger_entry == "" ? getbufinfo('%')[0].name : in_file_debugger_entry
     let l:command = get(g:language_setup,'LocalDebuggerCommandPrefix') . ' ' . debug_filename
     if has_key(g:language_setup, "LocalDebuggerCommandSufix")
-        let l:full_command = s:StringTrim(l:command . ' ' . 
+        let l:full_command = s:StringTrim(l:command . ' ' .
                     \ get(g:language_setup, "LocalDebuggerCommandSufix"))
     else
         let l:full_command = s:StringTrim(l:command)
@@ -426,20 +426,22 @@ endfunction " }}}
 function! runtime#Term_callback(channel, msg)
     call s:log('----------out_cb----------{{')
     call s:log('msg 原始信息' . a:msg)
+    call s:log(util#ascii(a:msg))
     " 如果消息为空
     " 如果消息长度为1，说明正在敲入字符
     " 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符
-    " 如果是 7 bell，8 退格，9 制表符，说明正在敲入字符
+    " 如果首位字母是 7 bell，8 退格，9 制表符，说明正在敲入字符
     " 如果 =~ ^\w+$ ，说明tab匹配出联想词
     if !exists('g:debugger._prev_msg')
         let g:debugger._prev_msg = a:msg
     endif
     if !exists('g:debugger') || empty(a:msg) ||
-                \ len(a:msg) == 1 || index([7,8,9], char2nr(a:msg)) >= 0 ||
+                \ len(a:msg) == 1 || index([7,8,9,27], char2nr(a:msg)) >= 0 ||
+                \ index([7,8,9],  char2nr(a:msg[len(a:msg) - 1])) >= 0 ||
                 \ (!s:Is_Ascii_Visiable(a:msg) && len(a:msg) == len(g:debugger._prev_msg) - 1) ||
                 \ a:msg =~ "^\\w\\+$"
                 "\ char2nr(a:msg) == 13"
-        return s:log("输入字符被拦截, ASCII: ". char2nr(a:msg))
+        return s:log("xxx输入字符被拦截xxx")
     endif
     let g:debugger._prev_msg = a:msg
     let m = substitute(a:msg,"\\W\\[\\d\\{-}[a-zA-Z]","","g")
