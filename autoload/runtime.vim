@@ -239,7 +239,8 @@ function! runtime#InspectInit()
         \ })
     let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
     " 监听 Terminal 模式里的回车键
-    tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i<C-P><Down>
+    tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i
+    " tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i<C-P><Down>
     call term_wait(get(g:debugger,'debugger_window_name'))
     call s:Debugger_Stop_Action(g:debugger.log)
 
@@ -424,8 +425,7 @@ endfunction " }}}
 " Terminal 消息回传 {{{
 function! runtime#Term_callback(channel, msg)
     call s:log('----------out_cb----------{{')
-    call s:log(a:channel)
-    call s:log(a:msg)
+    call s:log('msg 原始信息' . a:msg)
     " 如果消息为空
     " 如果消息长度为1，说明正在敲入字符
     " 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符
@@ -434,12 +434,11 @@ function! runtime#Term_callback(channel, msg)
     if !exists('g:debugger._prev_msg')
         let g:debugger._prev_msg = a:msg
     endif
-    if !exists('g:debugger') || empty(a:msg) || 
-                \ len(a:msg) == 1 || 
+    if !exists('g:debugger') || empty(a:msg) ||
+                \ len(a:msg) == 1 || char2nr(a:msg) == 8 || char2nr(a:msg) == 9 ||
                 \ (!s:Is_Ascii_Visiable(a:msg) && len(a:msg) == len(g:debugger._prev_msg) - 1)
                 "\ char2nr(a:msg) == 13"
-        "call s:log("=== 被拦截了, 首字母iscii码是: ". char2nr(a:msg))
-        return
+        return s:log("输入字符被拦截, ASCII: : ". char2nr(a:msg))
     endif
     let g:debugger._prev_msg = a:msg
     let m = substitute(a:msg,"\\W\\[\\d\\{-}[a-zA-Z]","","g")
@@ -500,6 +499,9 @@ function! s:HangUp_Sign()
         endif
     endif
     let g:debugger.hangup = 1
+endfunction " }}}
+
+function s:Empty_Stack_and_Localvars()
     " 删除 stack 和 localvar
     let stack_bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
     call setbufvar(stack_bufnr, '&modifiable', 1)
@@ -512,7 +514,7 @@ function! s:HangUp_Sign()
         call deletebufline(localvar_bufnr, 1, len(getbufline(localvar_bufnr, 0,'$')))
         call setbufvar(localvar_bufnr, '&modifiable', 0)
     endif
-endfunction " }}}
+endfunction
 
 " 清空挂起状态 {{{
 function! s:Clear_HangUp_Sign()
@@ -581,30 +583,20 @@ endfunction " }}}
 " 设置停留的代码行 {{{
 function! s:Debugger_Stop_Action(log)
     let break_msg = s:Get_Term_Stop_Msg(a:log)
-    call s:log(string(a:log))
+    call s:log('Debugger_Stop_Action '. string(a:log))
     " 清除hangup标记
     let g:debugger.hangup = 0
     if type(break_msg) == type({})
         call s:log("有停驻信息")
-
-        " 如果当前停驻行和文件较上次没变化，则什么也不做
-        if get(break_msg,'fname') == g:debugger.stop_fname && 
-                    \ get(break_msg,'breakline') == g:debugger.stop_line
-
-            call s:log("停驻行不变，继续")
-            call s:HangUp_Sign()
-            call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'breakline'))
-            return
-        endif
         call s:HangUp_Sign()
         call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'breakline'))
     elseif len(a:log) > 0 && trim(a:log[len(a:log) - 1]) =~ get(g:language_setup, "DebugPrompt")
         call s:HangUp_Sign()
-        " TODO 看647行的问题
         call s:Debugger_Stop(g:debugger.stop_fname, g:debugger.stop_line)
         call s:log("无停驻信息, 元命令执行完，等待输入指令")
     else
         call s:HangUp_Sign()
+        call s:Empty_Stack_and_Localvars()
         call s:log("无停驻信息, 程序还在运行，持续挂起状态")
     endif
 endfunction " }}}
@@ -685,7 +677,8 @@ function! s:Debugger_Stop(fname, line)
     " 3. 挂起时，localvar和call stack 应该清空
     " 4. F12 设置断点时，光标又跑到停驻行去了 ,done
     if has_key(g:language_setup, 'AfterStopScript')
-            " \ &&  !(fname == g:debugger.stop_fname && a:line == g:debugger.stop_line)
+            \ &&  !(fname == g:debugger.stop_fname && a:line == g:debugger.stop_line)
+        " call s:Empty_Stack_and_Localvars()
         call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
     endif
 
@@ -693,7 +686,7 @@ function! s:Debugger_Stop(fname, line)
     call cursor(a:line,1)
     call execute('redraw','silent!')
 
-    " 执行完停驻行跳转的动作，都重新定位到 Term 里，方便用户直接输入命令
+    " 执行完停驻行跳转的动作，根据配置决定是否跳回 Terminal，方便用户直接输入命令
     if has_key(g:language_setup, "TerminalCursorSticky") &&
                 \ g:language_setup.TerminalCursorSticky == 1
         call g:Goto_terminal_window()
