@@ -238,9 +238,12 @@ function! runtime#InspectInit()
         \ 'close_cb':'runtime#Reset_Editor',
         \ })
     let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
-    " 监听 Terminal 模式里的回车键
+    " 监听 Terminal 模式里的回车键，根据敲入的字符串做一些自定义动作
     tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i
-    " tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i<C-P><Down>
+    " 监听上下键：
+    " 上下键可以直接显示 history，这时应当按照输入过程处理，不应该走入回调
+    tnoremap <silent> <Up> <C-\><C-n>:call runtime#Terminal_Do_Nothing()<CR>i<Up>
+    tnoremap <silent> <Down> <C-\><C-n>:call runtime#Terminal_Do_Nothing()<CR>i<Down>
     call term_wait(get(g:debugger,'debugger_window_name'))
     call s:Debugger_Stop_Action(g:debugger.log)
 
@@ -249,6 +252,14 @@ function! runtime#InspectInit()
         call get(g:language_setup,"TermSetupScript")()
     endif
 endfunction "}}}
+
+" Terminal do nothing {{{
+function! runtime#Terminal_Do_Nothing()
+    let g:debugger.term_callback_hijacking = function("util#DoNothing")
+    call timer_start(200,
+            \ {-> util#DelTermCallbackHijacking()},
+            \ {'repeat' : 1})
+endfunction " }}}
 
 " 设置本地变量和调用堆栈窗口的statusline样式{{{
 function! s:Set_Bottom_Window_Statusline(name)
