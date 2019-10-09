@@ -429,16 +429,17 @@ function! runtime#Term_callback(channel, msg)
     " 如果消息为空
     " 如果消息长度为1，说明正在敲入字符
     " 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符
-    " TODO 这句话不精确
-    "call s:log("--- " . a:msg . " --- 首字母 Ascii 码是: ". char2nr(a:msg))
+    " 如果是 7 bell，8 退格，9 制表符，说明正在敲入字符
+    " 如果 =~ ^\w+$ ，说明tab匹配出联想词
     if !exists('g:debugger._prev_msg')
         let g:debugger._prev_msg = a:msg
     endif
     if !exists('g:debugger') || empty(a:msg) ||
-                \ len(a:msg) == 1 || char2nr(a:msg) == 8 || char2nr(a:msg) == 9 ||
-                \ (!s:Is_Ascii_Visiable(a:msg) && len(a:msg) == len(g:debugger._prev_msg) - 1)
+                \ len(a:msg) == 1 || index([7,8,9], char2nr(a:msg)) >= 0 ||
+                \ (!s:Is_Ascii_Visiable(a:msg) && len(a:msg) == len(g:debugger._prev_msg) - 1) ||
+                \ a:msg =~ "^\\w\\+$"
                 "\ char2nr(a:msg) == 13"
-        return s:log("输入字符被拦截, ASCII: : ". char2nr(a:msg))
+        return s:log("输入字符被拦截, ASCII: ". char2nr(a:msg))
     endif
     let g:debugger._prev_msg = a:msg
     let m = substitute(a:msg,"\\W\\[\\d\\{-}[a-zA-Z]","","g")
@@ -501,8 +502,8 @@ function! s:HangUp_Sign()
     let g:debugger.hangup = 1
 endfunction " }}}
 
+" 删除 stack 和 localvar {{{
 function s:Empty_Stack_and_Localvars()
-    " 删除 stack 和 localvar
     let stack_bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
     call setbufvar(stack_bufnr, '&modifiable', 1)
     call deletebufline(stack_bufnr, 1, len(getbufline(stack_bufnr, 0,'$')))
@@ -514,7 +515,7 @@ function s:Empty_Stack_and_Localvars()
         call deletebufline(localvar_bufnr, 1, len(getbufline(localvar_bufnr, 0,'$')))
         call setbufvar(localvar_bufnr, '&modifiable', 0)
     endif
-endfunction
+endfunction " }}}
 
 " 清空挂起状态 {{{
 function! s:Clear_HangUp_Sign()
