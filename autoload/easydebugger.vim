@@ -61,7 +61,7 @@ endfunction " }}}
 
 " 命令定义 {{{
 function! s:Build_Command()
-    " Debugger 和 InspectInit 都可以启动 Debugger
+    " Debugger 启动 Debugger, StopDebugger 终止 Debug
     command! -nargs=0 -complete=command -buffer Debugger call easydebugger#InspectInit()
     command! -nargs=0 -complete=command -buffer InspectInit call easydebugger#InspectInit()
     command! -nargs=0 -complete=command -buffer WebInspectInit call easydebugger#WebInspectInit()
@@ -71,6 +71,7 @@ function! s:Build_Command()
     command! -nargs=0 -complete=command InspectOut  call easydebugger#InspectOut()
     command! -nargs=0 -complete=command InspectPause call easydebugger#InspectPause()
     command! -nargs=0 -complete=command InspectExit call easydebugger#InspectExit()
+    command! -nargs=0 -complete=command StopDebugger call easydebugger#InspectExit()
 endfunction " }}}
 
 " 当打开新 Buffer 时根据文件类型做初始化 {{{
