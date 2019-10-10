@@ -32,7 +32,7 @@ endfunction "}}}
 " deletebufline {{{
 function! util#deletebufline(bn, fl, ll)
     " version <= 801 deletebufline 不存在
-    if 0 " exists("deletebufline")
+    if exists("deletebufline")
         call deletebufline(a:bn, a:fl, a:ll)
     else
         let current_winid = bufwinid(bufnr(""))
