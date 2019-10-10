@@ -72,6 +72,7 @@ function! s:Create_Debugger()
     let g:debugger.original_winnr        = winnr()
     let g:debugger.original_winid        = bufwinid(bufnr(""))
     let g:debugger.original_buf          = getbufinfo(bufnr(''))
+    let g:debugger.original_wrap         = getwinvar(winnr(),"&wrap")
     let g:debugger.cwd                   = getcwd()
     let g:debugger.language              = g:language_setup.language
     let g:debugger.original_bufname      = bufname('%')
@@ -140,7 +141,7 @@ function! runtime#WebInspectInit()
         let l:full_command = s:StringTrim(l:command)
     endif
 
-    call term_start(l:full_command,{ 
+    call term_start(l:full_command,{
         \ 'term_finish': 'close',
         \ 'term_cols':s:Get_Term_Width(),
         \ 'vertical':'1',
@@ -202,6 +203,7 @@ function! runtime#InspectInit()
 
     " ---开始创建 Terminal---
     call s:Set_Debug_CursorLine()
+    sil! exec "set nowrap"
     " 创建call stack window {{{
     sil! exec "bo 10new"
     call s:Set_Bottom_Window_Statusline("stack")
@@ -416,6 +418,9 @@ function! runtime#Reset_Editor(...)
         endif
     endif
     call s:Clear_All_Signs()
+    if g:debugger.original_wrap
+        call execute('set wrap','silent!')
+    endif
     call execute('redraw','silent!')
     " 最后清空本次 Terminal 里的 log
     call s:Close_varwindow()
