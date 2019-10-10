@@ -63,14 +63,14 @@ Key-Maps:
 Commands                                                  *debugger-commands*
 =============================================================================
 
-  - InspectInit:    startup debugger
-  - WebInspectInit: startup Chrome DevTools debug service
-  - InspectExit:    exit
-  - InspectCont:    continue
-  - InspectNext:    stepover
-  - InspectStep:    stepin
-  - InspectOut:     stepout
-  - InspectPause:   pause
+  - InspectInit, Debugger:     startup debugger
+  - WebInspectInit:            startup Chrome DevTools debug service
+  - InspectExit, StopDebugger: exit
+  - InspectCont:               continue
+  - InspectNext:               stepover
+  - InspectStep:               stepin
+  - InspectOut:                stepout
+  - InspectPause:              pause
 
 Operations                            *debugger-operations*   *exit-debugging*
 =============================================================================
