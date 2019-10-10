@@ -519,13 +519,13 @@ endfunction " }}}
 function s:Empty_Stack_and_Localvars()
     let stack_bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
     call setbufvar(stack_bufnr, '&modifiable', 1)
-    call g:Deletebufline(stack_bufnr, 1, len(getbufline(stack_bufnr, 0,'$')))
+    call util#deletebufline(stack_bufnr, 1, len(getbufline(stack_bufnr, 0,'$')))
     call setbufvar(stack_bufnr, '&modifiable', 0)
     " 如果支持本地变量，一并清空
     if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
         let localvar_bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
         call setbufvar(localvar_bufnr, '&modifiable', 1)
-        call g:Deletebufline(localvar_bufnr, 1, len(getbufline(localvar_bufnr, 0,'$')))
+        call util#deletebufline(localvar_bufnr, 1, len(getbufline(localvar_bufnr, 0,'$')))
         call setbufvar(localvar_bufnr, '&modifiable', 0)
     endif
 endfunction " }}}
@@ -793,7 +793,7 @@ function! s:Close_varwindow() " {{{
         if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
             let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
             call setbufvar(bufnr, '&modifiable', 1)
-            call g:Deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
+            call util#deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
             call setbufvar(bufnr, '&modifiable', 0)
             call execute(':q!', 'silent!')
         endif
@@ -801,19 +801,6 @@ function! s:Close_varwindow() " {{{
         call execute('setl write', 'silent!')
     endif
 endfunction " }}}
-
-function! g:Deletebufline(bn, fl, ll)
-    if exists("deletebufline")
-        call deletebufline(a:bn, a:fl, a:ll)
-    else
-        let current_winid = bufwinid(bufnr(""))
-        call g:Goto_window(bufwinid(a:bn))
-        " TODO delete from firstline to lastline
-        " Jayli
-        call execute('%d', 'silent!')
-        call g:Goto_window(current_winid)
-    endif
-endfunction
 
 function! s:Close_stackwindow() " {{{
     if exists('g:debugger.stacks_winid')

@@ -29,6 +29,19 @@ function! util#WarningMsg(msg)
     return a:msg
 endfunction "}}}
 
+" deletebufline {{{
+function! util#deletebufline(bn, fl, ll)
+    " version <= 801 deletebufline 不存在
+    if 0 " exists("deletebufline")
+        call deletebufline(a:bn, a:fl, a:ll)
+    else
+        let current_winid = bufwinid(bufnr(""))
+        call g:Goto_window(bufwinid(a:bn))
+        call execute(string(a:fl) . 'd ' . string(a:ll - a:fl), 'silent!')
+        call g:Goto_window(current_winid)
+    endif
+endfunction " }}}
+
 " 获得当前 CursorLine 样式 {{{
 function! util#Get_CursorLine_bgColor()
     return util#Get_BgColor('CursorLine')

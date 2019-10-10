@@ -125,9 +125,9 @@ function! s:Set_stackslist(stacks)
         call setbufline(bufnr, ix, bufline_str)
     endfor
     if buf_oldlnum >= ix + 1
-        call g:Deletebufline(bufnr, ix + 1, buf_oldlnum)
+        call util#deletebufline(bufnr, ix + 1, buf_oldlnum)
     elseif ix == 0
-        call g:Deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
+        call util#deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
     endif
     call setbufvar(bufnr, '&modifiable', 0)
     let g:debugger.stacks_bufinfo = getbufinfo(bufnr)
@@ -145,9 +145,9 @@ function! s:Set_localvarlist(localvars)
         call setbufline(bufnr, ix, bufline_str)
     endfor
     if buf_oldlnum >= ix + 1
-        call g:Deletebufline(bufnr, ix + 1, buf_oldlnum)
+        call util#deletebufline(bufnr, ix + 1, buf_oldlnum)
     elseif ix == 0
-        call g:Deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
+        call util#deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
     endif
     call setbufvar(bufnr, '&modifiable', 0)
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr)
