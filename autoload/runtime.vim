@@ -527,7 +527,9 @@ function! s:HangUp_Sign()
         endif
     endif
     let g:debugger.hangup = 1
-    let g:debugger.stop_line = 0
+    " TODO 这句有问题，如果加上的话，term 中输入字符有时会导致stop_line=0，然后停驻就失效了
+    " let g:debugger.stop_line = 0
+    " 如果不加的话，异步停驻到行时，不会刷新localvar和callstack
     call timer_start(70,
             \ {-> s:Set_Hangup_Terminal_Style()},
             \ {'repeat' : 1})
