@@ -664,7 +664,7 @@ function! s:Get_Term_Stop_Msg(log)
     for line in a:log
         " 防止 E363 错误
         if len(line) > 200
-            continue
+            let line = line[0:200 - 1]
         endif
         let fn = matchstr(line, fn_regex)
         let nr = matchstr(line, nr_regex)
