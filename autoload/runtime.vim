@@ -346,7 +346,7 @@ function! runtime#InspectSetBreakPoint()
         return s:LogMsg("Please startup debugger first.")
     endif
     if g:debugger.hangup == 1
-        return s:LogMsg("Terminal is hanging up!")
+        return util#WarningMsg("Negative! Terminal is hanging up!")
     endif
     " 如果是当前文件所在的 Buf 或者是临时加载的 Buf
     if exists("g:debugger") && (bufnr('') == g:debugger.original_bnr ||
@@ -361,13 +361,12 @@ function! runtime#InspectSetBreakPoint()
             call term_sendkeys(get(g:debugger,'debugger_window_name'),runtime#clearBreakpoint(fname,line))
             let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
             exec ":sign unplace ".sid." file=".s:Get_Fullname(fname)
-            call remove(g:debugger.break_points, breakpoint_contained)
+            let g:debugger.break_points[str2nr(sid) - 1] = "None"
             call s:LogMsg("Remove break point successfully.")
         else
             " 如果不存在 BreakPoint，则新增 BreakPoint
             call term_sendkeys(get(g:debugger,'debugger_window_name'),runtime#setBreakpoint(fname,line))
             call add(g:debugger.break_points, fname."|".line)
-            let g:debugger.break_points =  uniq(g:debugger.break_points)
             let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
             exec ":sign place ".sid." line=".line." name=break_point file=".s:Get_Fullname(fname)
             call s:LogMsg("Add break point successfully.")
@@ -400,7 +399,7 @@ endfunction " }}}
 " 可传入单独的参数：
 " - silently: 不关闭Term
 function! runtime#Reset_Editor(...)
-    if !exists("g:debugger") 
+    if !exists("g:debugger")
         return
     endif
     call g:Goto_sourcecode_window()
@@ -587,6 +586,9 @@ function! s:Clear_All_Signs()
     for item in g:debugger.break_points
         " break_points 的存储格式为: ['a.js|3','t/b.js|34']
         " break_points 里的索引作为 sign id
+        if item == "None"
+            continue
+        endif
         let fname = split(item,"|")[0]
         let line  = split(item,"|")[1]
         let sid   = string(index(g:debugger.break_points, item) + 1)
