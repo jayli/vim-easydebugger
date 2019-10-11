@@ -527,6 +527,7 @@ function! s:HangUp_Sign()
         endif
     endif
     let g:debugger.hangup = 1
+    let g:debugger.stop_line = 0
     call timer_start(70,
             \ {-> s:Set_Hangup_Terminal_Style()},
             \ {'repeat' : 1})
@@ -711,10 +712,11 @@ function! s:Debugger_Stop(fname, line)
 
     let shorten_filename = len(fname) > 40 ? pathshorten(fname) : fname
     call s:LogMsg('Stop at '. shorten_filename .', line '.a:line. '.')
-    " 如果定义了AfterStopScript，且停驻行变更
+    " 如果定义了AfterStopScript，且停驻行变更，或者发生了停驻行为，都重新计算
+    " 堆栈和变量
     " TODO：
     " 1. 解决了挂起的问题，这里的设计有问题，如果是一个循环里的语句，continue后还停留在这行，
-    " 则不会重新算堆栈和localvar
+    " 则不会重新算堆栈和localvar ,Done
     " 2. cursor(a:line,1) 有时候不起作用，done
     " 3. 挂起时，localvar和call stack 应该清空
     " 4. F12 设置断点时，光标又跑到停驻行去了 ,done
