@@ -15,7 +15,7 @@ endfunction " }}}
 
 " 输出 LogMsg {{{
 function! util#LogMsg(msg)
-    echohl MoreMsg 
+    echohl MoreMsg
     echom '>>> '. a:msg
     echohl NONE
     return a:msg
@@ -23,7 +23,7 @@ endfunction "}}}
 
 " 输出警告 LogMsg {{{
 function! util#WarningMsg(msg)
-    echohl WarningMsg 
+    echohl WarningMsg
     echom '>>> '. a:msg
     echohl NONE
     return a:msg

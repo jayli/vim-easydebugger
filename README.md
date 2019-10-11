@@ -131,7 +131,7 @@ Done!
 - `InspectStep`：单步进入
 - `InspectOut`：跳出函数
 - `InspectPause`：暂停执行
-- `InspectExit`、`StopDebugger`：退出调试
+- `InspectExit`、`StopDebugger`、`ExitDebugger`：退出调试
 
 ### 使用
 

@@ -202,8 +202,11 @@ function! runtime#InspectInit()
     call runtime#Reset_Editor('silently')
 
     " ---开始创建 Terminal---
+    " set source code window nomodifiable
+    " call setwinvar(g:debugger.original_winnr, '&modifiable', 0)
     call s:Set_Debug_CursorLine()
-    sil! exec "set nowrap"
+    call execute('set nomodifiable','silent!')
+    call execute('set nowrap','silent!')
     " 创建call stack window {{{
     sil! exec "bo 10new"
     call s:Set_Bottom_Window_Statusline("stack")
@@ -219,7 +222,7 @@ function! runtime#InspectInit()
     call s:Set_Bottom_Window_Statusline("localvars")
     " 设置localvar window 属性
     exec s:Get_cfg_list_window_status_cmd()
-    exec 'setl nonu'
+    call execute('setl nonu')
     let localvars_winid = winnr()
     let g:debugger.localvars_winid = localvars_winid
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr(''))
@@ -421,6 +424,7 @@ function! runtime#Reset_Editor(...)
     if g:debugger.original_wrap
         call execute('set wrap','silent!')
     endif
+    call execute('set modifiable','silent!')
     call execute('redraw','silent!')
     " 最后清空本次 Terminal 里的 log
     call s:Close_varwindow()

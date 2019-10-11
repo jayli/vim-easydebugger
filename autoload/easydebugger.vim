@@ -72,6 +72,7 @@ function! s:Build_Command()
     command! -nargs=0 -complete=command InspectPause call easydebugger#InspectPause()
     command! -nargs=0 -complete=command InspectExit call easydebugger#InspectExit()
     command! -nargs=0 -complete=command StopDebugger call easydebugger#InspectExit()
+    command! -nargs=0 -complete=command ExitDebugger call easydebugger#InspectExit()
 endfunction " }}}
 
 " 当打开新 Buffer 时根据文件类型做初始化 {{{
@@ -102,7 +103,7 @@ function! s:Create_Lang_Setup()
         endif
     else
         let g:language_setup = 0
-        unlet g:language_setup 
+        unlet g:language_setup
     endif
 endfunction "}}}
 
@@ -194,7 +195,7 @@ endfunction " }}}
 " 判断语言是否被支持 {{{
 function! s:Language_supported(...)
     " 如果是 quickfix window 和 tagbar 时忽略
-    let ft = exists(a:0) ? a:0 : s:Get_Filetype() 
+    let ft = exists(a:0) ? a:0 : s:Get_Filetype()
     return index(extend(deepcopy(g:Debug_Lang_Supported),['qf','tagbar']), ft) >= 0 ? 1 : 0
 endfunction "}}}
 

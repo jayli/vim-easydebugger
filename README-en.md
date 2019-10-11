@@ -83,7 +83,7 @@ Commands：
 - `InspectStep`: stepin
 - `InspectOut`: stepout
 - `InspectPause`: pause
-- `InspectExit`/`StopDebugger`: exit 
+- `InspectExit`/`StopDebugger`/`ExitDebugger`: exit 
 
 ## Useage
 

@@ -65,7 +65,7 @@ Commands                                                  *debugger-commands*
 
   - InspectInit, Debugger:     startup debugger
   - WebInspectInit:            startup Chrome DevTools debug service
-  - InspectExit, StopDebugger: exit
+  - InspectExit, StopDebugger, ExitDebugger: exit
   - InspectCont:               continue
   - InspectNext:               stepover
   - InspectStep:               stepin
