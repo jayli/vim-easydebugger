@@ -98,6 +98,12 @@ function! s:Create_Debugger()
     let g:debugger.break_point_style_fg     = has("gui_running") ? "#df005f" : 197
     let g:debugger.stop_point_line_style_bg = has("gui_running") ? "#0000af" : 19
     let g:debugger.stop_point_text_style_fg = has("gui_running") ? "green" : "green"
+    " Term 样式设置
+    let g:debugger.term_status_line         = util#Get_BgColor('StatusLineTerm')
+    let g:debugger.term_status_line_nc      = util#Get_BgColor('StatusLineTermNC')
+    let g:debugger.term_status_line_nc_fg   = util#Get_HiColor('StatusLineTermNC', 'fg')
+
+    let g:debugger.hanup_term_statusline_bg = "34"
     " 这句话没用其实
     call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
 
@@ -132,10 +138,10 @@ function! runtime#WebInspectInit()
         endif
     endif
 
-    let l:command = get(g:language_setup,'WebDebuggerCommandPrefix') . ' ' . 
+    let l:command = get(g:language_setup,'WebDebuggerCommandPrefix') . ' ' .
                     \ getbufinfo('%')[0].name
     if has_key(g:language_setup, "LocalDebuggerCommandSufix")
-        let l:full_command = s:StringTrim(l:command . ' ' . 
+        let l:full_command = s:StringTrim(l:command . ' ' .
                     \ get(g:language_setup, "LocalDebuggerCommandSufix"))
     else
         let l:full_command = s:StringTrim(l:command)
@@ -482,7 +488,7 @@ function! runtime#Term_callback(channel, msg)
         call runtime#Reset_Editor('silently')
         " 调试终止之后应该将光标停止在 Term 内
         if winnr() != get(g:debugger, 'original_winnr')
-            if has_key(g:language_setup, "TerminalCursorSticky") && 
+            if has_key(g:language_setup, "TerminalCursorSticky") &&
                         \ g:language_setup.TerminalCursorSticky == 1
                 call g:Goto_terminal_window()
             else
@@ -521,7 +527,18 @@ function! s:HangUp_Sign()
         endif
     endif
     let g:debugger.hangup = 1
+    call timer_start(70,
+            \ {-> s:Set_Hangup_Terminal_Style()},
+            \ {'repeat' : 1})
 endfunction " }}}
+
+function! s:Set_Hangup_Terminal_Style()
+    if g:debugger.hangup == 1
+        call util#hi('StatusLineTerm', -1, g:debugger.hanup_term_statusline_bg, "")
+        call util#hi('StatusLineTermNC', "white", g:debugger.hanup_term_statusline_bg, "")
+        call execute('redraw','silent!')
+    endif
+endfunction
 
 " 删除 stack 和 localvar {{{
 function s:Empty_Stack_and_Localvars()
@@ -730,6 +747,8 @@ endfunction " s:Debugger_Stop }}}
 " 重新设置 Break Point 的 Sign 标记的位置 {{{
 function! s:Sign_Set_StopPoint(fname, line)
     call s:log('设置停驻标记')
+    call util#hi('StatusLineTerm', -1 , g:debugger.term_status_line , "")
+    call util#hi('StatusLineTermNC', g:debugger.term_status_line_nc_fg , g:debugger.term_status_line_nc , "")
     try
         " 如果要停驻的文件名有变化...
         if a:fname != g:debugger.stop_fname && g:debugger.stop_fname != ""
