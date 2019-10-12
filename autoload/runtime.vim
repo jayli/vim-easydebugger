@@ -102,8 +102,11 @@ function! s:Create_Debugger()
     let g:debugger.term_status_line         = util#Get_BgColor('StatusLineTerm')
     let g:debugger.term_status_line_nc      = util#Get_BgColor('StatusLineTermNC')
     let g:debugger.term_status_line_nc_fg   = util#Get_HiColor('StatusLineTermNC', 'fg')
-
-    let g:debugger.hanup_term_statusline_bg = "34"
+    let g:debugger.hangup_term_statusline_bg = "34"
+    " hangup_term_style 是体验上能感知到的挂起状态，hangup 是程序真实的挂起状
+    " 态，通常挂起缝隙很短，但从挂起到停驻到下一行仍然会重新计算callstack和
+    " localvar，会造成闪烁，因此设置了一个hangup_term_style 的标记位
+    let g:debugger.hangup_term_style         = 0
     " 这句话没用其实
     call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
 
@@ -527,9 +530,8 @@ function! s:HangUp_Sign()
         endif
     endif
     let g:debugger.hangup = 1
-    " TODO 这句有问题，如果加上的话，term 中输入字符有时会导致stop_line=0，然后停驻就失效了
-    " let g:debugger.stop_line = 0
-    " 如果不加的话，异步停驻到行时，不会刷新localvar和callstack
+    " 70 ms：如果敲击键盘 70 ms 内响应，则不认为挂起，如果70ms后仍无停驻信息，
+    " 则认为挂起
     call timer_start(70,
             \ {-> s:Set_Hangup_Terminal_Style()},
             \ {'repeat' : 1})
@@ -538,10 +540,18 @@ endfunction " }}}
 " Set hangup terminal style suggestion {{{
 function! s:Set_Hangup_Terminal_Style()
     if g:debugger.hangup == 1
-        call util#hi('StatusLineTerm', -1, g:debugger.hanup_term_statusline_bg, "")
-        call util#hi('StatusLineTermNC', "white", g:debugger.hanup_term_statusline_bg, "")
+        call util#hi('StatusLineTerm', -1, g:debugger.hangup_term_statusline_bg, "")
+        call util#hi('StatusLineTermNC', "white", g:debugger.hangup_term_statusline_bg, "")
         call execute('redraw','silent!')
+        let g:debugger.hangup_term_style = 1
     endif
+endfunction " }}}
+
+" Clean hangup terminal style {{{
+function! s:Clean_Hangup_Terminal_Style()
+    call util#hi('StatusLineTerm', -1 , g:debugger.term_status_line , "")
+    call util#hi('StatusLineTermNC', g:debugger.term_status_line_nc_fg , g:debugger.term_status_line_nc , "")
+    let g:debugger.hangup_term_style = 0
 endfunction " }}}
 
 " 删除 stack 和 localvar {{{
@@ -632,16 +642,14 @@ function! s:Debugger_Stop_Action(log)
     call s:log('Debugger_Stop_Action '. string(a:log))
     " 清除hangup标记
     let g:debugger.hangup = 0
+    call s:HangUp_Sign()
     if type(break_msg) == type({})
         call s:log("有停驻信息")
-        call s:HangUp_Sign()
         call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'breakline'))
     elseif len(a:log) > 0 && trim(a:log[len(a:log) - 1]) =~ get(g:language_setup, "DebugPrompt")
-        call s:HangUp_Sign()
         call s:Debugger_Stop(g:debugger.stop_fname, g:debugger.stop_line)
         call s:log("无停驻信息, 元命令执行完，等待输入指令")
     else
-        call s:HangUp_Sign()
         call s:Empty_Stack_and_Localvars()
         call s:log("无停驻信息, 程序还在运行，持续挂起状态")
     endif
@@ -725,7 +733,13 @@ function! s:Debugger_Stop(fname, line)
     " 4. F12 设置断点时，光标又跑到停驻行去了 ,done
     if has_key(g:language_setup, 'AfterStopScript')
         if fname == g:debugger.stop_fname && a:line == g:debugger.stop_line
-            call util#DoNothing()
+            " 如果是从挂起状态走过来，则刷新callstack和localvar
+            " 否则donothing，donothing是为了避免干扰termnial里敲击命令的输出
+            if g:debugger.hangup_term_style == 1
+                call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
+            else
+                call util#DoNothing()
+            endif
         else
             " call s:Empty_Stack_and_Localvars()
             call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
@@ -755,8 +769,7 @@ endfunction " s:Debugger_Stop }}}
 " 重新设置 Break Point 的 Sign 标记的位置 {{{
 function! s:Sign_Set_StopPoint(fname, line)
     call s:log('设置停驻标记')
-    call util#hi('StatusLineTerm', -1 , g:debugger.term_status_line , "")
-    call util#hi('StatusLineTermNC', g:debugger.term_status_line_nc_fg , g:debugger.term_status_line_nc , "")
+    call s:Clean_Hangup_Terminal_Style()
     try
         " 如果要停驻的文件名有变化...
         if a:fname != g:debugger.stop_fname && g:debugger.stop_fname != ""
