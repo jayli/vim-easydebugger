@@ -132,5 +132,7 @@ function! util#DoNothing(...) " {{{
 endfunction " }}}
 
 function! util#DelTermCallbackHijacking() " {{{
-    unlet g:debugger.term_callback_hijacking
+    if exists("g:debugger.term_callback_hijacking")
+        unlet g:debugger.term_callback_hijacking
+    endif
 endfunction " }}}

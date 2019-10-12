@@ -482,7 +482,7 @@ function! runtime#Term_callback(channel, msg)
     if !exists("g:language_setup")
         call easydebugger#Create_Lang_Setup()
     endif
-    if has_key(g:language_setup, "ExecutionTerminatedMsg") && 
+    if has_key(g:language_setup, "ExecutionTerminatedMsg") &&
                 \ a:msg =~ get(g:language_setup, "ExecutionTerminatedMsg")
         call s:Show_Close_Msg()
         call runtime#Reset_Editor('silently')
@@ -535,13 +535,14 @@ function! s:HangUp_Sign()
             \ {'repeat' : 1})
 endfunction " }}}
 
+" Set hangup terminal style suggestion {{{
 function! s:Set_Hangup_Terminal_Style()
     if g:debugger.hangup == 1
         call util#hi('StatusLineTerm', -1, g:debugger.hanup_term_statusline_bg, "")
         call util#hi('StatusLineTermNC', "white", g:debugger.hanup_term_statusline_bg, "")
         call execute('redraw','silent!')
     endif
-endfunction
+endfunction " }}}
 
 " 删除 stack 和 localvar {{{
 function s:Empty_Stack_and_Localvars()
@@ -723,9 +724,12 @@ function! s:Debugger_Stop(fname, line)
     " 3. 挂起时，localvar和call stack 应该清空
     " 4. F12 设置断点时，光标又跑到停驻行去了 ,done
     if has_key(g:language_setup, 'AfterStopScript')
-            \ &&  !(fname == g:debugger.stop_fname && a:line == g:debugger.stop_line)
-        " call s:Empty_Stack_and_Localvars()
-        call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
+        if fname == g:debugger.stop_fname && a:line == g:debugger.stop_line
+            call util#DoNothing()
+        else
+            " call s:Empty_Stack_and_Localvars()
+            call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
+        endif
     endif
 
     call s:Sign_Set_StopPoint(fname, a:line)
@@ -885,14 +889,14 @@ function! s:Debugger_get_filebuf(fname)
     if !filereadable(fname)
         return 0
     endif
-    if index(g:debugger.bufs , fname) < 0 
+    if index(g:debugger.bufs , fname) < 0
         call s:Debugger_add_filebuf(fname)
     endif
     if fname != s:Get_Fullname(bufname("%"))
         " call execute('redraw','silent!')
-        try 
+        try
             call execute('buffer '.a:fname)
-        catch 
+        catch
             call util#WarningMsg("File '" . a:fname . "' is opened in another shell. ".
                     \ " Close it first.")
         endtry
@@ -936,7 +940,7 @@ function! s:Cursor_Restore() " {{{
 endfunction " }}}
 
 function! runtime#Cursor_Restore() " {{{
-    if s:Term_is_running() && 
+    if s:Term_is_running() &&
                 \ g:debugger.cursor_original_winid != bufwinid(bufnr("")) &&
                 \ g:debugger.cursor_original_winid != 0
         call g:Goto_window(g:debugger.cursor_original_winid)
@@ -944,10 +948,10 @@ function! runtime#Cursor_Restore() " {{{
 endfunction " }}}
 
 function! s:Term_is_running() " {{{
-    if exists("g:debugger") && 
+    if exists("g:debugger") &&
                 \ term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
         return 1
-    else 
+    else
         return 0
     endif
 endfunction " }}}
