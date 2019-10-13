@@ -229,7 +229,7 @@ function! runtime#InspectInit()
     call s:Set_Bottom_Window_Statusline("localvars")
     " 设置localvar window 属性
     exec s:Get_cfg_list_window_status_cmd()
-    call execute('setl nonu')
+    call execute('setlocal nonu')
     let localvars_winid = winnr()
     let g:debugger.localvars_winid = localvars_winid
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr(''))
@@ -247,15 +247,15 @@ function! runtime#InspectInit()
         \ 'curwin':'1',
         \ 'out_cb':'runtime#Term_callback',
         \ 'out_timeout':400,
-        \ 'close_cb':'runtime#Reset_Editor',
+        \ 'exit_cb':'runtime#Reset_Editor',
         \ })
     let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
     " 监听 Terminal 模式里的回车键，根据敲入的字符串做一些自定义动作
     tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i
     " 监听上下键：
     " 上下键可以直接显示 history，这时应当按照输入过程处理，不应该走入回调
-    tnoremap <silent> <Up> <C-\><C-n>:call runtime#Terminal_Do_Nothing()<CR>i<Up>
-    tnoremap <silent> <Down> <C-\><C-n>:call runtime#Terminal_Do_Nothing()<CR>i<Down>
+    tnoremap <silent> <Up> <C-W><S-n>:call runtime#Terminal_Do_Nothing()<CR>i<Up>
+    tnoremap <silent> <Down> <C-W><S-n>:call runtime#Terminal_Do_Nothing()<CR>i<Down>
     call term_wait(get(g:debugger,'debugger_window_name'))
     call s:Debugger_Stop_Action(g:debugger.log)
 
@@ -451,12 +451,13 @@ endfunction " }}}
 " Terminal 消息回传 {{{
 function! runtime#Term_callback(channel, msg)
     call s:log('----------out_cb----------{{')
-    call s:log('msg 原始信息' . a:msg)
-    call s:log(util#ascii(a:msg))
+    call s:log('msg 原始信息字符串 ' . a:msg)
+    call s:log('msg 原始信息Ascii  ' . join(util#ascii(a:msg), " "))
     " 如果消息为空
     " 如果消息长度为1，说明正在敲入字符
     " 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符
     " 如果首位字母是 7 bell，8 退格，9 制表符，说明正在敲入字符
+    " 如果消息为[13,10]，说明只是回车或者正在退出Term
     " 如果 =~ ^\w+$ ，说明tab匹配出联想词
     if !exists('g:debugger._prev_msg')
         let g:debugger._prev_msg = a:msg
@@ -465,6 +466,7 @@ function! runtime#Term_callback(channel, msg)
                 \ len(a:msg) == 1 || index([7,8,9,27], char2nr(a:msg)) >= 0 ||
                 \ index([7,8,9],  char2nr(a:msg[len(a:msg) - 1])) >= 0 ||
                 \ (!s:Is_Ascii_Visiable(a:msg) && len(a:msg) == len(g:debugger._prev_msg) - 1) ||
+                \ (util#ascii(a:msg) == [13,10]) ||
                 \ a:msg =~ "^\\w\\+$"
                 "\ char2nr(a:msg) == 13"
         return s:log("xxx输入字符被拦截xxx")
@@ -636,6 +638,9 @@ endfunction " }}}
 
 " 设置停留的代码行 {{{
 function! s:Debugger_Stop_Action(log)
+    if !s:Term_is_running()
+        return
+    endif
     let break_msg = s:Get_Term_Stop_Msg(a:log)
     call s:log('Debugger_Stop_Action '. string(a:log))
     " 清除hangup标记
@@ -760,7 +765,7 @@ function! s:Debugger_Stop(fname, line)
 
     " 只要重新停驻到新行，这一阶段的解析就完成了，log清空
     let g:debugger.log = []
-endfunction " s:Debugger_Stop }}}
+endfunction " }}}
 
 " 重新设置 Break Point 的 Sign 标记的位置 {{{
 function! s:Sign_Set_StopPoint(fname, line)
@@ -804,8 +809,8 @@ endfunction " }}}
 " 本地变量和调用堆栈窗口属性 {{{
 function! s:Get_cfg_list_window_status_cmd()
     " nowrite 是一个全局配置，所有窗口不可写，退出时需重置
-    return "setl nomodifiable nolist nu noudf " . 
-                \ "nowrite nowrap buftype=nofile filetype=help"
+    return "setl nomodifiable nolist nu noudf " .
+                \ "nowrite winfixheight nowrap filetype=help buftype=nofile"
 endfunction " }}}
 
 " stack 窗口中的回车事件监听 {{{
@@ -851,7 +856,7 @@ endfunction " }}}
 
 function! s:Close_stackwindow() " {{{
     if exists('g:debugger.stacks_winid')
-        call execute("close " . g:debugger.stacks_winid)
+        call execute("q! " . g:debugger.stacks_winid)
         " 代码窗口回复可写状态
         call execute('setl write', 'silent!')
     endif
@@ -930,7 +935,11 @@ function! s:Close_Term()
 endfunction " }}}
 
 function! runtime#Close_Term() " {{{
+    if !s:Term_is_running()
+        return
+    endif
     call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>exit\<CR>")
+    call term_wait(get(g:debugger,'debugger_window_name'))
     if has_key(g:debugger, 'term_winid')
         unlet g:debugger.term_winid
     endif
@@ -964,6 +973,10 @@ function! s:Term_is_running() " {{{
         return 0
     endif
 endfunction " }}}
+
+function! runtime#Term_is_running()
+    return s:Term_is_running()
+endfunction
 
 " 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal {{{
 function! runtime#Special_Cmd_Handler()

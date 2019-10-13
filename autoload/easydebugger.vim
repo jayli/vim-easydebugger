@@ -75,6 +75,13 @@ function! s:Build_Command()
     command! -nargs=0 -complete=command ExitDebugger call easydebugger#InspectExit()
 endfunction " }}}
 
+function! easydebugger#ExitSourceCode()
+    if runtime#Term_is_running() && g:debugger.original_winid  == bufwinid(bufnr(""))
+        call execute("InspectExit")
+        call util#LogMsg("Exit debug.")
+    endif
+endfunction
+
 " 当打开新 Buffer 时根据文件类型做初始化 {{{
 function! easydebugger#Create_Lang_Setup()
     call s:Create_Lang_Setup()

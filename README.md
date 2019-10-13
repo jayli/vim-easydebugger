@@ -15,21 +15,14 @@ VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.
 开源社区已有的 VIM 调试器现状：
 
 - [Vdebug](https://github.com/vim-vdebug/vdebug)：多语言支持，无需要求最新的 VIM 8.1。Vdebug 运行在 Python3 上，PHP 和 Python 支持很好，不支持 Node 和 Go。
-- [Vim-vebugger](https://github.com/idanarye/vim-vebugger)：[作者](https://github.com/idanarye)比较勤快，代码更新率很高。Bug 实在太多，多平台、多语言的兼容基本没做，不支持 MacOS，我的 Pull Request 也因为作者缺少环境迟迟不能 Merge。好吧，不等他了。
+- [Vim-vebugger](https://github.com/idanarye/vim-vebugger)：[作者](https://github.com/idanarye)比较勤快，代码更新率很高。Bug 实在太多，多平台、多语言的兼容基本没做，不支持 MacOS，我的 Pull Request 也因为作者缺少环境迟迟不能 Merge。不等他了。
 - [Node-Vim-Debugger](https://github.com/sidorares/node-vim-debugger)：一个 NodeJS 调试器，基于 Debugger Protocol，但不支持最新的 Node Inspect，目前无人维护。
 - [Vim-Godebug](https://github.com/jodosha/vim-godebug)：Go 语言的调试器，基于 [Neovim](https://github.com/jodosha/vim-godebug) 和 [Vim-go](https://github.com/jodosha/vim-godebug)，项目更新缓慢，环境依赖太复杂，反正我是没搞定。
 - [Fisa-Vim-Config](http://fisadev.github.io/fisa-vim-config/)：Github 上关注度最高的一个 VIM 配置，Python 的支持很好，不支持 NodeJS，当前项目已经不维护了。
 
 我的需求：支持Go、Js、Python，引擎部分只基于 VimL，容易扩展新的语言，需要有命令输入窗。
 
-### Vim-EasyDebugger 特性
-
-目前支持的功能有：
-
-1. 断点逐行跟踪
-2. 变量监听
-3. 支持 VIM 调试和 WebServer 连接外部调试器（外部调试连接只支持 NodeJS）两种方法
-4. 命令输入窗
+### Vim-EasyDebugger 安装
 
 ### 环境依赖
 
@@ -141,7 +134,9 @@ Done!
 
 	# debugger_entry = ../index.py
 
-退出调试模式：快捷键 `Shift-E` 退出调试。当光标在 Terminal 时，也可以使用 `Ctrl-D` 或者 `exit + 回车` 退出。
+*退出调试模式*：
+- 当光标在 Terminal 时，可以使用 `Ctrl-D` 或者 `exit + 回车` 退出。
+- 在源码窗口`:exit`退出调试。或者 `Shift-E` 退出
 
 Terminal 窗口如何滚动：进入 Terminal-Normal 模式即可，光标在 Terminal 时通过 `Ctrl-w N`（Ctrl-w，Shift-N）进入，`i` 或者 `a` 再次进入 Terminal 交互模式。
 
