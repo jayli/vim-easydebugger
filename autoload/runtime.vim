@@ -215,14 +215,7 @@ function! runtime#InspectInit()
     call execute('set nomodifiable','silent!')
     call execute('set nowrap','silent!')
     " 创建call stack window {{{
-    sil! exec "bo 10new"
-    call s:Set_Bottom_Window_Statusline("stack")
-    " 设置stack window 属性
-    let g:debugger.stacks_winid = winnr()
-    let g:debugger.stacks_bufinfo = getbufinfo(bufnr(''))
-    exec s:Get_cfg_list_window_status_cmd()
-    call s:Add_jump_mapping()
-    call g:Goto_sourcecode_window()
+    call s:Create_callstack_window()
     " }}}
     " 创建localvar window {{{
     sil! exec "vertical botright new"
@@ -230,13 +223,14 @@ function! runtime#InspectInit()
     " 设置localvar window 属性
     exec s:Get_cfg_list_window_status_cmd()
     call execute('setlocal nonu')
-    let localvars_winid = winnr()
-    let g:debugger.localvars_winid = localvars_winid
+    let localvars_winnr = winnr()
+    let g:debugger.localvars_winnr = localvars_winnr
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr(''))
     if has_key(g:language_setup,"ShowLocalVarsWindow") &&
                 \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
         " 如果调试器支持输出本地变量，则创建本地变量窗口,默认高度10
-        exec "abo " . (winheight(localvars_winid) - 11) . "new"
+        exec "abo " . (winheight(localvars_winnr) - 11) . "new"
+        let g:debugger.localvars_winid = bufwinid(bufnr(""))
     endif
     " }}}
 
@@ -264,6 +258,25 @@ function! runtime#InspectInit()
         call get(g:language_setup,"TermSetupScript")()
     endif
 endfunction "}}}
+
+function! s:Create_callstack_window()
+    if exists("g:debugger.stacks_winid") && len(getwininfo(g:debugger.stacks_winid)) > 0
+        return
+    endif
+    let current_winid = bufwinid(bufnr(""))
+    if g:debugger.original_winid  != current_winid
+        call s:Goto_sourcecode_window()
+    endif
+    sil! exec "bo 10new"
+    call s:Set_Bottom_Window_Statusline("stack")
+    " 设置stack window 属性
+    let g:debugger.stacks_winid = bufwinid(bufnr(""))
+    let g:debugger.stacks_winnr = winnr()
+    let g:debugger.stacks_bufinfo = getbufinfo(bufnr(''))
+    exec s:Get_cfg_list_window_status_cmd()
+    call s:Add_jump_mapping()
+    call g:Goto_window(current_winid)
+endfunction
 
 " Terminal do nothing {{{
 function! runtime#Terminal_Do_Nothing()
@@ -837,8 +850,8 @@ function! runtime#stack_jumpping()
 endfunction " }}}
 
 function! s:Close_varwindow() " {{{
-    if exists('g:debugger.localvars_winid')
-        call g:Goto_window(g:debugger.localvars_winid)
+    if exists('g:debugger.localvars_winnr')
+        call g:Goto_window(g:debugger.localvars_winnr)
         if !exists('g:language_setup')
             call easydebugger#Create_Lang_Setup()
         endif
@@ -855,8 +868,8 @@ function! s:Close_varwindow() " {{{
 endfunction " }}}
 
 function! s:Close_stackwindow() " {{{
-    if exists('g:debugger.stacks_winid')
-        call execute("q! " . g:debugger.stacks_winid)
+    if exists('g:debugger.stacks_winnr')
+        call execute("q! " . g:debugger.stacks_winnr)
         " 代码窗口回复可写状态
         call execute('setl write', 'silent!')
     endif
@@ -931,7 +944,7 @@ function! s:Close_Term()
         unlet g:debugger.term_winid
     endif
     call execute('redraw','silent!')
-    call s:LogMsg("Debug terminated.")
+    call s:LogMsg("Node Inspector terminated.")
 endfunction " }}}
 
 function! runtime#Close_Term() " {{{
