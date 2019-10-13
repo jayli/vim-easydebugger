@@ -26,7 +26,8 @@ if has( 'vim_starting' ) " vim 启动时加载
         autocmd VimEnter * call easydebugger#Enable()
         autocmd BufRead,BufNewFile * call easydebugger#BindTermMapKeys()
         autocmd WinEnter * call runtime#Mark_Cursor_Position()
-        autocmd WinLeave * call easydebugger#ExitSourceCode() 
+        " TODO 直接退出 source code window 连带退出 debugger 是否合适？
+        autocmd QuitPre * call easydebugger#ExitSourceCode()
     augroup END "}}}
 else " 通过 :packadd 手动加载
     call easydebugger#Enable()
