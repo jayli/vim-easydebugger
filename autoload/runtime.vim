@@ -211,8 +211,6 @@ function! runtime#InspectInit()
     call runtime#Reset_Editor('silently')
 
     " ---开始创建 Terminal---
-    " set source code window nomodifiable
-    " call setwinvar(g:debugger.original_winnr, '&modifiable', 0)
     call s:Set_Debug_CursorLine()
     call execute('set nomodifiable','silent!')
     call execute('set nowrap','silent!')
@@ -741,7 +739,6 @@ function! s:Debugger_Stop(fname, line)
                 call util#DoNothing()
             endif
         else
-            " call s:Empty_Stack_and_Localvars()
             call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
         endif
     endif
@@ -757,7 +754,6 @@ function! s:Debugger_Stop(fname, line)
     else
         call s:Cursor_Restore()
     endif
-    " call g:Goto_terminal_window()
 
     let g:debugger.stop_fname = fname
     let g:debugger.stop_line = a:line
