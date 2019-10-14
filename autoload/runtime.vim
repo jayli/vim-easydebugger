@@ -515,7 +515,7 @@ function! runtime#Term_callback(channel, msg)
     if has_key(g:language_setup, "HasErrorMsg") &&
                 \ get(g:language_setup, "HasErrorMsg")(msgslist)
         let g:debugger.hangup = 1
-        call timer_start(70,
+        call timer_start(80,
                 \ {-> s:Set_Hangup_Terminal_Style(0)},
                 \ {'repeat' : 1})
         return s:LogMsg("Hanging up for error. Please restart debug.")
