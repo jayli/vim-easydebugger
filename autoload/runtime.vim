@@ -263,8 +263,9 @@ function! runtime#InspectInit()
     tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i
     " 监听上下键：
     " 上下键可以直接显示 history，这时应当按照输入过程处理，不应该走入回调
-    tnoremap <silent> <Up> <C-W><S-n>:call runtime#Terminal_Do_Nothing()<CR>i<Up>
-    tnoremap <silent> <Down> <C-W><S-n>:call runtime#Terminal_Do_Nothing()<CR>i<Down>
+    " <C-\><C-n> 会造成 pdb crash，换成 <C-W><S-N>
+    tnoremap <silent> <Up> <C-W>:call runtime#Terminal_Do_Nothing()<CR><Up>
+    tnoremap <silent> <Down> <C-W>:call runtime#Terminal_Do_Nothing()<CR><Down>
     call term_wait(get(g:debugger,'debugger_window_name'))
     call s:Debugger_Stop_Action(g:debugger.log)
 
