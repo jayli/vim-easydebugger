@@ -10,15 +10,30 @@ VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.
 
 ### 又一个 VIM 调试器？
 
-基于 VimL 和 Terminal 实现的一个极简的 Debugger，支持 VIM 8.1 及以上版本。目前支持三个语言（js、python、go），需要 JS 运行环境 [node](https://nodejs.org)、Go 调试器 [Delve](https://github.com/derekparker/delve)、Python 调试工具 [PDB](https://docs.python.org/3/library/pdb.html)。
+基于 VimL 和 Terminal 实现的一个极简的 Debugger，支持 VIM 8.1 及以上版本。支持三个语言（js、python、go），需要 JS 运行环境 [node](https://nodejs.org)、Go 调试器 [Delve](https://github.com/derekparker/delve)、Python 调试工具 [PDB](https://docs.python.org/3/library/pdb.html)。
 
-开源社区已有的 VIM 调试器现状：
+参考这些调试器的实现：
 
-- [Vdebug](https://github.com/vim-vdebug/vdebug)：多语言支持，无需要求最新的 VIM 8.1。Vdebug 运行在 Python3 上，PHP 和 Python 支持很好，不支持 Node 和 Go。
-- [Vim-vebugger](https://github.com/idanarye/vim-vebugger)：[作者](https://github.com/idanarye)比较勤快，代码更新率很高。Bug 实在太多，多平台、多语言的兼容基本没做，不支持 MacOS，我的 Pull Request 也因为作者缺少环境迟迟不能 Merge。不等他了。
-- [Node-Vim-Debugger](https://github.com/sidorares/node-vim-debugger)：一个 NodeJS 调试器，基于 Debugger Protocol，但不支持最新的 Node Inspect，目前无人维护。
-- [Vim-Godebug](https://github.com/jodosha/vim-godebug)：Go 语言的调试器，基于 [Neovim](https://github.com/jodosha/vim-godebug) 和 [Vim-go](https://github.com/jodosha/vim-godebug)，项目更新缓慢，环境依赖太复杂，反正我是没搞定。
-- [Fisa-Vim-Config](http://fisadev.github.io/fisa-vim-config/)：Github 上关注度最高的一个 VIM 配置，Python 的支持很好，不支持 NodeJS，当前项目已经不维护了。
+<table>
+<tr>
+<td>名称</td><td>语言支持</td><td>VIM版本</td><td>更新速度</td><td>纯VimL实现</td><td>配置难度</td>
+</tr>
+<tr>
+<td>vdebug</td><td>多语言，但不支持Node和Go</td><td>8.1</td><td>慢</td><td>依赖Python3</td><td>中等</td>
+</tr>
+<tr>
+<td>vim-vebugger</td><td>多语言支持</td><td>8.1, 但不支持MacOS</td><td>快</td><td>依赖Python3</td><td>中等</td>
+</tr>
+<tr>
+<td>Node-Vim-Debugger</td><td>仅支持Node</td><td>不支持最新的Node Inspect</td><td>已经废弃</td><td>是</td><td>简单</td>
+</tr>
+<tr>
+<td>Vim-Godebug</td><td>仅支持Go</td><td>8.1</td><td>中等</td><td>依赖Python3</td><td>复杂</td>
+</tr>
+<tr>
+<td>Fisa-Vim-Config</td><td>支持Python，不支持Node</td><td>8.1</td><td>已经废弃</td><td>基于Python</td><td>简单</td>
+</tr>
+</table>
 
 我的需求：支持Go、Js、Python，引擎部分只基于 VimL，容易扩展新的语言，需要有命令输入窗。
 
@@ -37,9 +52,9 @@ VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.
 NodeJS 调试基于 `node inspect`（通常 v8.x 及以上的 node 都自带了）。执行下面命令，如果输出 `Useage:...` 命令的用法，说明支持 Node Inspector：
 
     node inspect
-    
+
 > 注意旧版的 Node 的调试器的启动命令是 node debug，则需要升级 node 到新版，且要确保 Node 在 v10.x 及以上版本
-    
+
 **Go 调试器**：[Delve](https://github.com/derekparker/delve)
 
 Go 语言的调试基于 Delve，[参考官方文档安装](https://github.com/derekparker/delve)。
@@ -140,7 +155,7 @@ Done!
 
 *退出调试模式*：
 - 当光标在 Terminal 时，可以使用 `Ctrl-D` 或者 `exit + 回车` 退出。
-- 在源码窗口`:exit`退出调试。或者 `Shift-E` 退出
+- 在源码窗口`:exit`退出调试。或者 `Shift-E` 退出，退出vim命令首先会退出debug
 
 Terminal 窗口如何滚动：进入 Terminal-Normal 模式即可，光标在 Terminal 时通过 `Ctrl-w N`（Ctrl-w，Shift-N）进入，`i` 或者 `a` 再次进入 Terminal 交互模式。
 
@@ -170,7 +185,7 @@ Debug Window 为 Terminal，可输入命令。命令参考语言对应的调试�
 
 Python 调试支持调用堆栈查看和本地变量监视。常用的快捷键有`F9`单步执行，`F12`设置断点，`F10`继续执行，`Shift-E`退出调试等。
 
-Python PDB 常用指令：`next` 下一步，`continue` 继续执行，`w` 查看当前堆栈，`exit`退出调试... 
+Python PDB 常用指令：`next` 下一步，`continue` 继续执行，`w` 查看当前堆栈，`exit`退出调试...
 
 #### - JavaScript
 
