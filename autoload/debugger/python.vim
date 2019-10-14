@@ -113,44 +113,30 @@ function! s:Fillup_Stacks_window(full_log)
 endfunction
 
 function! s:Set_stackslist(stacks)
-    let bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
-    let buf_oldlnum = len(getbufline(bufnr,0,'$'))
-    call setbufvar(bufnr, '&modifiable', 1)
+    let stacks_content = []
     let ix = 0
     for item in a:stacks
         let ix = ix + 1
         let bufline_str = "*" . util#GetFileName(item.filename) . "* : " .
                     \ "|" . item.linnr . "|" .
                     \ " → " . item.callstack
-        call setbufline(bufnr, ix, bufline_str)
+        call add(stacks_content, bufline_str)
     endfor
-    if buf_oldlnum >= ix + 1
-        call util#deletebufline(bufnr, ix + 1, buf_oldlnum)
-    elseif ix == 0
-        call util#deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
-    endif
-    call setbufvar(bufnr, '&modifiable', 0)
-    let g:debugger.stacks_bufinfo = getbufinfo(bufnr)
-    call execute('redraw','silent!')
+    let g:debugger.callstack_content = stacks_content
+    call runtime#Render_Stack_window()
 endfunction
 
 function! s:Set_localvarlist(localvars)
-    let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
-    let buf_oldlnum = len(getbufline(bufnr,0,'$'))
-    call setbufvar(bufnr, '&modifiable', 1)
+    let vars_content = []
     let ix = 0
     for item in a:localvars
         let ix = ix + 1
         let bufline_str = "" . item.var_name . " " . item.var_value
-        call setbufline(bufnr, ix, bufline_str)
+        " call setbufline(bufnr, ix, bufline_str)
+        call add(vars_content, bufline_str)
     endfor
-    if buf_oldlnum >= ix + 1
-        call util#deletebufline(bufnr, ix + 1, buf_oldlnum)
-    elseif ix == 0
-        call util#deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
-    endif
-    call setbufvar(bufnr, '&modifiable', 0)
-    let g:debugger.localvars_bufinfo = getbufinfo(bufnr)
+    let g:debugger.localvars_content = vars_content
+    call runtime#Render_Localvars_window()
 endfunction
 
 " 从path中得到文件名

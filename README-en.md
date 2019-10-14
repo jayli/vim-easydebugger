@@ -62,6 +62,8 @@ Put these code in your `~/.vimrc`
 	" break or delete break
 	nmap <F12>	<Plug>EasyDebuggerSetBreakPoint
 
+define openning localvar window: `<Plug>EasyDebuggerLocalvarWindow`，define openning call stack window: `<Plug>EasyDebuggerStackWindow`
+
 Key-Maps:
 
 - <kbd>Shift-R</kbd> ：startup debugger
@@ -83,7 +85,9 @@ Commands：
 - `InspectStep`: stepin
 - `InspectOut`: stepout
 - `InspectPause`: pause
-- `InspectExit`/`StopDebugger`/`ExitDebugger`: exit 
+- `InspectExit`/`ExitDebugger`: exit 
+- `LocalvarWindow`：open localvar window
+- `StackWindow`：open stack window
 
 ## Useage
 

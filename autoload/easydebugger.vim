@@ -47,6 +47,10 @@ function! s:Bind_Nor_Map_Keys()
     nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#InspectSetBreakPoint()<CR>
     " 关闭debug
     nnoremap <silent> <Plug>EasyDebuggerExit :call easydebugger#InspectExit()<CR>
+
+    " 打开localvar和stack窗口
+    nnoremap <silent> <Plug>EasyDebuggerLocalvarWindow :call runtime#Create_varwindow()<CR>
+    nnoremap <silent> <Plug>EasyDebuggerStackWindow :call runtime#Create_stackwindow()<CR>
 endfunction " }}}
 
 " 每次进入一个新 Buffer 都要重新绑定一次 {{{
@@ -71,8 +75,9 @@ function! s:Build_Command()
     command! -nargs=0 -complete=command InspectOut  call easydebugger#InspectOut()
     command! -nargs=0 -complete=command InspectPause call easydebugger#InspectPause()
     command! -nargs=0 -complete=command InspectExit call easydebugger#InspectExit()
-    command! -nargs=0 -complete=command StopDebugger call easydebugger#InspectExit()
     command! -nargs=0 -complete=command ExitDebugger call easydebugger#InspectExit()
+    command! -nargs=0 -complete=command StackWindow call runtime#Create_stackwindow()
+    command! -nargs=0 -complete=command LocalvarWindow call runtime#Create_varwindow()
 endfunction " }}}
 
 function! easydebugger#ExitSourceCode()

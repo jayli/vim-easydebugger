@@ -88,6 +88,19 @@ function! s:Create_Debugger()
     let g:debugger.hangup                = 0 " 判断当前是否挂起,挂起状态不应该执行任何callback
     let g:debugger.close_msg             = "Debug Finished. Use <S-E> or 'exit' ".
                                             \ "in terminal to quit debugging"
+    let g:debugger.callstack_content     = []
+    let g:debugger.localvars_content     = []
+
+    let g:debugger.stacks_winid          = 0
+    let g:debugger.stacks_winnr          = 0
+    let g:debugger.stacks_bufinfo        = 0
+    let g:debugger.stacks_bufnr          = 0
+
+    let g:debugger.localvars_winid       = 0
+    let g:debugger.localvars_winnr       = 0
+    let g:debugger.localvars_bufinfo     = 0
+    let g:debugger.localvars_bufnr       = 0
+
     " break_points: ['a.js|3','t/b.js|34']
     " break_points 里的索引作为 sign id
     let g:debugger.break_points= []
@@ -550,18 +563,29 @@ endfunction " }}}
 
 " 删除 stack 和 localvar {{{
 function s:Empty_Stack_and_Localvars()
-    let stack_bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
-    call setbufvar(stack_bufnr, '&modifiable', 1)
-    call util#deletebufline(stack_bufnr, 1, len(getbufline(stack_bufnr, 0,'$')))
-    call setbufvar(stack_bufnr, '&modifiable', 0)
-    " 如果支持本地变量，一并清空
-    if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
-        let localvar_bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
-        call setbufvar(localvar_bufnr, '&modifiable', 1)
-        call util#deletebufline(localvar_bufnr, 1, len(getbufline(localvar_bufnr, 0,'$')))
-        call setbufvar(localvar_bufnr, '&modifiable', 0)
-    endif
+    call runtime#Empty_Stack_Window()
+    call runtime#Empty_Localvars_Window()
 endfunction " }}}
+
+function! runtime#Empty_Stack_Window()
+    if runtime#Stack_window_is_on()
+        let stack_bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
+        call setbufvar(stack_bufnr, '&modifiable', 1)
+        call util#deletebufline(stack_bufnr, 1, len(getbufline(stack_bufnr, 0,'$')))
+        call setbufvar(stack_bufnr, '&modifiable', 0)
+    endif
+endfunction
+
+function! runtime#Empty_Localvars_Window()
+    if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
+        if runtime#Localvar_window_is_on()
+            let localvar_bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
+            call setbufvar(localvar_bufnr, '&modifiable', 1)
+            call util#deletebufline(localvar_bufnr, 1, len(getbufline(localvar_bufnr, 0,'$')))
+            call setbufvar(localvar_bufnr, '&modifiable', 0)
+        endif
+    endif
+endfunction
 
 " 清空挂起状态 {{{
 function! s:Clear_HangUp_Sign()
@@ -831,8 +855,7 @@ function! runtime#stack_jumpping()
 endfunction " }}}
 
 function! s:Close_varwindow() " {{{
-    if exists('g:debugger.localvars_winid') &&
-                \ len(getwininfo(g:debugger.localvars_winid)) > 0
+    if runtime#Localvar_window_is_on()
         call g:Goto_window(g:debugger.localvars_winnr)
         if !exists('g:language_setup')
             call easydebugger#Create_Lang_Setup()
@@ -851,12 +874,51 @@ function! s:Close_varwindow() " {{{
 endfunction " }}}
 
 function! s:Create_varwindow()
+    if !(has_key(g:language_setup,"ShowLocalVarsWindow") &&
+                \ get(g:language_setup, 'ShowLocalVarsWindow') == 1)
+        return s:LogMsg("This language dos not support localvars.")
+    endif
+    if !s:Term_is_running()
+        return s:LogMsg("Debugger is not running.")
+    endif
+    if runtime#Localvar_window_is_on()
+        return s:LogMsg("Localvar window is exists.")
+    endif
+    let current_winid = bufwinid(bufnr(""))
+    if g:debugger.term_winid != current_winid
+        call g:Goto_terminal_window()
+    endif
 
+    sil! exec "rightbelow 10new"
+    call s:Set_Bottom_Window_Statusline("localvars")
+    exec s:Get_cfg_list_window_status_cmd()
+    call execute('setlocal nonu')
+    let g:debugger.localvars_winnr = winnr()
+    let g:debugger.localvars_bufinfo = getbufinfo(bufnr(''))
+    let g:debugger.localvars_winid = bufwinid(bufnr(""))
+    let g:debugger.localvars_bufnr = bufnr("")
 
+    call runtime#Render_Localvars_window()
+    call term_wait(get(g:debugger,'debugger_window_name'))
+    call g:Goto_window(current_winid)
+endfunction
+
+function! runtime#Create_varwindow()
+    call s:Create_varwindow()
+endfunction
+
+function! runtime#Render_Localvars_window()
+    if !runtime#Localvar_window_is_on()
+        return s:LogMsg("Debugger is not running.")
+    endif
+    let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
+    call s:Render_Buf(bufnr, g:debugger.localvars_content)
+    let g:debugger.localvars_bufinfo = getbufinfo(bufnr)
 endfunction
 
 function! s:Close_stackwindow() " {{{
-    if exists('g:debugger.stacks_winid') && len(getwininfo(g:debugger.stacks_winid)) > 0
+    if runtime#Stack_window_is_on()
+        " let g:debugger.callstack_content = getbufline(g:debugger.stacks_bufnr,1,"$")
         call execute("q! " . g:debugger.stacks_winnr)
         " 代码窗口回复可写状态
         call execute('setl write', 'silent!')
@@ -864,23 +926,66 @@ function! s:Close_stackwindow() " {{{
     endif
 endfunction " }}}
 
+function! runtime#Stack_window_is_on()
+    return exists('g:debugger.stacks_winid') && len(getwininfo(g:debugger.stacks_winid)) > 0
+endfunction
+
+function! runtime#Localvar_window_is_on()
+    return exists('g:debugger.localvars_winid') && len(getwininfo(g:debugger.localvars_winid)) > 0
+endfunction
+
+function! runtime#Render_Stack_window()
+    if !runtime#Stack_window_is_on()
+        return s:LogMsg("Debugger is not running.")
+    endif
+    let bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
+    call s:Render_Buf(bufnr, g:debugger.callstack_content)
+    let g:debugger.stacks_bufinfo = getbufinfo(bufnr)
+endfunction
+
+function! s:Render_Buf(buf, content)
+    let bufnr = a:buf
+    let buf_oldlnum = len(getbufline(bufnr,0,'$'))
+    call setbufvar(bufnr, '&modifiable', 1)
+    let ix = 0
+    for item in a:content
+        let ix = ix + 1
+        call setbufline(bufnr, ix, item)
+    endfor
+    if buf_oldlnum >= ix + 1
+        call util#deletebufline(bufnr, ix + 1, buf_oldlnum)
+    elseif ix == 0
+        call util#deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
+    endif
+    call setbufvar(bufnr, '&modifiable', 0)
+    call execute('redraw','silent!')
+endfunction
+
 function! s:Create_stackwindow() " {{{
-    if exists("g:debugger.stacks_winid") && len(getwininfo(g:debugger.stacks_winid)) > 0
-        return
+    if runtime#Stack_window_is_on()
+        return s:LogMsg("Call stack window is exists")
     endif
     let current_winid = bufwinid(bufnr(""))
     if g:debugger.original_winid  != current_winid
-        call s:Goto_sourcecode_window()
+        call g:Goto_sourcecode_window()
     endif
-    sil! exec "bo 10new"
+    sil! exec "bel 10new"
     call s:Set_Bottom_Window_Statusline("stack")
+    let g:debugger.stacks_bufnr = bufnr("")
     let g:debugger.stacks_winid = bufwinid(bufnr(""))
     let g:debugger.stacks_winnr = winnr()
     let g:debugger.stacks_bufinfo = getbufinfo(bufnr(''))
     exec s:Get_cfg_list_window_status_cmd()
     call s:Add_jump_mapping()
     call g:Goto_window(current_winid)
+    if s:Term_is_running()
+        call runtime#Render_Stack_window()
+    endif
 endfunction " }}}
+
+function! runtime#Create_stackwindow()
+    call s:Create_stackwindow()
+endfunction
 
 " 跳转到 Window {{{
 function! g:Goto_window(winid) abort

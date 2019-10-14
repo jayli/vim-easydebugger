@@ -30,16 +30,16 @@ VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.
 
 **Vim 版本**：Vim-EasyDebugger 依赖 VIM 8.1 及以上，如果是编译安装，需要开启 `+terminal` 选项，可以通过下面命令查看是否开启了 `+terminal` 选项：
 
-	vim --version | grep terminal
+    vim --version | grep terminal
 
 **NodeJS 调试器**：[Node Inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html)
 
 NodeJS 调试基于 `node inspect`（通常 v8.x 及以上的 node 都自带了）。执行下面命令，如果输出 `Useage:...` 命令的用法，说明支持 Node Inspector：
 
-	node inspect
-	
+    node inspect
+    
 > 注意旧版的 Node 的调试器的启动命令是 node debug，则需要升级 node 到新版，且要确保 Node 在 v10.x 及以上版本
-	
+    
 **Go 调试器**：[Delve](https://github.com/derekparker/delve)
 
 Go 语言的调试基于 Delve，[参考官方文档安装](https://github.com/derekparker/delve)。
@@ -58,50 +58,52 @@ Python 语言基于 Python(3) 自带的 PDB，命令行启动`python3 -m -pdb fi
 
 进入到 VIM 安装目录中，在 `bundle` 里安装
 
-	cd ~/.vim/bundle/
-	git clone https://github.com/jayli/vim-easydebugger
+    cd ~/.vim/bundle/
+    git clone https://github.com/jayli/vim-easydebugger
 
 #### - 基于 [Vundle.vim](https://github.com/VundleVim/Vundle.vim) 安装（VIM7 & 8）
 
 在`.vimrc`中添加下面代码，进入`vim`后执行`:PluginInstall`
 
-	" EasyDebugger 插件
-	Plugin 'jayli/vim-easydebugger'
+    " EasyDebugger 插件
+    Plugin 'jayli/vim-easydebugger'
 
 #### - 也可以直接基于 VIM8 安装
 
-	git clone https://github.com/jayli/vim-easydebugger.git \
-		~/.vim/pack/dist/start/vim-easydebugger
+    git clone https://github.com/jayli/vim-easydebugger.git \
+        ~/.vim/pack/dist/start/vim-easydebugger
 Done!
 
 ### 快捷键配置
 
-在 `~/.vimrc` 中添加快捷键配置：
+我常用的快捷键：
 
-	" Vim-EasyDebugger 快捷键配置
-	" 启动 NodeJS/Python/Go 调试
-	nmap <S-R>	<Plug>EasyDebuggerInspect
-	" 启动 NodeJS 的 Web 调试模式
-	nmap <S-W>	<Plug>EasyDebuggerWebInspect
-	" 关闭调试
-	nmap <S-E>	<Plug>EasyDebuggerExit
-	" 暂停程序
-	nmap <F6>	<Plug>EasyDebuggerPause
-	tmap <F6>	<Plug>EasyDebuggerPause
-	" 跳出函数
-	nmap <F7>	<Plug>EasyDebuggerStepOut
-	tmap <F7>	<Plug>EasyDebuggerStepOut
-	" 进入函数
-	nmap <F8>   <Plug>EasyDebuggerStepIn
-	tmap <F8>   <Plug>EasyDebuggerStepIn
-	" 单步执行
-	nmap <F9>	<Plug>EasyDebuggerNext
-	tmap <F9>	<Plug>EasyDebuggerNext
-	" Continue
-	nmap <F10>	<Plug>EasyDebuggerContinue
-	tmap <F10>	<Plug>EasyDebuggerContinue
-	" 设置断点
-	nmap <F12>	<Plug>EasyDebuggerSetBreakPoint
+    " Vim-EasyDebugger 快捷键配置
+    " 启动 NodeJS/Python/Go 调试
+    nmap <S-R>  <Plug>EasyDebuggerInspect
+    " 启动 NodeJS 的 Web 调试模式
+    nmap <S-W>  <Plug>EasyDebuggerWebInspect
+    " 关闭调试
+    nmap <S-E>  <Plug>EasyDebuggerExit
+    " 暂停程序
+    nmap <F6>   <Plug>EasyDebuggerPause
+    tmap <F6>   <Plug>EasyDebuggerPause
+    " 跳出函数
+    nmap <F7>   <Plug>EasyDebuggerStepOut
+    tmap <F7>   <Plug>EasyDebuggerStepOut
+    " 进入函数
+    nmap <F8>   <Plug>EasyDebuggerStepIn
+    tmap <F8>   <Plug>EasyDebuggerStepIn
+    " 单步执行
+    nmap <F9>   <Plug>EasyDebuggerNext
+    tmap <F9>   <Plug>EasyDebuggerNext
+    " Continue
+    nmap <F10>  <Plug>EasyDebuggerContinue
+    tmap <F10>  <Plug>EasyDebuggerContinue
+    " 设置断点
+    nmap <F12>  <Plug>EasyDebuggerSetBreakPoint
+
+定义打开本地变量窗口`<Plug>EasyDebuggerLocalvarWindow`，定义打开调用堆栈窗口`<Plug>EasyDebuggerStackWindow`
 
 快捷键说明：
 
@@ -124,7 +126,9 @@ Done!
 - `InspectStep`：单步进入
 - `InspectOut`：跳出函数
 - `InspectPause`：暂停执行
-- `InspectExit`、`StopDebugger`、`ExitDebugger`：退出调试
+- `InspectExit`、`ExitDebugger`：退出调试
+- `LocalvarWindow`：打开本地变量窗口
+- `StackWindow`：打开调用堆栈窗口
 
 ### 使用
 
@@ -132,7 +136,7 @@ Done!
 
 在 Normal 模式下按下 <kbd>Shift-R</kbd> 进入 VIM 调试模式，自动打开 Debugger 命令窗口。默认情况下，调试窗口中启动诸如 `python -m pdb {filename}` 的命令，其中`{filename}`为当前所在文件，如果调试运行文件的入口不是当前文件，需要在当前代码前部注释中添加`debugger_entry = {filepath}`，以 Python 为例：
 
-	# debugger_entry = ../index.py
+    # debugger_entry = ../index.py
 
 *退出调试模式*：
 - 当光标在 Terminal 时，可以使用 `Ctrl-D` 或者 `exit + 回车` 退出。
@@ -142,19 +146,21 @@ Terminal 窗口如何滚动：进入 Terminal-Normal 模式即可，光标在 Te
 
 界面说明:
 
-	╔═══════════════════════════════╤═══════════════════════════════╗
-	║                               │                               ║
-	║                               │                               ║
-	║                               │                               ║
-	║          Source Code          │         Debug window          ║
-	║                               │                               ║
-	║                               │                               ║
-	║                               │                               ║
-	╟───────────────────────────────┼───────────────────────────────╢
-	║                               │                               ║
-	║        Callback Stacks        │          Local vars           ║
-	║                               │                               ║
-	╚═══════════════════════════════╧═══════════════════════════════╝
+    ╔═══════════════════════════════╤═══════════════════════════════╗
+    ║                               │                               ║
+    ║                               │                               ║
+    ║                               │                               ║
+    ║        Source Window          │         Debug Window          ║
+    ║    g:debugger.original_winid  │     g:debugger.term_winid     ║
+    ║                               │                               ║
+    ║                               │                               ║
+    ║                               │                               ║
+    ╟───────────────────────────────┼───────────────────────────────╢
+    ║                               │                               ║
+    ║          Call Stack           │        Local Variables        ║
+    ║    g:debugger.stacks_winid    │   g:debugger.localvars_winid  ║
+    ║                               │                               ║
+    ╚═══════════════════════════════╧═══════════════════════════════╝
 
 Debug Window 为 Terminal，可输入命令。命令参考语言对应的调试器。
 
@@ -208,8 +214,8 @@ VIM 8.1 支持 Terminal 是这个大版本最主要的特性，我个人非常�
 ### ChangeLog
 
 - v1.0：
-	- 支持 Unix 和 MacOS，Windows 平台暂未支持
-	- 支持语言种类：NodeJS
+    - 支持 Unix 和 MacOS，Windows 平台暂未支持
+    - 支持语言种类：NodeJS
 - v1.1：支持 Go、NodeJS 调试
 - v1.2：支持 Quickfix 窗口显示回调堆栈
 - v1.3: 放弃 Quickfix 和 Localist，支持 python 以及本地变量查看，已经大量 bugfix
