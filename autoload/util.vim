@@ -7,27 +7,26 @@ function! util#log(msg)
     if !exists("g:easydebugger_logging") || g:easydebugger_logging != 1
         return a:msg
     endif
-    echohl Question
-    echom '>>> '. a:msg
-    echohl NONE
-    return a:msg
+    return util#EchoMsg(a:msg, "Question")
 endfunction " }}}
 
 " 输出 LogMsg {{{
 function! util#LogMsg(msg)
-    echohl MoreMsg
-    echom '>>> '. a:msg
-    echohl NONE
-    return a:msg
+    return util#EchoMsg(a:msg, "MoreMsg")
 endfunction "}}}
 
 " 输出警告 LogMsg {{{
 function! util#WarningMsg(msg)
-    echohl WarningMsg
+    return util#EchoMsg(a:msg, "WarningMsg")
+endfunction "}}}
+
+" EchoMsg {{{
+function! util#EchoMsg(msg, style_group)
+    exec "echohl " . a:style_group
     echom '>>> '. a:msg
     echohl NONE
     return a:msg
-endfunction "}}}
+endfunction " }}}
 
 " deletebufline {{{
 function! util#deletebufline(bn, fl, ll)

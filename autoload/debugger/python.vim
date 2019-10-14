@@ -24,7 +24,7 @@ function! debugger#python#Setup()
         \   'SetBreakPoint':              function("debugger#python#SetBreakPoint"),
         \   'TermSetupScript':            function('debugger#python#TermSetupScript'),
         \   'AfterStopScript':            function('debugger#python#AfterStopScript'),
-        \   'HasErrorMsg':                function('debugger#python#HasErrorMsg'),
+        \   'GetErrorMsg':                function('debugger#python#GetErrorMsg'),
         \   'TermCallbackHandler':        function('debugger#python#TermCallbackHandler'),
         \   'DebuggerNotInstalled':       'pdb not installed ！Please install pdb first.',
         \   'WebDebuggerCommandPrefix':   'python3 -m pdb',
@@ -40,8 +40,8 @@ function! debugger#python#Setup()
     return setup_options
 endfunction
 
-function! debugger#python#HasErrorMsg(line)
-    let flag = 0
+function! debugger#python#GetErrorMsg(line)
+    let flag = ""
     let ErrorTypes = [
                 \ "ZeroDivisionError",
                 \ "ValueError",
@@ -83,7 +83,7 @@ function! debugger#python#HasErrorMsg(line)
                 \ ]
     for line in a:line
         if line =~ "^\\(". join(ErrorTypes, "\\|") ."\\):\\s"
-            let flag = 1
+            let flag = line
             break
         endif
     endfor

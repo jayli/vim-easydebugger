@@ -44,7 +44,7 @@
 "   - SetBreakPoint : {function} : 返回添加断点的命令字符串
 "   - TermSetupScript : {function} : Terminal 初始化完成后执行的脚本
 "   - AfterStopScript : {function} : 程序进行到新行后追加的执行的脚本
-"   - HasErrorMsg : {function} : 判断Term是否给出了出错的提示
+"   - GetErrorMsg : {function} : 判断Term是否给出了出错的提示
 "   - TermCallbackHandler : {function} : Terminal 有输出回调时，会追加执行的脚本
 "   - DebuggerNotInstalled : {string} : Debugger 未安装的提示文案
 "   - WebDebuggerCommandPrefix : {string} : Debugger Web 服务启动的命令前缀
@@ -156,11 +156,11 @@ function! runtime#WebInspectInit()
         endif
     endif
 
-    let l:command = get(g:language_setup,'WebDebuggerCommandPrefix') . ' ' .
-                    \ getbufinfo('%')[0].name
+    let l:command = get(g:language_setup,'WebDebuggerCommandPrefix') .
+                \ ' ' . getbufinfo('%')[0].name
     if has_key(g:language_setup, "LocalDebuggerCommandSufix")
-        let l:full_command = s:StringTrim(l:command . ' ' .
-                    \ get(g:language_setup, "LocalDebuggerCommandSufix"))
+        let l:full_command = s:StringTrim(l:command .
+                    \ ' ' . get(g:language_setup, "LocalDebuggerCommandSufix"))
     else
         let l:full_command = s:StringTrim(l:command)
     endif
@@ -512,13 +512,14 @@ function! runtime#Term_callback(channel, msg)
     endif
 
     " 程序执行出错，给出出错提示，并给出挂起状态
-    if has_key(g:language_setup, "HasErrorMsg") &&
-                \ get(g:language_setup, "HasErrorMsg")(msgslist)
+    if has_key(g:language_setup, "GetErrorMsg") &&
+                \ get(g:language_setup, "GetErrorMsg")(msgslist) != ""
         let g:debugger.hangup = 1
         call timer_start(80,
                 \ {-> s:Set_Hangup_Terminal_Style(0)},
                 \ {'repeat' : 1})
-        return s:LogMsg("Hanging up for error. Please restart debug.")
+        return util#EchoMsg(get(g:language_setup, "GetErrorMsg")(msgslist) . " | Please restart or quit debug.",
+                    \ "ErrorMsg")
     endif
 
     " 有输出时的回调句柄
@@ -585,6 +586,7 @@ function s:Empty_Stack_and_Localvars()
     call runtime#Empty_Localvars_Window()
 endfunction " }}}
 
+" 清空Stack window {{{
 function! runtime#Empty_Stack_Window()
     if runtime#Stack_window_is_on()
         let stack_bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
@@ -592,8 +594,9 @@ function! runtime#Empty_Stack_Window()
         call util#deletebufline(stack_bufnr, 1, len(getbufline(stack_bufnr, 0,'$')))
         call setbufvar(stack_bufnr, '&modifiable', 0)
     endif
-endfunction
+endfunction " }}}
 
+" 清空Localvar window {{{
 function! runtime#Empty_Localvars_Window()
     if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
         if runtime#Localvar_window_is_on()
@@ -603,7 +606,7 @@ function! runtime#Empty_Localvars_Window()
             call setbufvar(localvar_bufnr, '&modifiable', 0)
         endif
     endif
-endfunction
+endfunction " }}}
 
 " 清空挂起状态 {{{
 function! s:Clear_HangUp_Sign()
@@ -891,7 +894,7 @@ function! s:Close_varwindow() " {{{
     endif
 endfunction " }}}
 
-function! s:Create_varwindow()
+function! s:Create_varwindow() " {{{
     if !(has_key(g:language_setup,"ShowLocalVarsWindow") &&
                 \ get(g:language_setup, 'ShowLocalVarsWindow') == 1)
         return s:LogMsg("This language dos not support localvars.")
@@ -919,20 +922,20 @@ function! s:Create_varwindow()
     call runtime#Render_Localvars_window()
     call term_wait(get(g:debugger,'debugger_window_name'))
     call g:Goto_window(current_winid)
-endfunction
+endfunction " }}}
 
-function! runtime#Create_varwindow()
+function! runtime#Create_varwindow() " {{{
     call s:Create_varwindow()
-endfunction
+endfunction " }}}
 
-function! runtime#Render_Localvars_window()
+function! runtime#Render_Localvars_window() " {{{
     if !runtime#Localvar_window_is_on()
         return s:LogMsg("Debugger is not running.")
     endif
     let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
     call s:Render_Buf(bufnr, g:debugger.localvars_content)
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr)
-endfunction
+endfunction " }}}
 
 function! s:Close_stackwindow() " {{{
     if runtime#Stack_window_is_on()
@@ -944,24 +947,24 @@ function! s:Close_stackwindow() " {{{
     endif
 endfunction " }}}
 
-function! runtime#Stack_window_is_on()
+function! runtime#Stack_window_is_on() " {{{
     return exists('g:debugger.stacks_winid') && len(getwininfo(g:debugger.stacks_winid)) > 0
-endfunction
+endfunction " }}}
 
-function! runtime#Localvar_window_is_on()
+function! runtime#Localvar_window_is_on() " {{{
     return exists('g:debugger.localvars_winid') && len(getwininfo(g:debugger.localvars_winid)) > 0
-endfunction
+endfunction " }}}
 
-function! runtime#Render_Stack_window()
+function! runtime#Render_Stack_window() " {{{
     if !runtime#Stack_window_is_on()
         return s:LogMsg("Debugger is not running.")
     endif
     let bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
     call s:Render_Buf(bufnr, g:debugger.callstack_content)
     let g:debugger.stacks_bufinfo = getbufinfo(bufnr)
-endfunction
+endfunction " }}}
 
-function! s:Render_Buf(buf, content)
+function! s:Render_Buf(buf, content) " {{{
     let bufnr = a:buf
     let buf_oldlnum = len(getbufline(bufnr,0,'$'))
     call setbufvar(bufnr, '&modifiable', 1)
@@ -977,7 +980,7 @@ function! s:Render_Buf(buf, content)
     endif
     call setbufvar(bufnr, '&modifiable', 0)
     call execute('redraw','silent!')
-endfunction
+endfunction " }}}
 
 function! s:Create_stackwindow() " {{{
     if runtime#Stack_window_is_on()
@@ -1001,9 +1004,9 @@ function! s:Create_stackwindow() " {{{
     endif
 endfunction " }}}
 
-function! runtime#Create_stackwindow()
+function! runtime#Create_stackwindow() " {{{
     call s:Create_stackwindow()
-endfunction
+endfunction " }}}
 
 " 跳转到 Window {{{
 function! g:Goto_window(winid) abort
@@ -1031,7 +1034,7 @@ function! s:Debugger_del_tmpbuf()
     let tmp_bufs = deepcopy(g:debugger.bufs)
     for t_buf in tmp_bufs
         " 如果 Buf 短名不是原始值，长名也不是原始值
-        if t_buf != g:debugger.original_bufname && 
+        if t_buf != g:debugger.original_bufname &&
                     \ s:Get_Fullname(g:debugger.original_bufname) != s:Get_Fullname(t_buf)
             call execute('bdelete! '.t_buf,'silent!')
         endif
@@ -1117,9 +1120,9 @@ function! s:Term_is_running() " {{{
     endif
 endfunction " }}}
 
-function! runtime#Term_is_running()
+function! runtime#Term_is_running() " {{{
     return s:Term_is_running()
-endfunction
+endfunction " }}}
 
 " 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal {{{
 function! runtime#Special_Cmd_Handler()
