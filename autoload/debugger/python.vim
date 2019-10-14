@@ -24,6 +24,7 @@ function! debugger#python#Setup()
         \   'SetBreakPoint':              function("debugger#python#SetBreakPoint"),
         \   'TermSetupScript':            function('debugger#python#TermSetupScript'),
         \   'AfterStopScript':            function('debugger#python#AfterStopScript'),
+        \   'HasErrorMsg':                function('debugger#python#HasErrorMsg'),
         \   'TermCallbackHandler':        function('debugger#python#TermCallbackHandler'),
         \   'DebuggerNotInstalled':       'pdb not installed ！Please install pdb first.',
         \   'WebDebuggerCommandPrefix':   'python3 -m pdb',
@@ -37,6 +38,56 @@ function! debugger#python#Setup()
         \   'BreakLineNrRegex':           "\\(>.\\{-}\\.py(\\)\\@<=\\d\\+\\(\\S\\)\\@=",
         \ }
     return setup_options
+endfunction
+
+function! debugger#python#HasErrorMsg(line)
+    let flag = 0
+    let ErrorTypes = [
+                \ "ZeroDivisionError",
+                \ "ValueError",
+                \ "AssertionError",
+                \ "StopIteration",
+                \ "IndexError",
+                \ "IndentationError",
+                \ "OSError",
+                \ "ImportError",
+                \ "NameError",
+                \ "AttributeError",
+                \ "GeneratorExit",
+                \ "TypeError",
+                \ "KeyboardInterrupt",
+                \ "OverflowError",
+                \ "FloatingPointError",
+                \ "BaseException",
+                \ "SystemExit",
+                \ "Exception",
+                \ "StandardError",
+                \ "ArithmeticError",
+                \ "EOFError",
+                \ "EnvironmentError",
+                \ "WindowsError",
+                \ "LookupError",
+                \ "KeyError",
+                \ "MemoryError",
+                \ "UnboundLocalError",
+                \ "ReferenceError",
+                \ "RuntimeError",
+                \ "NotImplementedError",
+                \ "SyntaxError",
+                \ "TabError",
+                \ "SystemError",
+                \ "UnicodeError",
+                \ "UnicodeDecodeError",
+                \ "UnicodeEncodeError",
+                \ "UnicodeTranslateError",
+                \ ]
+    for line in a:line
+        if line =~ "^\\(". join(ErrorTypes, "\\|") ."\\):\\s"
+            let flag = 1
+            break
+        endif
+    endfor
+    return flag
 endfunction
 
 function! debugger#python#TermCallbackHandler(full_log)

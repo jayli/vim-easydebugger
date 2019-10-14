@@ -44,6 +44,7 @@
 "   - SetBreakPoint : {function} : 返回添加断点的命令字符串
 "   - TermSetupScript : {function} : Terminal 初始化完成后执行的脚本
 "   - AfterStopScript : {function} : 程序进行到新行后追加的执行的脚本
+"   - HasErrorMsg : {function} : 判断Term是否给出了出错的提示
 "   - TermCallbackHandler : {function} : Terminal 有输出回调时，会追加执行的脚本
 "   - DebuggerNotInstalled : {string} : Debugger 未安装的提示文案
 "   - WebDebuggerCommandPrefix : {string} : Debugger Web 服务启动的命令前缀
@@ -115,7 +116,8 @@ function! s:Create_Debugger()
     let g:debugger.term_status_line         = util#Get_BgColor('StatusLineTerm')
     let g:debugger.term_status_line_nc      = util#Get_BgColor('StatusLineTermNC')
     let g:debugger.term_status_line_nc_fg   = util#Get_HiColor('StatusLineTermNC', 'fg')
-    let g:debugger.hangup_term_statusline_bg = "34"
+    let g:debugger.hangup_term_statusline_bg_normal = "34" " 正常样式
+    let g:debugger.hangup_term_statusline_bg_error = "9"   " 出错样式
     " hangup_term_style 是体验上能感知到的挂起状态，hangup 是程序真实的挂起状
     " 态，通常挂起缝隙很短，但从挂起到停驻到下一行仍然会重新计算callstack和
     " localvar，会造成闪烁，因此设置了一个hangup_term_style 的标记位
@@ -492,6 +494,7 @@ function! runtime#Term_callback(channel, msg)
     if !exists("g:language_setup")
         call easydebugger#Create_Lang_Setup()
     endif
+
     if has_key(g:language_setup, "ExecutionTerminatedMsg") &&
                 \ a:msg =~ get(g:language_setup, "ExecutionTerminatedMsg")
         call s:Show_Close_Msg()
@@ -505,7 +508,17 @@ function! runtime#Term_callback(channel, msg)
                 call s:Cursor_Restore()
             endif
         endif
-        return
+        return s:LogMsg("Debug stopped")
+    endif
+
+    " 程序执行出错，给出出错提示，并给出挂起状态
+    if has_key(g:language_setup, "HasErrorMsg") &&
+                \ get(g:language_setup, "HasErrorMsg")(msgslist)
+        let g:debugger.hangup = 1
+        call timer_start(70,
+                \ {-> s:Set_Hangup_Terminal_Style(0)},
+                \ {'repeat' : 1})
+        return s:LogMsg("Hanging up for error. Please restart debug.")
     endif
 
     " 有输出时的回调句柄
@@ -540,15 +553,20 @@ function! s:HangUp_Sign()
     " 70 ms：如果敲击键盘 70 ms 内响应，则不认为挂起，如果70ms后仍无停驻信息，
     " 则认为挂起
     call timer_start(70,
-            \ {-> s:Set_Hangup_Terminal_Style()},
+            \ {-> s:Set_Hangup_Terminal_Style(1)},
             \ {'repeat' : 1})
 endfunction " }}}
 
-" Set hangup terminal style suggestion {{{
-function! s:Set_Hangup_Terminal_Style()
+" set hangup term style : 1 → 正确挂起提示, 2 → 失败挂起提示 {{{
+function! s:Set_Hangup_Terminal_Style(flag)
+    if a:flag == 1
+        let bg_color = g:debugger.hangup_term_statusline_bg_normal
+    else
+        let bg_color = g:debugger.hangup_term_statusline_bg_error
+    endif
     if g:debugger.hangup == 1
-        call util#hi('StatusLineTerm', -1, g:debugger.hangup_term_statusline_bg, "")
-        call util#hi('StatusLineTermNC', "white", g:debugger.hangup_term_statusline_bg, "")
+        call util#hi('StatusLineTerm', -1, bg_color, "")
+        call util#hi('StatusLineTermNC', "white", bg_color, "")
         call execute('redraw','silent!')
         let g:debugger.hangup_term_style = 1
     endif
