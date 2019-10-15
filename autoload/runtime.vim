@@ -437,6 +437,7 @@ function! runtime#Reset_Editor(...)
         endif
     endif
     call s:Clear_All_Signs()
+    call s:Clean_Hangup_Terminal_Style()
     if g:debugger.original_wrap
         call execute('set wrap','silent!')
     endif
@@ -543,7 +544,10 @@ function! s:HangUp_Sign()
     let g:debugger.hangup = 1
     " 70 ms：如果敲击键盘 70 ms 内响应，则不认为挂起，如果70ms后仍无停驻信息，
     " 则认为挂起
-    call timer_start(70,
+    if exists("g:debugger._setup_terminal_style_timer")
+        call timer_stop(g:debugger._setup_terminal_style_timer)
+    endif
+    let g:debugger._setup_terminal_style_timer =  timer_start(70,
             \ {-> s:Set_Hangup_Terminal_Style(1)},
             \ {'repeat' : 1})
 endfunction " }}}
@@ -565,7 +569,13 @@ endfunction " }}}
 
 " Clean hangup terminal style {{{
 function! s:Clean_Hangup_Terminal_Style()
+    if exists("g:debugger._setup_terminal_style_timer")
+        call timer_stop(g:debugger._setup_terminal_style_timer)
+    endif
+    call s:log("-------clean up terminal style----------")
+    call s:log(util#Highlight_Args("StatusLineTerm"))
     call util#hi('StatusLineTerm', -1 , g:debugger.term_status_line , "")
+    call s:log(util#Highlight_Args("StatusLineTerm"))
     call util#hi('StatusLineTermNC', g:debugger.term_status_line_nc_fg , g:debugger.term_status_line_nc , "")
     let g:debugger.hangup_term_style = 0
 endfunction " }}}
@@ -676,7 +686,10 @@ function! s:Debugger_Stop_Action(log)
     if has_key(g:language_setup, "GetErrorMsg") &&
                 \ get(g:language_setup, "GetErrorMsg")(a:log) != ""
         let g:debugger.hangup = 1
-        call timer_start(80,
+        if exists("g:debugger._setup_terminal_style_timer")
+            call timer_stop(g:debugger._setup_terminal_style_timer)
+        endif
+        let g:debugger._setup_terminal_style_timer =  timer_start(80,
                 \ {-> s:Set_Hangup_Terminal_Style(0)},
                 \ {'repeat' : 1})
         let echo_msg = get(g:language_setup, "GetErrorMsg")(a:log)
@@ -1088,8 +1101,9 @@ function! s:Close_Term()
 endfunction " }}}
 
 function! runtime#Close_Term() " {{{
+    call s:Clean_Hangup_Terminal_Style()
     if !s:Term_is_running()
-        return
+        return s:LogMsg("Debugger is not running.")
     endif
     call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>exit\<CR>")
     call term_wait(get(g:debugger,'debugger_window_name'))

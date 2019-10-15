@@ -82,8 +82,7 @@ endfunction " }}}
 
 function! easydebugger#ExitSourceCode()
     if runtime#Term_is_running() && g:debugger.original_winid  == bufwinid(bufnr(""))
-        call execute("InspectExit")
-        call util#LogMsg("Debug over.")
+        call easydebugger#InspectExit()
         call execute("split " . expand("%:p"), "silent!")
     endif
 endfunction
