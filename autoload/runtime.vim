@@ -512,17 +512,6 @@ function! runtime#Term_callback(channel, msg)
         return s:LogMsg("Debug stopped")
     endif
 
-    " 程序执行出错，给出出错提示，并给出挂起状态
-    if has_key(g:language_setup, "GetErrorMsg") &&
-                \ get(g:language_setup, "GetErrorMsg")(msgslist) != ""
-        let g:debugger.hangup = 1
-        call timer_start(80,
-                \ {-> s:Set_Hangup_Terminal_Style(0)},
-                \ {'repeat' : 1})
-        return util#EchoMsg(get(g:language_setup, "GetErrorMsg")(msgslist) . " | Please restart or quit debug.",
-                    \ "ErrorMsg")
-    endif
-
     " 有输出时的回调句柄
     if exists("g:debugger.term_callback_hijacking")
         " 不想被 Stop Action 干扰，先劫持掉，比如只计算call stack和localvars
@@ -682,6 +671,23 @@ function! s:Debugger_Stop_Action(log)
         return
     endif
     let break_msg = s:Get_Term_Stop_Msg(a:log)
+
+    " 程序执行出错，给出出错提示，并给出挂起状态
+    if has_key(g:language_setup, "GetErrorMsg") &&
+                \ get(g:language_setup, "GetErrorMsg")(a:log) != ""
+        let g:debugger.hangup = 1
+        call timer_start(80,
+                \ {-> s:Set_Hangup_Terminal_Style(0)},
+                \ {'repeat' : 1})
+        let echo_msg = get(g:language_setup, "GetErrorMsg")(a:log)
+        if type(break_msg) == type({})
+            let echo_msg = pathshorten(break_msg.fname) . "(". string(break_msg.breakline) .") " . echo_msg
+        else
+            let echo_msg = echo_msg . " | Please quite or restart debug."
+        endif
+        return util#EchoMsg(echo_msg, "ErrorMsg")
+    endif
+
     call s:log('Debugger_Stop_Action '. string(a:log))
     " 清除hangup标记
     let g:debugger.hangup = 0
