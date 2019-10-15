@@ -572,7 +572,6 @@ function! s:Clean_Hangup_Terminal_Style()
     if exists("g:debugger._setup_terminal_style_timer")
         call timer_stop(g:debugger._setup_terminal_style_timer)
     endif
-    call s:log("-------clean up terminal style----------")
     call s:log(util#Highlight_Args("StatusLineTerm"))
     call util#hi('StatusLineTerm', -1 , g:debugger.term_status_line , "")
     call s:log(util#Highlight_Args("StatusLineTerm"))
