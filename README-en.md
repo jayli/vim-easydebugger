@@ -38,7 +38,21 @@ With [Vundle.vim](https://github.com/VundleVim/Vundle.vim): add the following co
 	
 ## Configuration
 
-Put these code in your `~/.vimrc`
+Commands：
+
+- `InspectInit`/`Debugger`: startup debugger
+- `WebInspectInit`: startup Chrome DevTools debug service
+- `InspectCont`: continue
+- `InspectNext`: stepover
+- `InspectStep`: stepin
+- `InspectOut`: stepout
+- `InspectPause`: pause
+- `InspectExit`/`ExitDebugger`: exit 
+- `LocalvarWindow`：open localvar window
+- `StackWindow`：open stack window
+- `BreakPointSetting`: set or delete break point
+
+My key maps in `~/.vimrc`
 
 	" Debugger startup
 	nmap <S-R>	<Plug>EasyDebuggerInspect
@@ -76,18 +90,6 @@ Key-Maps:
 - <kbd>F10</kbd> ：continue
 - <kbd>F12</kbd> ：toggle line breakpoint
 
-Commands：
-
-- `InspectInit`/`Debugger`: startup debugger
-- `WebInspectInit`: startup Chrome DevTools debug service
-- `InspectCont`: continue
-- `InspectNext`: stepover
-- `InspectStep`: stepin
-- `InspectOut`: stepout
-- `InspectPause`: pause
-- `InspectExit`/`ExitDebugger`: exit 
-- `LocalvarWindow`：open localvar window
-- `StackWindow`：open stack window
 
 ## Useage
 
@@ -99,7 +101,7 @@ Commands：
 
 ![](https://gw.alicdn.com/tfs/TB1FyLLfVY7gK0jSZKzXXaikpXa-1990-1152.png)
 
-Press <kbd>Shift-R</kbd> to startup debugger with `node inspect {filename}` (`dlv debug {filename}` for golang) running in terminal. If you want to start with another {filename}. You can set `debugger_entry` in top of your source code like below:
+Press <kbd>Shift-R</kbd> (or `:Debugger`) to startup debugger with `node inspect` (`dlv debug` for golang, `python3 -m pdb` for python3) running in terminal. If you want to start with another file. You can set `debugger_entry` in top of your source code like this:
 
 For Python:
 
@@ -125,9 +127,17 @@ Debug mode windows:
 	║                               │                               ║
 	╚═══════════════════════════════╧═══════════════════════════════╝
 
-Type `next` + <kbd>Enter</kbd> in Terminal means step over. Quit debug with <kbd>Shift-E</kbd>, or input `exit` + <kbd>Enter</kbd> in Terminal, or `:exit` in source code window. You can input `Ctrl-w N`（Ctrl-w，Shift-N）in terminal window if you want to get more output log. Type `i` to go back for interactive terminal.
+Type `next` + <kbd>Enter</kbd> in Terminal means step over. If you want to quit debug, input `exit` + <kbd>Enter</kbd> in terminal, or `:exit` (or <kbd>Shift-E</kbd>) in source code window. You can input `Ctrl-w N`（Ctrl-w, Shift-N）in terminal window if you want to get more output log. Type `i` to go back for interactive terminal.
 
-Press <kbd>F12</kbd> to toggle break points.
+Press <kbd>F12</kbd> (or `:BreakPointSetting`) to toggle break points.
+
+Open call stack window or localvars window:
+
+<img src="https://gw.alicdn.com/tfs/TB1TYkFjeL2gK0jSZPhXXahvXXa-714-491.gif" width=550>
+
+Set break point:
+
+<img src="https://gw.alicdn.com/tfs/TB1WFALjoT1gK0jSZFrXXcNCXXa-682-560.gif" width=550>
 
 How to inspect local variables? 
 
@@ -141,10 +151,11 @@ How to inspect local variables?
 
 You can use chrome devtool for nodejs debug. Press <kbd>Shift-W</kbd> . Then connect it to chrome devtool [like this](https://gw.alicdn.com/tfs/TB1ci.QegHqK1RjSZJnXXbNLpXa-1414-797.png).
 
+-----------------
+
 ## Licence
 
 This plugin is released under the [MIT License](https://github.com/jayli/vim-easydebugger/blob/master/LICENSE).
 
 Author: [Jayli](http://jayli.github.io/)
-
 

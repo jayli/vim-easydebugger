@@ -6,11 +6,11 @@
 
 VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif)，以 Python 语言为例） @author：[Jayli](http://jayli.github.io/)
 
-![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif?t=3)
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif?t=4)
 
-### 又一个 VIM 调试器？
+### VIM 调试器简介
 
-基于 VimL 和 Terminal 实现的一个极简的 Debugger，支持 VIM 8.1 及以上版本。支持三个语言（js、python、go），需要 JS 运行环境 [node](https://nodejs.org)、Go 调试器 [Delve](https://github.com/derekparker/delve)、Python 调试工具 [PDB](https://docs.python.org/3/library/pdb.html)。
+Easy-Debugger 是基于 VimL 和 Terminal 实现的一个简单的调试器，支持 VIM 8.1 及以上版本。支持三个语言（js、python、go），需要 JS 运行环境 [node](https://nodejs.org)、Go 调试器 [Delve](https://github.com/derekparker/delve)、Python 调试工具 [PDB](https://docs.python.org/3/library/pdb.html)。
 
 参考这些调试器的实现：
 
@@ -19,19 +19,19 @@ VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.
 <td>名称</td><td>语言支持</td><td>VIM版本</td><td>更新速度</td><td>纯VimL实现</td><td>配置难度</td>
 </tr>
 <tr>
-<td>vdebug</td><td>多语言<br>不支持 Node、Go</td><td>8.1</td><td>慢</td><td>依赖Python3</td><td>中等</td>
+<td>vdebug</td><td>多语言<br>不支持 Node、Go</td><td>8.1</td><td>慢</td><td>否</td><td>中等</td>
 </tr>
 <tr>
-<td>vim-vebugger</td><td>多语言支持</td><td>VIM 8.1<br>不支持MacOS</td><td>快</td><td>依赖Python3</td><td>中等</td>
+<td>vim-vebugger</td><td>多语言支持</td><td>VIM 8.1<br>不支持MacOS</td><td>快</td><td>否</td><td>中等</td>
 </tr>
 <tr>
 <td>Node-Vim-Debugger</td><td>仅支持Node</td><td>不支持<br>Node Inspect</td><td>废弃</td><td>是</td><td>简单</td>
 </tr>
 <tr>
-<td>Vim-Godebug</td><td>仅支持Go</td><td>8.1</td><td>中等</td><td>依赖Python3</td><td>复杂</td>
+<td>Vim-Godebug</td><td>仅支持Go</td><td>8.1</td><td>中等</td><td>否</td><td>复杂</td>
 </tr>
 <tr>
-<td>Fisa-Vim-Config</td><td>支持Python<br>不支持Node</td><td>8.1</td><td>已经废弃</td><td>基于Python</td><td>简单</td>
+<td>Fisa-Vim-Config</td><td>支持Python<br>不支持Node</td><td>8.1</td><td>已经废弃</td><td>否</td><td>简单</td>
 </tr>
 </table>
 
@@ -95,7 +95,21 @@ Done!
 
 ### 快捷键配置
 
-我常用的快捷键：
+命令列表：
+
+- `InspectInit`、`Debugger`：启动 VIM 调试器
+- `WebInspectInit`：启动 Chrome DevTools 调试服务
+- `InspectCont`：继续执行
+- `InspectNext`：单步执行
+- `InspectStep`：单步进入
+- `InspectOut`：跳出函数
+- `InspectPause`：暂停执行
+- `InspectExit`、`ExitDebugger`：退出调试
+- `LocalvarWindow`：打开本地变量窗口
+- `StackWindow`：打开调用堆栈窗口
+- `BreakPointSetting`: 设置断点
+
+我常用的快捷键配置：
 
     " Vim-EasyDebugger 快捷键配置
     " 启动 NodeJS/Python/Go 调试
@@ -136,30 +150,18 @@ Done!
 - <kbd>F10</kbd> ：继续执行，continue
 - <kbd>F12</kbd> ：给当前行设置/取消断点，break
 
-命令列表：
-
-- `InspectInit`、`Debugger`：启动 VIM 调试器
-- `WebInspectInit`：启动 Chrome DevTools 调试服务
-- `InspectCont`：继续执行
-- `InspectNext`：单步执行
-- `InspectStep`：单步进入
-- `InspectOut`：跳出函数
-- `InspectPause`：暂停执行
-- `InspectExit`、`ExitDebugger`：退出调试
-- `LocalvarWindow`：打开本地变量窗口
-- `StackWindow`：打开调用堆栈窗口
-
 ### 使用
 
 #### - VIM 调试模式
 
-在 Normal 模式下按下 <kbd>Shift-R</kbd> 进入 VIM 调试模式，自动打开 Debugger 命令窗口。默认情况下，调试窗口中启动诸如 `python -m pdb {filename}` 的命令，其中`{filename}`为当前所在文件，如果调试运行文件的入口不是当前文件，需要在当前代码前部注释中添加`debugger_entry = {filepath}`，以 Python 为例：
+在 Normal 模式下按下 <kbd>Shift-R</kbd> （或者`:Debugger`）进入 VIM 调试模式。默认情况下启动诸如 `python -m pdb {filename}` 的命令，其中`{filename}`为当前所在文件，如果调试运行文件的入口不是当前文件，需要在当前代码前部注释中添加`debugger_entry = {filepath}`，以 Python 为例：
 
     # debugger_entry = ../index.py
 
 *退出调试模式*：
+
 - 当光标在 Terminal 时，可以使用 `Ctrl-D` 或者 `exit + 回车` 退出。
-- 在源码窗口`:exit`退出调试。或者 `Shift-E` 退出，退出vim命令首先会退出debug
+- 在源码窗口`:exit`或者`:ExitDebugger`退出调试。或者 `Shift-E` 退出，退出 vim 命令首先会退出 debug
 
 Terminal 窗口如何滚动：进入 Terminal-Normal 模式即可，光标在 Terminal 时通过 `Ctrl-w N`（Ctrl-w，Shift-N）进入，`i` 或者 `a` 再次进入 Terminal 交互模式。
 
@@ -191,13 +193,19 @@ Python 调试支持调用堆栈查看和本地变量监视。常用的快捷键�
 
 Python PDB 常用指令：`next` 下一步，`continue` 继续执行，`w` 查看当前堆栈，`exit`退出调试...
 
+堆栈窗口的打开和关闭：
+
+<img src="https://gw.alicdn.com/tfs/TB1TYkFjeL2gK0jSZPhXXahvXXa-714-491.gif" width=550>
+
+设置断点：
+
+<img src="https://gw.alicdn.com/tfs/TB1WFALjoT1gK0jSZFrXXcNCXXa-682-560.gif" width=550>
+
 #### - JavaScript
 
 ![](https://gw.alicdn.com/tfs/TB1BlHNf.T1gK0jSZFrXXcNCXXa-1994-1156.png)
 
 JavaScript 暂未实现本地变量监视。启动调试后，程序自动执行 `node inspect {filename}` 并停留在当前代码第一行（Go 调试器执行`dlv debug {filename}`），代码窗口对应行高亮。敲击两次 <kbd>Ctrl-C</kbd> 终止调试。如果要查看当前变量，NodeJS 需要进入“[Read-Eval-Print-Loop](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html#debugger_information)”（repl）模式，在左侧终端内输入 `repl`，输入变量名字即可查看。需要退出 Repl 模式才能继续逐行跟踪，输入 <kbd>Ctrl-C</kbd> 退出 Repl 模式。Go 则直接输命令即可，比如`vars`输出当前包内的变量，`locals - {变量名}`查看变量的值。
-
-<img src="https://gw.alicdn.com/tfs/TB19_bymHrpK1RjSZTEXXcWAVXa-554-364.png" width=300>
 
 > 由于 Node Inspector 会将 JS 源码包一层外壳，因此调试器中所示行数通常比源文件多出一到两行，但行号跟源码是一一对应的，基本不影响调试
 
@@ -209,26 +217,20 @@ Go 语言暂未实现本地变量监视。启动调试后自动执行`dlv debug 
 
 NodeJS 提供了基于 Chrome DevTools 的调试，我也封装了进来：
 
-![](https://gw.alicdn.com/tfs/TB1ci.QegHqK1RjSZJnXXbNLpXa-1414-797.png)
-
 在 normal 模式下按下 <kbd>Shift-W</kbd> 开启调试，这时启动了 Debug 服务，打开 Chrome DevTool 即可开始调试。关闭调试：<kbd>Ctrl-C</kbd> ，打开 Chrome DevTool 的方法：
 
-- 方法A：在 Chrome 地址栏输入`about:inspect`，点击`Open dedicated DevTools for Node` 
+- 方法A：在 Chrome 地址栏输入`about:inspect`，点击`Open dedicated DevTools for Node`
 - 方法B：在 Chrome 地址栏输入`chrome://flags/#enable-devtools-experiments`，（下图）将`devtools-experiments`开启，然后每次 <kbd>Command-Alt-I</kbd> 打开开发者工具，点击 <img src="https://gw.alicdn.com/tfs/TB1k0UZehTpK1RjSZFMXXbG_VXa-24-25.png" width=24 style="vertical-align:middle"> （VIM 中开启调试时才出现）
 
 ![](https://gw.alicdn.com/tfs/TB1uX3YekzoK1RjSZFlXXai4VXa-744-95.png)
 
 ### 后记
 
-VIM 8.1 支持 Terminal 是这个大版本最主要的特性，我个人非常喜欢，他让我很大程度抛弃了对 Python 和其他辅助工具的依赖，用纯净的 VimL 就能完成 Debugger 插件的开发，相比过去开发体验还是很赞的。目前只支持 NodeJS 和 Go，后续陆续添加更多语言支持。
-
-但是 Terminal 仍然不尽完善，比如 Terminal 的输出是碎片式的，另外性能上也有问题，比如 quickfix 和 localist 窗口性能极差，最后我换成了普通的 buffer 来管理辅助窗口，另外我也没有实现 Go 和 Python 的多线程，只满足单线程的调试。
+Terminal 仍存在瑕疵，比如 Terminal 的输出是碎片式的，另外性能上也有问题，再比如 quickfix 和 localist 窗口性能极差，最后我换成了普通的 buffer 来管理辅助窗口，另外我也没有实现 Go 和 Python 的多线程，只满足单线程的调试。
 
 ### For Help！？需要帮助
 
 → [在这里提 ISSUE](https://github.com/jayli/vim-easydebugger/issues)
-
-> 更多好玩的 VIM 碎碎，参照[我的 VIM 配置](https://github.com/jayli/vim)
 
 ### ChangeLog
 
@@ -237,4 +239,4 @@ VIM 8.1 支持 Terminal 是这个大版本最主要的特性，我个人非常�
     - 支持语言种类：NodeJS
 - v1.1：支持 Go、NodeJS 调试
 - v1.2：支持 Quickfix 窗口显示回调堆栈
-- v1.3: 放弃 Quickfix 和 Localist，支持 python 以及本地变量查看，已经大量 bugfix
+- v1.3: 放弃 Quickfix 和 Localist，支持 python 以及本地变量查看，代码重构 & 大量 bugfix

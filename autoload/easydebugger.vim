@@ -78,6 +78,7 @@ function! s:Build_Command()
     command! -nargs=0 -complete=command ExitDebugger   call easydebugger#Inspect_Exit()
     command! -nargs=0 -complete=command StackWindow    call runtime#Create_StackWindow()
     command! -nargs=0 -complete=command LocalvarWindow call runtime#Create_VarWindow()
+    command! -nargs=0 -complete=command BreakPointSetting call easydebugger#Inspect_Set_BreakPoint()
 endfunction " }}}
 
 function! easydebugger#Exit_SourceCode() " {{{

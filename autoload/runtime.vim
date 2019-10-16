@@ -355,6 +355,10 @@ function! runtime#Inspect_Set_BreakPoint()
     if !s:Term_Is_Running()
         return s:Log_Msg("Please startup debugger first.")
     endif
+    let current_winid = bufwinid(bufnr(""))
+    if g:debugger.original_winid != current_winid
+        return s:Log_Msg("Please remove cursor to source code window.")
+    endif
     if g:debugger.hangup == 1
         return util#Warning_Msg("Negative! Terminal is hanging up!")
     endif
@@ -902,7 +906,7 @@ endfunction " }}}
 
 function! runtime#Render_Localvars_Window() " {{{
     if !runtime#Localvar_Window_Is_On()
-        return s:Log_Msg("Debugger is not running.")
+        return 
     endif
     let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
     call s:Render_Buf(bufnr, g:debugger.localvars_content)
@@ -928,7 +932,7 @@ endfunction " }}}
 
 function! runtime#Render_Stack_window() " {{{
     if !runtime#Stack_Window_Is_On()
-        return s:Log_Msg("Debugger is not running.")
+        return
     endif
     let bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
     call s:Render_Buf(bufnr, g:debugger.callstack_content)
