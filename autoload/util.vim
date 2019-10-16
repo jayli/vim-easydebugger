@@ -1,8 +1,8 @@
 " File:         util.vim
 " Author:       @jayli
-" Description:  常用函数
+" Description:  util tools
 
-" debug log {{{
+" Debug logging {{{
 function! util#log(msg)
     if !exists("g:easydebugger_logging") || g:easydebugger_logging != 1
         return a:msg
@@ -10,12 +10,12 @@ function! util#log(msg)
     return util#Echo_Msg(a:msg, "Question")
 endfunction " }}}
 
-" 输出 LogMsg {{{
+" print log msg {{{
 function! util#Log_Msg(msg)
     return util#Echo_Msg(a:msg, "MoreMsg")
 endfunction "}}}
 
-" 输出警告 LogMsg {{{
+" print warning msg {{{
 function! util#Warning_Msg(msg)
     return util#Echo_Msg(a:msg, "WarningMsg")
 endfunction "}}}
@@ -30,7 +30,7 @@ endfunction " }}}
 
 " deletebufline {{{
 function! util#deletebufline(bn, fl, ll)
-    " version <= 801 deletebufline 不存在
+    " version <= 801 deletebufline dos not exists
     if exists("deletebufline")
         call deletebufline(a:bn, a:fl, a:ll)
     else
@@ -41,17 +41,17 @@ function! util#deletebufline(bn, fl, ll)
     endif
 endfunction " }}}
 
-" 获得当前 CursorLine 样式 {{{
+" Get CursorLine back ground color {{{
 function! util#Get_CursorLine_bgColor()
     return util#Get_BgColor('CursorLine')
 endfunction "}}}
 
-" 获得某个颜色主题的背景色 {{{
+" Get back ground color form a GroupName {{{
 function! util#Get_BgColor(name)
     return util#Get_HiColor(a:name, "bg")
 endfunction "}}}
 
-" 获得主题颜色 {{{
+" Get color from a scheme group {{{
 function! util#Get_HiColor(hiName, sufix)
     let sufix = empty(a:sufix) ? "bg" : a:sufix
     let hlString = util#Highlight_Args(a:hiName)
@@ -70,7 +70,7 @@ function! util#Get_HiColor(hiName, sufix)
     return 'none'
 endfunction " }}}
 
-" 设置主题色 {{{
+" Set color {{{
 function! util#hi(group, fg, bg, attr)
     let prefix = has("gui_running") ? "gui" : "cterm"
     if !empty(a:fg) && a:fg != -1
@@ -84,12 +84,12 @@ function! util#hi(group, fg, bg, attr)
     endif
 endfunction " }}}
 
-" 执行高亮 {{{
+" Hilight {{{
 function! util#Highlight_Args(name)
     return 'hi ' . substitute(split(execute('hi ' . a:name), '\n')[0], '\<xxx\>', '', '')
 endfunction "}}}
 
-" 字符串的 ASCII 码输出，调试用 {{{
+" Get ASCII code {{{
 function! util#ascii(msg)
     let taa = []
     let cursor = 0
@@ -100,7 +100,7 @@ function! util#ascii(msg)
     return taa
 endfunction " }}}
 
-" 相当于 trim，去掉首尾的空字符 {{{
+" A more robust trim function {{{
 function! util#trim(str)
     if !empty(a:str)
         let a1 = substitute(a:str, "^\\s\\+\\(.\\{\-}\\)$","\\1","g")
@@ -110,7 +110,7 @@ function! util#trim(str)
     return ""
 endfunction "}}}
 
-" 从path中得到文件名 {{{
+" Get file name from a path {{{
 function! util#Get_FileName(path)
     let path  = simplify(a:path)
     if len(split(path,"/")) == 1
@@ -120,7 +120,7 @@ function! util#Get_FileName(path)
     return fname
 endfunction "}}}
 
-" 从中得到目录名 {{{
+" Get directory name from a path {{{
 function! util#Get_DirName(path)
     let path  = simplify(a:path)
     let fname = matchstr(path,"^.\\+\\/\\([^\\/]\\{-}$\\)\\@=")

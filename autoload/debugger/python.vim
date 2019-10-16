@@ -187,7 +187,7 @@ function! s:Set_Localvarlist(localvars)
         call add(vars_content, bufline_str)
     endfor
     let g:debugger.localvars_content = vars_content
-    call runtime#Render_Localvars_window()
+    call runtime#Render_Localvars_Window()
 endfunction
 
 function! s:Get_Stack(full_log)

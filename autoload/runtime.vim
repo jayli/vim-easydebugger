@@ -1,8 +1,6 @@
 " File:         runtime.vim
 " Author:       @jayli
-" Description:  Debugger 运行时的标准实现，无特殊情况应当优先使用这些默认实现，
-"               如果不能满足当前调试器（比如 go 语言的 delve 不支持 pause），
-"               需要在 debugger/[language].vim 中重新实现
+" Description:  Debugger runtime
 "
 "  ╔═══════════════════════════════╤═══════════════════════════════╗
 "  ║                               │                               ║
@@ -20,44 +18,40 @@
 "  ║                               │                               ║
 "  ╚═══════════════════════════════╧═══════════════════════════════╝
 "
-" 原理：Term 内运行 Inspect 程序，Term 创建时绑定输出回调，监听 Term
-" 内的输出字符来执行单步执行、继续执行、暂停、输出回调堆栈等等操作，VIM 作为
-" UI 层的交互，由于 Term 回调机制可以更好的完成，难度不大，关键是做好各个语言
-" 的 Debugger 输出的格式过滤，目前已经将 runtime.vim 基本抽象出来了，debugger
-" 目录下的 [编程语言].vim 的实现基于这个 runtime ，目前有这些已经定义好的接口：
+" Language APIs:
 "
-"   - ctrl_cmd_continue : {string} : Debugger 继续执行的命令
-"   - ctrl_cmd_next : {string} : Debugger 单步执行的命令
-"   - ctrl_cmd_stepin : {string} : Debugger 进入函数的命令
-"   - ctrl_cmd_stepout : {string} : Debugger 退出函数的命令
-"   - ctrl_cmd_pause : {string} : Debugger 程序暂停的命令
-"   - InspectInit : {function} : Debugger 启动函数
-"   - WebInspectInit : {function} : Debugger Web 服务启动函数
-"   - InspectCont : {function} : 继续执行的函数
-"   - InspectNext : {function} : 单步执行的函数
-"   - InspectStep : {function} : 单步进入的函数
-"   - InspectOut : {function} : 退出函数
-"   - InspectPause : {function} : 暂停执行的函数
-"   - InspectSetBreakPoint : {function} : 设置断点主函数
-"   - DebuggerTester : {function} : 判断当前语言的 Debugger 是否安装
-"   - ClearBreakPoint : {function} : 返回清除断点的命令字符串
-"   - SetBreakPoint : {function} : 返回添加断点的命令字符串
-"   - TermSetupScript : {function} : Terminal 初始化完成后执行的脚本
-"   - AfterStopScript : {function} : 程序进行到新行后追加的执行的脚本
-"   - GetErrorMsg : {function} : 判断Term是否给出了出错的提示
-"   - TermCallbackHandler : {function} : Terminal 有输出回调时，会追加执行的脚本
-"   - DebuggerNotInstalled : {string} : Debugger 未安装的提示文案
-"   - WebDebuggerCommandPrefix : {string} : Debugger Web 服务启动的命令前缀
-"   - ShowLocalVarsWindow : {Number} : 是否显示本地变量窗口
-"   - TerminalCursorSticky: {Number} : 单个命令结束后是否总是将光标定位在Term
-"   - DebugPrompt: {string} : 提示符
-"   - LocalDebuggerCommandPrefix : {string} : Debugger 启动的命令前缀
-"   - LocalDebuggerCommandSufix : {string} : Debugger 命令启动的后缀
-"   - ExecutionTerminatedMsg : {regex} : 判断 Debugger 运行结束的结束语正则
-"   - BreakFileNameRegex : {regex} : 获得程序停驻所在文件的正则
-"   - BreakLineNrRegex : {regex} : 获得程序停驻行号的正则
+"   - ctrl_cmd_continue : {string} : continue cmd
+"   - ctrl_cmd_next : {string} : next cmd
+"   - ctrl_cmd_stepin : {string} : stepin cmd
+"   - ctrl_cmd_stepout : {string} : exit cmd
+"   - ctrl_cmd_pause : {string} : pause cmd
+"   - InspectInit : {function} : Debugger init
+"   - WebInspectInit : {function} : Debugger Web Server init
+"   - InspectCont : {function} : function to act continue
+"   - InspectNext : {function} : function to act next
+"   - InspectStep : {function} : function to act stepin
+"   - InspectOut : {function} : function to act out
+"   - InspectPause : {function} : function to act pause
+"   - InspectSetBreakPoint : {function} : set break point
+"   - DebuggerTester : {function} : checking if debug tool was installed or not
+"   - ClearBreakPoint : {function} : clear break point
+"   - SetBreakPoint : {function} : return add break point cmd string
+"   - TermSetupScript : {function} : Do something after terminal is created
+"   - AfterStopScript : {function} : Do something after stopping at a new line
+"   - GetErrorMsg : {function} : checking if an exception was raised or not
+"   - TermCallbackHandler : {function} : Terminal output callback
+"   - DebuggerNotInstalled : {string} : a message for Debugger is nonavailable
+"   - WebDebuggerCommandPrefix : {string} : Debugger Web server cmd prefix
+"   - ShowLocalVarsWindow : {Number} : show local variables window or not
+"   - TerminalCursorSticky: {Number} : should cursor always focus at terminal when debugging
+"   - DebugPrompt: {string} : debug prompt message
+"   - LocalDebuggerCommandPrefix : {string} : Debugger command prefix
+"   - LocalDebuggerCommandSufix : {string} : Debugger command sufix
+"   - ExecutionTerminatedMsg : {regex} : Regexp for debugger run into some error
+"   - BreakFileNameRegex : {regex} : regexp for getting stop file
+"   - BreakLineNrRegex : {regex} : regexp for getting line number of stop file
 
-" 创建全局 g:debugger 对象 {{{
+" create g:debugger global object {{{
 function! s:Create_Debugger()
     let g:debugger = {}
     if !exists('g:debugger_window_id')
@@ -65,11 +59,10 @@ function! s:Create_Debugger()
     else
         let g:debugger_window_id += 1
     endif
-    " 调试窗口名字随机一下（其实固定名字也可以）
+    " debug window name is different every time (same is ok)
     let g:debugger.debugger_window_name = "dw" . g:debugger_window_id
     let g:debugger.original_bnr         = bufnr('')
-    " winnr 并不和 最初的 Buf 强绑定，原始 winnr 不能作为 window 的标识
-    " 要用 bufinfo 里的 windows 数组来代替唯一性
+    " winnr is non-uniqueness. I can not identfy window by winnr, use bufinfo instead
     let g:debugger.original_winnr        = winnr()
     let g:debugger.original_winid        = bufwinid(bufnr(""))
     let g:debugger.original_buf          = getbufinfo(bufnr(''))
@@ -82,11 +75,12 @@ function! s:Create_Debugger()
     let g:debugger.buf_winnr             = bufwinnr('%')
     let g:debugger.current_winnr         = -1
     let g:debugger.bufs                  = []
-    let g:debugger.cursor_original_winid = 0    " 执行命令前光标所在的窗口
-    let g:debugger.stop_fname            = ''   " 当前停驻文件
-    let g:debugger.stop_line             = 0    " 当前停驻行
+    let g:debugger.cursor_original_winid = 0    " current before terminal is created
+    let g:debugger.stop_fname            = ''   " current stop file
+    let g:debugger.stop_line             = 0    " current stop line
     let g:debugger.log                   = []
-    let g:debugger.hangup                = 0 " 判断当前是否挂起,挂起状态不应该执行任何callback
+    let g:debugger.hangup                = 0    " check hangingup or not, no callback 
+                                                " shoule be exeuted while hangingup
     let g:debugger.close_msg             = "Debug Finished. Use <S-E> or 'exit' ".
                                             \ "in terminal to quit debugging"
     let g:debugger.callstack_content     = []
@@ -103,44 +97,44 @@ function! s:Create_Debugger()
     let g:debugger.localvars_bufnr       = 0
 
     " break_points: ['a.js|3','t/b.js|34']
-    " break_points 里的索引作为 sign id
+    " indexs in break_points list are sign id
     let g:debugger.break_points= []
-    " 样式配置
+    " source code window style configuration
     let g:debugger.original_cursor_color    = util#Get_CursorLine_bgColor()
     let g:debugger.prompt_stop_arrow        = ">>"
     let g:debugger.prompt_break_point       = "**"
     let g:debugger.break_point_style_fg     = has("gui_running") ? "#df005f" : 197
     let g:debugger.stop_point_line_style_bg = has("gui_running") ? "#0000af" : 19
     let g:debugger.stop_point_text_style_fg = has("gui_running") ? "green" : "green"
-    " Term 样式设置
+    " Terminal style configuration 
     let g:debugger.term_status_line         = util#Get_BgColor('StatusLineTerm')
     let g:debugger.term_status_line_nc      = util#Get_BgColor('StatusLineTermNC')
     let g:debugger.term_status_line_nc_fg   = util#Get_HiColor('StatusLineTermNC', 'fg')
-    let g:debugger.hangup_term_statusline_bg_normal = "34" " 正常样式
-    let g:debugger.hangup_term_statusline_bg_error = "9"   " 出错样式
+    let g:debugger.hangup_term_statusline_bg_normal = "34" " normal style
+    let g:debugger.hangup_term_statusline_bg_error = "9"   " error style
     " hangup_term_style 是体验上能感知到的挂起状态，hangup 是程序真实的挂起状
     " 态，通常挂起缝隙很短，但从挂起到停驻到下一行仍然会重新计算callstack和
     " localvar，会造成闪烁，因此设置了一个hangup_term_style 的标记位
     let g:debugger.hangup_term_style         = 0
     " 这句话没用其实
-    call add(g:debugger.bufs, s:Get_Fullname(g:debugger.original_bufname))
+    call add(g:debugger.bufs, s:Get_FullName(g:debugger.original_bufname))
 
     call util#hi('BreakPointStyle', g:debugger.break_point_style_fg, util#Get_BgColor('SignColumn'), "")
     call util#hi('StopPointLineStyle', -1, g:debugger.stop_point_line_style_bg, "")
     call util#hi('StopPointTextStyle', g:debugger.stop_point_text_style_fg, util#Get_BgColor('SignColumn'), "bold")
-    " 定义占位符，防止 sigin 切换时的抖动, id 为 9999
+    " Define laceholder to avert screen flicker and flash during switching sign. id 9999
     call util#hi('PlaceHolder', util#Get_BgColor('SignColumn'), util#Get_BgColor('SignColumn'), "")
 
     exec 'sign define place_holder text='.g:debugger.prompt_stop_arrow.' texthl=PlaceHolder'
-    " 语句执行位置标记 id=100
+    " stop sign style, id=100
     exec 'sign define stop_point text='.g:debugger.prompt_stop_arrow.
                 \ ' texthl=StopPointTextStyle linehl=StopPointLineStyle'
-    " 断点标记 id 以 g:debugger.break_points 里的索引 +1 来表示
+    " break point sign id (same as index+1 or g:debugger.break_points)
     exec 'sign define break_point text='.g:debugger.prompt_break_point.' texthl=BreakPointStyle'
     return g:debugger
 endfunction " }}}
 
-" 启动 Chrome DevTools 模式的调试服务（只实现了 NodeJS）{{{
+" Nodejs Chrome devtools startup {{{
 function! runtime#WebInspect_Init()
     if s:Term_Is_Running()
         return s:Log_Msg("Please terminate the running debugger first.")
@@ -171,10 +165,10 @@ function! runtime#WebInspect_Init()
         \ 'vertical':'1',
         \ })
 
-    call s:Echo_debugging_info(l:full_command)
+    call s:Echo_Debugging_Info(l:full_command)
 endfunction " }}}
 
-" 如果存在 debugger_entry = ... 优先启动文件入口 {{{
+" get debugger_entry=... for startup entry file {{{
 function! s:Get_DebuggerEntry()
     let filename = ''
     let code_lines = getbufline(bufnr(''),1,'$')
@@ -196,7 +190,7 @@ function! s:Get_DebuggerEntry()
     return ""
 endfunction " }}}
 
-" 初始化 VIM 调试窗 {{{
+" Inspect init {{{
 function! runtime#Inspect_Init()
     if s:Term_Is_Running()
         return s:Log_Msg("Please terminate the running debugger first.")
@@ -225,18 +219,18 @@ function! runtime#Inspect_Init()
     call s:Create_Debugger()
     call runtime#Reset_Editor('silently')
 
-    " ---开始创建 Terminal---
+    " ---Startup Terminal---
     call s:Set_Debug_CursorLine()
     call execute('set nomodifiable','silent!')
     call execute('set nowrap','silent!')
-    " 创建call stack window {{{
+    " create call stack window {{{
     call s:Create_stackwindow()
     " }}}
-    " 创建localvar window {{{
+    " create localvar window {{{
     sil! exec "vertical botright new"
     call s:Set_Bottom_Window_Statusline("localvars")
-    " 设置localvar window 属性
-    exec s:Get_cfg_list_window_status_cmd()
+    " config localvar window
+    exec s:Get_Cfg_List_Window_Wtatus_Cmd()
     call execute('setlocal nonu')
     let localvars_winnr = winnr()
     let g:debugger.localvars_winnr = localvars_winnr
@@ -244,7 +238,7 @@ function! runtime#Inspect_Init()
     let g:debugger.localvars_winid = bufwinid(bufnr(""))
     if has_key(g:language_setup,"ShowLocalVarsWindow") &&
                 \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
-        " 如果调试器支持输出本地变量，则创建本地变量窗口,默认高度10
+        " default hight of localvar window 10
         exec "abo " . (winheight(localvars_winnr) - 11) . "new"
     endif
     " }}}
@@ -259,17 +253,16 @@ function! runtime#Inspect_Init()
         \ 'exit_cb':'runtime#Reset_Editor',
         \ })
     let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
-    " 监听 Terminal 模式里的回车键，根据敲入的字符串做一些自定义动作
+    " <CR>(Enter) Key linster in terminal. Do sth else when necessary.
     tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i
     " 监听上下键：
-    " 上下键可以直接显示 history，这时应当按照输入过程处理，不应该走入回调
-    " <C-\><C-n> 会造成 pdb crash，换成 <C-W><S-N>
+    " <Up> and <Down> is for showing history cmd. Should exlude them
+    " <C-\><C-n> will cause pdb crash(I don't know why)，replace them to <C-W><S-N>
     tnoremap <silent> <Up> <C-W>:call runtime#Terminal_Do_Nothing()<CR><Up>
     tnoremap <silent> <Down> <C-W>:call runtime#Terminal_Do_Nothing()<CR><Down>
     call term_wait(get(g:debugger,'debugger_window_name'))
     call s:Debugger_Stop_Action(g:debugger.log)
 
-    " 启动调试器后执行需要运行的脚本
     if has_key(g:language_setup, "TermSetupScript")
         call get(g:language_setup,"TermSetupScript")()
     endif
@@ -283,7 +276,7 @@ function! runtime#Terminal_Do_Nothing()
             \ {'repeat' : 1})
 endfunction " }}}
 
-" 设置本地变量和调用堆栈窗口的statusline样式{{{
+" set localvar window and callstack window statusline style {{{
 function! s:Set_Bottom_Window_Statusline(name)
     if a:name == "stack"
         exec 'setl statusline=%1*\ Normal\ %*%5*\ Call\ Stack\ %*\ %r%f[%M]%=Depth\ :\ %L\ '
@@ -357,7 +350,7 @@ function! runtime#Inspect_Pause()
     endif
 endfunction " }}}
 
-" 设置/取消断点，在当前行按 F12 {{{
+" toggle break points，press F12 {{{
 function! runtime#Inspect_Set_BreakPoint()
     if !s:Term_Is_Running()
         return s:Log_Msg("Please startup debugger first.")
@@ -365,7 +358,7 @@ function! runtime#Inspect_Set_BreakPoint()
     if g:debugger.hangup == 1
         return util#Warning_Msg("Negative! Terminal is hanging up!")
     endif
-    " 如果是当前文件所在的 Buf 或者是临时加载的 Buf
+    " If current file is original file or a new buf
     if exists("g:debugger") && (bufnr('') == g:debugger.original_bnr ||
                 \ index(g:debugger.bufs,bufname('%')) >= 0 ||
                 \ bufwinnr(bufnr('')) == g:debugger.original_winnr)
@@ -374,18 +367,18 @@ function! runtime#Inspect_Set_BreakPoint()
         let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
         let g:debugger.term_callback_hijacking = function("util#Do_Nothing")
         if breakpoint_contained >= 0
-            " 已经存在 BreakPoint，则清除掉 BreakPoint
+            " If exists break point ,then clean it
             call term_sendkeys(get(g:debugger,'debugger_window_name'),runtime#Clear_BreakPoint(fname,line))
             let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
-            exec ":sign unplace ".sid." file=".s:Get_Fullname(fname)
+            exec ":sign unplace ".sid." file=".s:Get_FullName(fname)
             let g:debugger.break_points[str2nr(sid) - 1] = "None"
             call s:Log_Msg("Remove break point successfully.")
         else
-            " 如果不存在 BreakPoint，则新增 BreakPoint
+            " If break point is not exists, then add a new one
             call term_sendkeys(get(g:debugger,'debugger_window_name'),runtime#Set_BreakPoint(fname,line))
             call add(g:debugger.break_points, fname."|".line)
             let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
-            exec ":sign place ".sid." line=".line." name=break_point file=".s:Get_Fullname(fname)
+            exec ":sign place ".sid." line=".line." name=break_point file=".s:Get_FullName(fname)
             call s:Log_Msg("Add break point successfully.")
         endif
         call timer_start(200,
@@ -396,7 +389,7 @@ function! runtime#Inspect_Set_BreakPoint()
     endif
 endfunction " }}}
 
-" 清除断点 {{{
+" clear break point {{{
 function! runtime#Clear_BreakPoint(fname,line)
     if !exists('g:language_setup')
         call easydebugger#Create_Lang_Setup()
@@ -404,7 +397,7 @@ function! runtime#Clear_BreakPoint(fname,line)
     return get(g:language_setup, "ClearBreakPoint")(a:fname,a:line)
 endfunction " }}}
 
-" 设置断点 {{{
+" set breakpoint {{{
 function! runtime#Set_BreakPoint(fname,line)
     if !exists('g:language_setup')
         call easydebugger#Create_Lang_Setup()
@@ -412,22 +405,21 @@ function! runtime#Set_BreakPoint(fname,line)
     return get(g:language_setup, "SetBreakPoint")(a:fname,a:line)
 endfunction " }}}
 
-" 退出 Terminal 时重置编辑器 {{{
-" 可传入单独的参数：
-" - silently: 不关闭Term
+" Reset Editor when exit terminal
+" - silently for not closing term immediately
 function! runtime#Reset_Editor(...)
     if !exists("g:debugger")
         return
     endif
     call g:Goto_Sourcecode_Window()
-    " 短名长名都不等，当前所在buf不是原始buf的话，先切换到原始Buf
+    " If current buf is not original buf, switch to original buf first
     if g:debugger.original_bufname !=  bufname('%') &&
                 \ g:debugger.original_bufname != fnameescape(fnamemodify(bufname('%'),':p'))
         exec ":b ". g:debugger.original_bufname
     endif
     call s:Debugger_Del_TmpBuf()
     if g:debugger.original_cursor_color
-        " 恢复 CursorLine 的高亮样式
+        " recover cursorline style
         call execute("setlocal cursorline","silent!")
         call util#hi('CursorLine', -1 , g:debugger.original_cursor_color, "")
     endif
@@ -443,23 +435,23 @@ function! runtime#Reset_Editor(...)
     endif
     call execute('set modifiable','silent!')
     call execute('redraw','silent!')
-    " 最后清空本次 Terminal 里的 log
-    call s:Close_varwindow()
-    call s:Close_stackwindow()
+
+    call s:Close_Varwindow()
+    call s:Close_Stackwindow()
     let g:debugger.log = []
     if exists('g:debugger._prev_msg')
         unlet g:debugger._prev_msg
     endif
 endfunction " }}}
 
-" hijacking 函数劫持监听 {{{
+" hijacking term callback event {{{
 function! runtime#Term_Callback_Event_Handler(channel, msg)
     if exists("g:debugger.term_callback_hijacking")
         call g:debugger.term_callback_hijacking(a:channel, a:msg)
     endif
 endfunction " }}}
 
-" Terminal 消息回传 {{{
+" Terminal callback {{{
 function! runtime#Term_Callback(channel, msg)
     call s:log('----------out_cb----------{{')
     call s:log('msg 原始信息字符串 ' . a:msg)
@@ -486,7 +478,7 @@ function! runtime#Term_Callback(channel, msg)
     let m = substitute(a:msg,"\\W\\[\\d\\{-}[a-zA-Z]","","g")
     let msgslist = split(m,"\r\n")
     let g:debugger.log += msgslist
-    " 为了防止 log 过长性能变慢，这里做一个上限
+    " due to concerns about performance, limit the length of debug log under 50
     let log_max_length = 50
     if len(g:debugger.log) >= log_max_length
         unlet g:debugger.log[0:len(g:debugger.log) - (log_max_length)]
@@ -501,11 +493,11 @@ function! runtime#Term_Callback(channel, msg)
                 \ a:msg =~ get(g:language_setup, "ExecutionTerminatedMsg")
         call s:Show_Close_Msg()
         call runtime#Reset_Editor('silently')
-        " 调试终止之后应该将光标停止在 Term 内
+        " cursor should focus in terminal or not after stop
         if winnr() != get(g:debugger, 'original_winnr')
             if has_key(g:language_setup, "TerminalCursorSticky") &&
                         \ g:language_setup.TerminalCursorSticky == 1
-                call g:Goto_terminal_window()
+                call g:Goto_Terminal_Window()
             else
                 call s:Cursor_Restore()
             endif
@@ -515,7 +507,7 @@ function! runtime#Term_Callback(channel, msg)
 
     " 有输出时的回调句柄
     if exists("g:debugger.term_callback_hijacking")
-        " 不想被 Stop Action 干扰，先劫持掉，比如只计算call stack和localvars
+        " do not obstruct by stop action, only render call stack and localvars
         call g:debugger.term_callback_hijacking(a:channel, a:msg, full_log)
     else
         call s:Debugger_Stop_Action(g:debugger.log)
@@ -529,21 +521,19 @@ endfunction " }}}
 
 " 挂起样式设置 {{{
 function! s:HangUp_Sign()
-    " sign 9999 是为了防止界面抖动
     call s:log("清空停驻标记")
     if !has_key(g:debugger, "_place_holder_for_temp")
         let g:debugger._place_holder_for_temp = []
     endif
     if get(g:debugger,"stop_fname") != ""
-        exec ":sign place 9998 line=1 name=place_holder file=".s:Get_Fullname(g:debugger.stop_fname)
-        exec ":sign unplace 100 file=".s:Get_Fullname(g:debugger.stop_fname)
-        if index(g:debugger._place_holder_for_temp, s:Get_Fullname(g:debugger.stop_fname)) < 0
-            call add(g:debugger._place_holder_for_temp, s:Get_Fullname(g:debugger.stop_fname))
+        exec ":sign place 9998 line=1 name=place_holder file=".s:Get_FullName(g:debugger.stop_fname)
+        exec ":sign unplace 100 file=".s:Get_FullName(g:debugger.stop_fname)
+        if index(g:debugger._place_holder_for_temp, s:Get_FullName(g:debugger.stop_fname)) < 0
+            call add(g:debugger._place_holder_for_temp, s:Get_FullName(g:debugger.stop_fname))
         endif
     endif
     let g:debugger.hangup = 1
-    " 70 ms：如果敲击键盘 70 ms 内响应，则不认为挂起，如果70ms后仍无停驻信息，
-    " 则认为挂起
+    " we have 70ms to determine whether should terminal hangingup or not 
     if exists("g:debugger._setup_terminal_style_timer")
         call timer_stop(g:debugger._setup_terminal_style_timer)
     endif
@@ -552,7 +542,7 @@ function! s:HangUp_Sign()
             \ {'repeat' : 1})
 endfunction " }}}
 
-" set hangup term style : 1 → 正确挂起提示, 2 → 失败挂起提示 {{{
+" set hangup term style : 1 → normal styel, 2 → error style {{{
 function! s:Set_Hangup_Terminal_Style(flag)
     if a:flag == 1
         let bg_color = g:debugger.hangup_term_statusline_bg_normal
@@ -579,15 +569,15 @@ function! s:Clean_Hangup_Terminal_Style()
     let g:debugger.hangup_term_style = 0
 endfunction " }}}
 
-" 删除 stack 和 localvar {{{
+" del stack and localvar {{{
 function s:Empty_Stack_and_Localvars()
     call runtime#Empty_Stack_Window()
     call runtime#Empty_Localvars_Window()
 endfunction " }}}
 
-" 清空Stack window {{{
+" empty stack window {{{
 function! runtime#Empty_Stack_Window()
-    if runtime#Stack_window_is_on()
+    if runtime#Stack_Window_Is_On()
         let stack_bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
         call setbufvar(stack_bufnr, '&modifiable', 1)
         call util#deletebufline(stack_bufnr, 1, len(getbufline(stack_bufnr, 0,'$')))
@@ -595,7 +585,7 @@ function! runtime#Empty_Stack_Window()
     endif
 endfunction " }}}
 
-" 清空Localvar window {{{
+" empty Localvar window {{{
 function! runtime#Empty_Localvars_Window()
     if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
         if runtime#Localvar_window_is_on()
@@ -607,18 +597,16 @@ function! runtime#Empty_Localvars_Window()
     endif
 endfunction " }}}
 
-" 清空挂起状态 {{{
-function! s:Clear_HangUp_Sign()
+function! s:Clear_HangUp_Sign() " {{{
     if !has_key(g:debugger, "_place_holder_for_temp")
         return
     endif
     for fname in g:debugger._place_holder_for_temp
-        exec ":sign unplace 9998 file=".s:Get_Fullname(fname)
+        exec ":sign unplace 9998 file=".s:Get_FullName(fname)
     endfor
 endfunction " }}}
 
-" 判断首字母是否是可见的 ASCII 码 {{{
-function! s:Is_Ascii_Visiable(c)
+function! s:Is_Ascii_Visiable(c) " {{{
     if char2nr(a:c) >= 32 && char2nr(a:c) <= 126
         return 1
     else
@@ -626,62 +614,51 @@ function! s:Is_Ascii_Visiable(c)
     endif
 endfunction " }}}
 
-" 输出初始调试信息 {{{
-function! s:Echo_debugging_info(command)
+function! s:Echo_Debugging_Info(command) " {{{
     call s:Log_Msg(a:command)
 endfunction " }}}
 
-" 设置停驻的行高亮样式 {{{
-function! s:Set_Debug_CursorLine()
+function! s:Set_Debug_CursorLine() " {{{
     " Do Nothing
-    " 停驻行的跳转使用 cursor() 完成
-    " 停驻行的样式使用 setlocal nocursorline 清除掉，以免光标样式覆盖 sign linehl 样式
-    " 清除样式的时机在 Debugger_Stop_Action() 函数内
-    " 调试结束后恢复默认 cursorline 样式： setlocal cursorline
 endfunction " }}}
 
-" 获得 term 宽度 {{{
-function! s:Get_Term_Width()
+function! s:Get_Term_Width() " {{{
     let term_width = float2nr(floor(winwidth(winnr()) * 50 / 100))
     return term_width
 endfunction " }}}
 
-" 将标记清除 {{{
-function! s:Clear_All_Signs()
-    exec ":sign unplace 100 file=".s:Get_Fullname(g:debugger.original_bufname)
+function! s:Clear_All_Signs() " {{{
+    exec ":sign unplace 100 file=".s:Get_FullName(g:debugger.original_bufname)
     for bfname in g:debugger.bufs
-        exec ":sign unplace 100 file=".s:Get_Fullname(bfname)
+        exec ":sign unplace 100 file=".s:Get_FullName(bfname)
     endfor
     for item in g:debugger.break_points
-        " break_points 的存储格式为: ['a.js|3','t/b.js|34']
-        " break_points 里的索引作为 sign id
+        " break_points format: ['a.js|3','t/b.js|34']
+        " break_points index is sign id
         if item == "None"
             continue
         endif
         let fname = split(item,"|")[0]
         let line  = split(item,"|")[1]
         let sid   = string(index(g:debugger.break_points, item) + 1)
-        exec ":sign unplace ".sid." file=".s:Get_Fullname(fname)
+        exec ":sign unplace ".sid." file=".s:Get_FullName(fname)
     endfor
-    " 退出 Debug 时清除当前所有断点
+    " clean all breakpoints after quit debug
     let g:debugger.break_points = []
-    " 清除挂起占位标记
     call s:Clear_HangUp_Sign()
 endfunction " }}}
 
-" 显示 Term 窗口关闭消息 {{{
-function! s:Show_Close_Msg()
+function! s:Show_Close_Msg() " {{{
     call s:Log_Msg(bufname('%')." ". get(g:debugger,'close_msg'))
 endfunction " }}}
 
-" 设置停留的代码行 {{{
-function! s:Debugger_Stop_Action(log)
+function! s:Debugger_Stop_Action(log) " {{{
     if !s:Term_Is_Running()
         return
     endif
     let break_msg = s:Get_Term_Stop_Msg(a:log)
 
-    " 程序执行出错，给出出错提示，并给出挂起状态
+    " Runtime error, show msg and set hangup
     if has_key(g:language_setup, "GetErrorMsg") &&
                 \ get(g:language_setup, "GetErrorMsg")(a:log) != ""
         let g:debugger.hangup = 1
@@ -701,7 +678,7 @@ function! s:Debugger_Stop_Action(log)
     endif
 
     call s:log('Debugger_Stop_Action '. string(a:log))
-    " 清除hangup标记
+
     let g:debugger.hangup = 0
     call s:HangUp_Sign()
     if type(break_msg) == type({})
@@ -716,8 +693,8 @@ function! s:Debugger_Stop_Action(log)
     endif
 endfunction " }}}
 
-" 处理Termnal里的log,这里的 log 是 g:debugger.log {{{
-" 这里比较奇怪，Log 不是整片输出的，是碎片输出的
+" Handle logs in terminal (g:debugger.log) {{{
+" Logs is nonsequence. (I don't know why)
 function! s:Get_Term_Stop_Msg(log)
     if len(a:log) == 0
         return 0
@@ -727,14 +704,15 @@ function! s:Get_Term_Stop_Msg(log)
         call easydebugger#Create_Lang_Setup()
     endif
 
-    " 因为碎片输出，这里会被执行很多次，可能有潜在的性能问题
+    " here may be exeuted many many times
+    " and may have some performance problems
     let break_line = 0
     let fname = ''
     let fn_regex = get(g:language_setup, "BreakFileNameRegex")
     let nr_regex = get(g:language_setup, "BreakLineNrRegex")
 
     for line in a:log
-        " 防止 E363 错误
+        " to prevent E363
         if len(line) > 200
             let line = line[0:200 - 1]
         endif
@@ -755,14 +733,12 @@ function! s:Get_Term_Stop_Msg(log)
     endif
 endfunction " }}}
 
-" 相当于 trim，去掉首尾的空字符 {{{
-function! s:String_Trim(str)
+function! s:String_Trim(str) " {{{
     return util#trim(a:str)
 endfunction " }}}
 
-" 执行到什么文件的什么行 {{{
-function! s:Debugger_Stop(fname, line)
-    let fname = s:Get_Fullname(a:fname)
+function! s:Debugger_Stop(fname, line) " {{{
+    let fname = s:Get_FullName(a:fname)
     let g:debugger.hangup = 0
 
     if !exists("g:language_setup")
@@ -771,9 +747,7 @@ function! s:Debugger_Stop(fname, line)
 
     call g:Goto_Sourcecode_Window()
     let fname = s:Debugger_Get_FileBuf(fname)
-    " 如果读到一个不存在的文件，认为进入到 Native 部分的 Debugging，
-    " 比如进入到了 Node Native 部分 Debugging, node inspect 没有给
-    " 出完整路径，调试不得不中断，TODO，这里不应该中断
+    " Red Return or abort for some exception
     if (type(fname) == type(0) && fname == 0) || (type(fname) == type('string') && fname == '0')
         call term_sendkeys(get(g:debugger,'debugger_window_name'),"kill\<CR>")
         call runtime#Reset_Editor('silently')
@@ -784,18 +758,9 @@ function! s:Debugger_Stop(fname, line)
 
     let shorten_filename = len(fname) > 40 ? pathshorten(fname) : fname
     call s:Log_Msg('Stop at '. shorten_filename .', line '.a:line. '.')
-    " 如果定义了AfterStopScript，且停驻行变更，或者发生了停驻行为，都重新计算
-    " 堆栈和变量
-    " TODO：
-    " 1. 解决了挂起的问题，这里的设计有问题，如果是一个循环里的语句，continue后还停留在这行，
-    " 则不会重新算堆栈和localvar ,Done
-    " 2. cursor(a:line,1) 有时候不起作用，done
-    " 3. 挂起时，localvar和call stack 应该清空
-    " 4. F12 设置断点时，光标又跑到停驻行去了 ,done
+    " if stop line and file changed, re compute the call stack and localvars
     if has_key(g:language_setup, 'AfterStopScript')
         if fname == g:debugger.stop_fname && a:line == g:debugger.stop_line
-            " 如果是从挂起状态走过来，则刷新callstack和localvar
-            " 否则donothing，donothing是为了避免干扰termnial里敲击命令的输出
             if g:debugger.hangup_term_style == 1
                 call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
             else
@@ -810,35 +775,30 @@ function! s:Debugger_Stop(fname, line)
     call cursor(a:line,1)
     call execute('redraw','silent!')
 
-    " 执行完停驻行跳转的动作，根据配置决定是否跳回 Terminal，方便用户直接输入命令
     if has_key(g:language_setup, "TerminalCursorSticky") &&
                 \ g:language_setup.TerminalCursorSticky == 1
-        call g:Goto_terminal_window()
+        call g:Goto_Terminal_Window()
     else
         call s:Cursor_Restore()
     endif
 
     let g:debugger.stop_fname = fname
     let g:debugger.stop_line = a:line
-
-    " 只要重新停驻到新行，这一阶段的解析就完成了，log清空
     let g:debugger.log = []
 endfunction " }}}
 
-" 重新设置 Break Point 的 Sign 标记的位置 {{{
-function! s:Sign_Set_StopPoint(fname, line)
+function! s:Sign_Set_StopPoint(fname, line) " {{{
     call s:log('设置停驻标记')
     call s:Clean_Hangup_Terminal_Style()
     try
-        " 如果要停驻的文件名有变化...
+        " if file name changed
         if a:fname != g:debugger.stop_fname && g:debugger.stop_fname != ""
             exec ":sign unplace 100 file=".g:debugger.stop_fname
         endif
-        " sign 9999 是为了防止界面抖动
-        exec ":sign place 9999 line=1 name=place_holder file=".s:Get_Fullname(a:fname)
-        exec ":sign unplace 100 file=".s:Get_Fullname(a:fname)
-        exec ":sign place 100 line=".string(a:line)." name=stop_point file=".s:Get_Fullname(a:fname)
-        exec ":sign unplace 9999 file=".s:Get_Fullname(a:fname)
+        exec ":sign place 9999 line=1 name=place_holder file=".s:Get_FullName(a:fname)
+        exec ":sign unplace 100 file=".s:Get_FullName(a:fname)
+        exec ":sign place 100 line=".string(a:line)." name=stop_point file=".s:Get_FullName(a:fname)
+        exec ":sign unplace 9999 file=".s:Get_FullName(a:fname)
     catch
         call cursor(a:line,1)
     endtry
@@ -852,32 +812,27 @@ function! s:Goto_Winnr(winnr) abort
     call execute('redraw','silent!')
 endfunction " }}}
 
-" 跳转到原始源码所在的窗口 {{{
-function! g:Goto_Sourcecode_Window()
+function! g:Goto_Sourcecode_Window() " {{{
     call g:Goto_Window(g:debugger.original_winid)
 endfunction " }}}
 
-" 跳转到 Term 所在的窗口 {{{
-function! g:Goto_terminal_window()
+function! g:Goto_Terminal_Window() " {{{
     if s:Term_Is_Running()
         call g:Goto_Window(get(g:debugger,'term_winid'))
     endif
 endfunction " }}}
 
-" 本地变量和调用堆栈窗口属性 {{{
-function! s:Get_cfg_list_window_status_cmd()
-    " nowrite 是一个全局配置，所有窗口不可写，退出时需重置
+function! s:Get_Cfg_List_Window_Wtatus_Cmd() " {{{
+    " nowrite is a global config for all window, shoule reset it while quiting debug
     return "setl nomodifiable nolist nu noudf " .
                 \ "nowrite winfixheight nowrap filetype=help buftype=nofile"
 endfunction " }}}
 
-" stack 窗口中的回车事件监听 {{{
-function! s:Add_jump_mapping()
-    call execute("nnoremap <buffer> <CR> :call runtime#stack_jumpping()<CR>")
+function! s:Add_Jump_Mapping() " {{{
+    call execute("nnoremap <buffer> <CR> :call runtime#Stack_Jumpping()<CR>")
 endfunction " }}}
 
-" 调用堆栈窗口的文件行跳转 {{{
-function! runtime#stack_jumpping()
+function! runtime#Stack_Jumpping() " {{{
     let lnum = getbufinfo(bufnr(''))[0].lnum
     if exists("g:debugger.callback_stacks")
         let stacks = g:debugger.callback_stacks
@@ -894,7 +849,7 @@ function! runtime#stack_jumpping()
     endif
 endfunction " }}}
 
-function! s:Close_varwindow() " {{{
+function! s:Close_Varwindow() " {{{
     if runtime#Localvar_window_is_on()
         call g:Goto_Window(g:debugger.localvars_winnr)
         if !exists('g:language_setup')
@@ -908,12 +863,11 @@ function! s:Close_varwindow() " {{{
             call setbufvar(bufnr, '&modifiable', 0)
             call execute(':q!', 'silent!')
         endif
-        " 代码窗口回复可写状态
         call execute('setl write', 'silent!')
     endif
 endfunction " }}}
 
-function! s:Create_varwindow() " {{{
+function! s:Create_Varwindow() " {{{
     if !(has_key(g:language_setup,"ShowLocalVarsWindow") &&
                 \ get(g:language_setup, 'ShowLocalVarsWindow') == 1)
         return s:Log_Msg("This language dos not support localvars.")
@@ -926,28 +880,28 @@ function! s:Create_varwindow() " {{{
     endif
     let current_winid = bufwinid(bufnr(""))
     if g:debugger.term_winid != current_winid
-        call g:Goto_terminal_window()
+        call g:Goto_Terminal_Window()
     endif
 
     sil! exec "rightbelow 10new"
     call s:Set_Bottom_Window_Statusline("localvars")
-    exec s:Get_cfg_list_window_status_cmd()
+    exec s:Get_Cfg_List_Window_Wtatus_Cmd()
     call execute('setlocal nonu')
     let g:debugger.localvars_winnr = winnr()
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr(''))
     let g:debugger.localvars_winid = bufwinid(bufnr(""))
     let g:debugger.localvars_bufnr = bufnr("")
 
-    call runtime#Render_Localvars_window()
+    call runtime#Render_Localvars_Window()
     call term_wait(get(g:debugger,'debugger_window_name'))
     call g:Goto_Window(current_winid)
 endfunction " }}}
 
 function! runtime#Create_varwindow() " {{{
-    call s:Create_varwindow()
+    call s:Create_Varwindow()
 endfunction " }}}
 
-function! runtime#Render_Localvars_window() " {{{
+function! runtime#Render_Localvars_Window() " {{{
     if !runtime#Localvar_window_is_on()
         return s:Log_Msg("Debugger is not running.")
     endif
@@ -956,17 +910,16 @@ function! runtime#Render_Localvars_window() " {{{
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr)
 endfunction " }}}
 
-function! s:Close_stackwindow() " {{{
-    if runtime#Stack_window_is_on()
+function! s:Close_Stackwindow() " {{{
+    if runtime#Stack_Window_Is_On()
         " let g:debugger.callstack_content = getbufline(g:debugger.stacks_bufnr,1,"$")
         call execute("q! " . g:debugger.stacks_winnr)
-        " 代码窗口回复可写状态
         call execute('setl write', 'silent!')
         unlet g:debugger.stacks_winid
     endif
 endfunction " }}}
 
-function! runtime#Stack_window_is_on() " {{{
+function! runtime#Stack_Window_Is_On() " {{{
     return exists('g:debugger.stacks_winid') && len(getwininfo(g:debugger.stacks_winid)) > 0
 endfunction " }}}
 
@@ -975,7 +928,7 @@ function! runtime#Localvar_window_is_on() " {{{
 endfunction " }}}
 
 function! runtime#Render_Stack_window() " {{{
-    if !runtime#Stack_window_is_on()
+    if !runtime#Stack_Window_Is_On()
         return s:Log_Msg("Debugger is not running.")
     endif
     let bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
@@ -1002,7 +955,7 @@ function! s:Render_Buf(buf, content) " {{{
 endfunction " }}}
 
 function! s:Create_stackwindow() " {{{
-    if runtime#Stack_window_is_on()
+    if runtime#Stack_Window_Is_On()
         return s:Log_Msg("Call stack window is exists")
     endif
     let current_winid = bufwinid(bufnr(""))
@@ -1015,8 +968,8 @@ function! s:Create_stackwindow() " {{{
     let g:debugger.stacks_winid = bufwinid(bufnr(""))
     let g:debugger.stacks_winnr = winnr()
     let g:debugger.stacks_bufinfo = getbufinfo(bufnr(''))
-    exec s:Get_cfg_list_window_status_cmd()
-    call s:Add_jump_mapping()
+    exec s:Get_Cfg_List_Window_Wtatus_Cmd()
+    call s:Add_Jump_Mapping()
     call g:Goto_Window(current_winid)
     if s:Term_Is_Running()
         call runtime#Render_Stack_window()
@@ -1040,38 +993,33 @@ function! g:Goto_Window(winid) abort
     endfor
 endfunction " }}}
 
-" 如果跳转到一个新文件，新增一个 Buffer {{{
-" fname 是文件绝对地址
-function! s:Debugger_Add_FileBuf(fname)
+function! s:Debugger_Add_FileBuf(fname) " {{{
     exec ":badd ". a:fname
     exec ":b ". a:fname
     call add(g:debugger.bufs, a:fname)
 endfunction " }}}
 
-" 退出调试后需要删除这些新增的 Buffer {{{
+" del this added new buf when quit debug {{{
 function! s:Debugger_Del_TmpBuf()
     let tmp_bufs = deepcopy(g:debugger.bufs)
     for t_buf in tmp_bufs
-        " 如果 Buf 短名不是原始值，长名也不是原始值
         if t_buf != g:debugger.original_bufname &&
-                    \ s:Get_Fullname(g:debugger.original_bufname) != s:Get_Fullname(t_buf)
+                    \ s:Get_FullName(g:debugger.original_bufname) != s:Get_FullName(t_buf)
             call execute('bdelete! '.t_buf,'silent!')
         endif
     endfor
     let g:debugger.bufs = []
 endfunction " }}}
 
-" 获得当前Buffer里的文件名字 {{{
-function! s:Debugger_Get_FileBuf(fname)
-    " bufname用的相对路径为绝对路径:fixed
-    let fname = s:Get_Fullname(a:fname)
+function! s:Debugger_Get_FileBuf(fname) " {{{
+    let fname = s:Get_FullName(a:fname)
     if !filereadable(fname)
         return 0
     endif
     if index(g:debugger.bufs , fname) < 0
         call s:Debugger_Add_FileBuf(fname)
     endif
-    if fname != s:Get_Fullname(bufname("%"))
+    if fname != s:Get_FullName(bufname("%"))
         " call execute('redraw','silent!')
         try
             call execute('buffer '.a:fname)
@@ -1083,12 +1031,11 @@ function! s:Debugger_Get_FileBuf(fname)
     return fname
 endfunction " }}}
 
-" 获得完整路径 {{{
-function! s:Get_Fullname(fname)
+function! s:Get_FullName(fname) " {{{
     return fnameescape(fnamemodify(a:fname,':p'))
 endfunction " }}}
 
-" 关闭 Terminal , Hack for NodeJS {{{
+" Close Terminal , Hack for NodeJS {{{
 function! s:Close_Term()
     call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>\<C-C>\<C-C>")
     if exists('g:debugger') && g:debugger.original_winid != bufwinid(bufnr(""))
@@ -1144,10 +1091,10 @@ function! runtime#Term_Is_Running() " {{{
     return s:Term_Is_Running()
 endfunction " }}}
 
-" 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal {{{
+" Special cmd handler: for example, typein 'exit' to close terminal {{{
 function! runtime#Special_Cmd_Handler()
     let cmd = getline('.')[0 : col('.')-1]
-    " node 中是 kill 关闭，let NodeJS support 'exit' cmd, Heck for NodeJS
+    " 'kill' is avaiable for nodejs，let NodeJS support 'exit' cmd, Heck for NodeJS
     let cmd = s:String_Trim(substitute(cmd,"^.*debug>\\s","","g"))
     if cmd == 'exit'
         call s:Close_Term()
@@ -1159,12 +1106,10 @@ function! runtime#Special_Cmd_Handler()
     call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>")
 endfunction " }}}
 
-" 输出 LogMsg {{{
-function! s:Log_Msg(msg)
+function! s:Log_Msg(msg) " {{{
     return util#Log_Msg(a:msg)
 endfunction " }}}
 
-" 输出调试信息 {{{
-function! s:log(msg)
+function! s:log(msg) " {{{
     return util#log(a:msg)
 endfunction " }}}
