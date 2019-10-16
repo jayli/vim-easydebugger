@@ -19,25 +19,29 @@ VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.
 <td>名称</td><td>语言支持</td><td>VIM版本</td><td>更新速度</td><td>纯VimL实现</td><td>配置难度</td>
 </tr>
 <tr>
-<td>vdebug</td><td>多语言，但不支持Node和Go</td><td>8.1</td><td>慢</td><td>依赖Python3</td><td>中等</td>
+<td>vdebug</td><td>多语言<br>不支持 Node、Go</td><td>8.1</td><td>慢</td><td>依赖Python3</td><td>中等</td>
 </tr>
 <tr>
-<td>vim-vebugger</td><td>多语言支持</td><td>8.1, 但不支持MacOS</td><td>快</td><td>依赖Python3</td><td>中等</td>
+<td>vim-vebugger</td><td>多语言支持</td><td>VIM 8.1<br>不支持MacOS</td><td>快</td><td>依赖Python3</td><td>中等</td>
 </tr>
 <tr>
-<td>Node-Vim-Debugger</td><td>仅支持Node</td><td>不支持最新的Node Inspect</td><td>已经废弃</td><td>是</td><td>简单</td>
+<td>Node-Vim-Debugger</td><td>仅支持Node</td><td>不支持<br>Node Inspect</td><td>废弃</td><td>是</td><td>简单</td>
 </tr>
 <tr>
 <td>Vim-Godebug</td><td>仅支持Go</td><td>8.1</td><td>中等</td><td>依赖Python3</td><td>复杂</td>
 </tr>
 <tr>
-<td>Fisa-Vim-Config</td><td>支持Python，不支持Node</td><td>8.1</td><td>已经废弃</td><td>基于Python</td><td>简单</td>
+<td>Fisa-Vim-Config</td><td>支持Python<br>不支持Node</td><td>8.1</td><td>已经废弃</td><td>基于Python</td><td>简单</td>
 </tr>
 </table>
 
 我的需求：支持Go、Js、Python，引擎部分只基于 VimL，容易扩展新的语言，需要有命令输入窗。
 
-### Vim-EasyDebugger 安装
+**实现原理**
+
+![](https://gw.alicdn.com/tfs/TB1pCvLjhD1gK0jSZFKXXcJrVXa-1844-1014.png)
+
+### 安装
 
 ### 环境依赖
 

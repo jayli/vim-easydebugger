@@ -79,7 +79,7 @@ function! s:Create_Debugger()
     let g:debugger.stop_fname            = ''   " current stop file
     let g:debugger.stop_line             = 0    " current stop line
     let g:debugger.log                   = []
-    let g:debugger.hangup                = 0    " check hangingup or not, no callback 
+    let g:debugger.hangup                = 0    " check hangingup or not, no callback
                                                 " shoule be exeuted while hangingup
     let g:debugger.close_msg             = "Debug Finished. Use <S-E> or 'exit' ".
                                             \ "in terminal to quit debugging"
@@ -533,7 +533,7 @@ function! s:HangUp_Sign()
         endif
     endif
     let g:debugger.hangup = 1
-    " we have 70ms to determine whether should terminal hangingup or not 
+    " we have 70ms to determine whether should terminal hangingup or not
     if exists("g:debugger._setup_terminal_style_timer")
         call timer_stop(g:debugger._setup_terminal_style_timer)
     endif
