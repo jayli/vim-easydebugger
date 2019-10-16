@@ -1,4 +1,4 @@
-<img src="https://gw.alicdn.com/tfs/TB1ro1dghD1gK0jSZFyXXciOVXa-1401-1280.png" width=400 />
+<img src="https://gw.alicdn.com/tfs/TB1ro1dghD1gK0jSZFyXXciOVXa-1401-1280.png" width=340 />
 
 [中文](README.md) | [English](README-en.md)
 
