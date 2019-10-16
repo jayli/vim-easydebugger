@@ -6,7 +6,7 @@
 
 VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif)，以 Python 语言为例） @author：[Jayli](http://jayli.github.io/)
 
-![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif?t=4)
+![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif?t=5)
 
 ### VIM 调试器简介
 
@@ -187,8 +187,6 @@ Debug Window 为 Terminal，可输入命令。命令参考语言对应的调试�
 
 #### - Python
 
-![](https://gw.alicdn.com/tfs/TB1FyLLfVY7gK0jSZKzXXaikpXa-1990-1152.png)
-
 Python 调试支持调用堆栈查看和本地变量监视。常用的快捷键有`F9`单步执行，`F12`设置断点，`F10`继续执行，`Shift-E`退出调试等。
 
 Python PDB 常用指令：`next` 下一步，`continue` 继续执行，`w` 查看当前堆栈，`exit`退出调试...
@@ -202,8 +200,6 @@ Python PDB 常用指令：`next` 下一步，`continue` 继续执行，`w` 查�
 <img src="https://gw.alicdn.com/tfs/TB1WFALjoT1gK0jSZFrXXcNCXXa-682-560.gif" width=550>
 
 #### - JavaScript
-
-![](https://gw.alicdn.com/tfs/TB1BlHNf.T1gK0jSZFrXXcNCXXa-1994-1156.png)
 
 JavaScript 暂未实现本地变量监视。启动调试后，程序自动执行 `node inspect {filename}` 并停留在当前代码第一行（Go 调试器执行`dlv debug {filename}`），代码窗口对应行高亮。敲击两次 <kbd>Ctrl-C</kbd> 终止调试。如果要查看当前变量，NodeJS 需要进入“[Read-Eval-Print-Loop](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html#debugger_information)”（repl）模式，在左侧终端内输入 `repl`，输入变量名字即可查看。需要退出 Repl 模式才能继续逐行跟踪，输入 <kbd>Ctrl-C</kbd> 退出 Repl 模式。Go 则直接输命令即可，比如`vars`输出当前包内的变量，`locals - {变量名}`查看变量的值。
 

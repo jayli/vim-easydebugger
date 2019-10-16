@@ -20,10 +20,10 @@
 
 ## Installation
 
-#### Requirements: 
+#### Requirements:
 
-- VIM 8.1 with terminal support. 
-- Debugger such as [Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html), [Delve](https://github.com/derekparker/delve), and [PDB](https://docs.python.org/3/library/pdb.html) 
+- VIM 8.1 with terminal support.
+- Debugger such as [Node inspect](https://nodejs.org/dist/latest-v10.x/docs/api/debugger.html), [Delve](https://github.com/derekparker/delve), and [PDB](https://docs.python.org/3/library/pdb.html)
 
 #### Installation:
 
@@ -35,7 +35,7 @@ With [Pathogen.vim](https://github.com/tpope/vim-pathogen), Execute the followin
 With [Vundle.vim](https://github.com/VundleVim/Vundle.vim): add the following code into `.vimrc`. And run `:PluginInstall` in VIM
 
 	Plugin 'jayli/vim-easydebugger'
-	
+
 ## Configuration
 
 Commands：
@@ -99,8 +99,6 @@ Key-Maps:
 
 ### debug mode
 
-![](https://gw.alicdn.com/tfs/TB1FyLLfVY7gK0jSZKzXXaikpXa-1990-1152.png)
-
 Press <kbd>Shift-R</kbd> (or `:Debugger`) to startup debugger with `node inspect` (`dlv debug` for golang, `python3 -m pdb` for python3) running in terminal. If you want to start with another file. You can set `debugger_entry` in top of your source code like this:
 
 For Python:
@@ -139,7 +137,7 @@ Set break point:
 
 <img src="https://gw.alicdn.com/tfs/TB1WFALjoT1gK0jSZFrXXcNCXXa-682-560.gif" width=550>
 
-How to inspect local variables? 
+How to inspect local variables?
 
 - NodeJS: Type `repl` in terminal. Go go the REPL mode and then input variable name . Such as below.
 - Golang: Type `print {variable}` or `locals -v {variable}`.
