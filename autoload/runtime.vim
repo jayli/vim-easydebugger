@@ -106,7 +106,7 @@ function! s:Create_Debugger()
     let g:debugger.break_point_style_fg     = has("gui_running") ? "#df005f" : 197
     let g:debugger.stop_point_line_style_bg = has("gui_running") ? "#0000af" : 19
     let g:debugger.stop_point_text_style_fg = has("gui_running") ? "green" : "green"
-    " Terminal style configuration 
+    " Terminal style configuration
     let g:debugger.term_status_line         = util#Get_BgColor('StatusLineTerm')
     let g:debugger.term_status_line_nc      = util#Get_BgColor('StatusLineTermNC')
     let g:debugger.term_status_line_nc_fg   = util#Get_HiColor('StatusLineTermNC', 'fg')
@@ -437,7 +437,7 @@ function! runtime#Reset_Editor(...)
     call execute('redraw','silent!')
 
     call s:Close_Varwindow()
-    call s:Close_Stackwindow()
+    call s:Close_StackWindow()
     let g:debugger.log = []
     if exists('g:debugger._prev_msg')
         unlet g:debugger._prev_msg
@@ -588,7 +588,7 @@ endfunction " }}}
 " empty Localvar window {{{
 function! runtime#Empty_Localvars_Window()
     if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
-        if runtime#Localvar_window_is_on()
+        if runtime#Localvar_Window_Is_On()
             let localvar_bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
             call setbufvar(localvar_bufnr, '&modifiable', 1)
             call util#deletebufline(localvar_bufnr, 1, len(getbufline(localvar_bufnr, 0,'$')))
@@ -649,12 +649,12 @@ function! s:Clear_All_Signs() " {{{
 endfunction " }}}
 
 function! s:Show_Close_Msg() " {{{
-    call s:Log_Msg(bufname('%')." ". get(g:debugger,'close_msg'))
+    return s:Log_Msg(bufname('%')." ". get(g:debugger,'close_msg'))
 endfunction " }}}
 
 function! s:Debugger_Stop_Action(log) " {{{
     if !s:Term_Is_Running()
-        return
+        return s:Log_Msg("Terminal is running.")
     endif
     let break_msg = s:Get_Term_Stop_Msg(a:log)
 
@@ -751,8 +751,7 @@ function! s:Debugger_Stop(fname, line) " {{{
     if (type(fname) == type(0) && fname == 0) || (type(fname) == type('string') && fname == '0')
         call term_sendkeys(get(g:debugger,'debugger_window_name'),"kill\<CR>")
         call runtime#Reset_Editor('silently')
-        call s:Show_Close_Msg()
-        return
+        return s:Show_Close_Msg()
     endif
     call execute('setlocal nocursorline','silent!')
 
@@ -850,7 +849,7 @@ function! runtime#Stack_Jumpping() " {{{
 endfunction " }}}
 
 function! s:Close_Varwindow() " {{{
-    if runtime#Localvar_window_is_on()
+    if runtime#Localvar_Window_Is_On()
         call g:Goto_Window(g:debugger.localvars_winnr)
         if !exists('g:language_setup')
             call easydebugger#Create_Lang_Setup()
@@ -875,7 +874,7 @@ function! s:Create_Varwindow() " {{{
     if !s:Term_Is_Running()
         return s:Log_Msg("Debugger is not running.")
     endif
-    if runtime#Localvar_window_is_on()
+    if runtime#Localvar_Window_Is_On()
         return s:Log_Msg("Localvar window is exists.")
     endif
     let current_winid = bufwinid(bufnr(""))
@@ -897,12 +896,12 @@ function! s:Create_Varwindow() " {{{
     call g:Goto_Window(current_winid)
 endfunction " }}}
 
-function! runtime#Create_varwindow() " {{{
+function! runtime#Create_VarWindow() " {{{
     call s:Create_Varwindow()
 endfunction " }}}
 
 function! runtime#Render_Localvars_Window() " {{{
-    if !runtime#Localvar_window_is_on()
+    if !runtime#Localvar_Window_Is_On()
         return s:Log_Msg("Debugger is not running.")
     endif
     let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
@@ -910,7 +909,7 @@ function! runtime#Render_Localvars_Window() " {{{
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr)
 endfunction " }}}
 
-function! s:Close_Stackwindow() " {{{
+function! s:Close_StackWindow() " {{{
     if runtime#Stack_Window_Is_On()
         " let g:debugger.callstack_content = getbufline(g:debugger.stacks_bufnr,1,"$")
         call execute("q! " . g:debugger.stacks_winnr)
@@ -923,7 +922,7 @@ function! runtime#Stack_Window_Is_On() " {{{
     return exists('g:debugger.stacks_winid') && len(getwininfo(g:debugger.stacks_winid)) > 0
 endfunction " }}}
 
-function! runtime#Localvar_window_is_on() " {{{
+function! runtime#Localvar_Window_Is_On() " {{{
     return exists('g:debugger.localvars_winid') && len(getwininfo(g:debugger.localvars_winid)) > 0
 endfunction " }}}
 

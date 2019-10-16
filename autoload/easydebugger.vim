@@ -50,7 +50,7 @@ function! s:Bind_Nor_Map_Keys()
     " Exit debuging
     nnoremap <silent> <Plug>EasyDebuggerExit :call easydebugger#Inspect_Exit()<CR>
     " Open local Variables window and call stack window
-    nnoremap <silent> <Plug>EasyDebuggerLocalvarWindow :call runtime#Create_varwindow()<CR>
+    nnoremap <silent> <Plug>EasyDebuggerLocalvarWindow :call runtime#Create_VarWindow()<CR>
     nnoremap <silent> <Plug>EasyDebuggerStackWindow :call runtime#Create_StackWindow()<CR>
 endfunction " }}}
 
@@ -77,7 +77,7 @@ function! s:Build_Command()
     command! -nargs=0 -complete=command InspectExit    call easydebugger#Inspect_Exit()
     command! -nargs=0 -complete=command ExitDebugger   call easydebugger#Inspect_Exit()
     command! -nargs=0 -complete=command StackWindow    call runtime#Create_StackWindow()
-    command! -nargs=0 -complete=command LocalvarWindow call runtime#Create_varwindow()
+    command! -nargs=0 -complete=command LocalvarWindow call runtime#Create_VarWindow()
 endfunction " }}}
 
 function! easydebugger#Exit_SourceCode() " {{{
