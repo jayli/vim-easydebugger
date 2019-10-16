@@ -91,6 +91,10 @@ Commands：
 
 ## Useage
 
+### How to..
+
+<img src="https://gw.alicdn.com/tfs/TB1pCvLjhD1gK0jSZFKXXcJrVXa-1844-1014.png" width=660>
+
 ### debug mode
 
 ![](https://gw.alicdn.com/tfs/TB1FyLLfVY7gK0jSZKzXXaikpXa-1990-1152.png)

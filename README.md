@@ -39,7 +39,7 @@ VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.
 
 **实现原理**
 
-![](https://gw.alicdn.com/tfs/TB1pCvLjhD1gK0jSZFKXXcJrVXa-1844-1014.png)
+<img src="https://gw.alicdn.com/tfs/TB1pCvLjhD1gK0jSZFKXXcJrVXa-1844-1014.png" width=660>
 
 ### 安装
 
