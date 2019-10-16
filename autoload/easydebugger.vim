@@ -28,61 +28,61 @@ function! s:Global_Setup()
 endfunction " }}}
 
 " 每进入一个 Buffer 都重新绑定一下 Terminal 的映射命令 {{{
-function! easydebugger#BindTermMapKeys()
+function! easydebugger#Bind_Term_MapKeys()
     call s:Bind_Term_Map_Keys()
 endfunction " }}}
 
 " VIM 启动的时候绑定一次，非 Terminal 中的命令 {{{
 function! s:Bind_Nor_Map_Keys()
     " 服务启动唤醒键映射
-    nnoremap <silent> <Plug>EasyDebuggerInspect :call easydebugger#InspectInit()<CR>
-    nnoremap <silent> <Plug>EasyDebuggerWebInspect :call easydebugger#WebInspectInit()<CR>
+    nnoremap <silent> <Plug>EasyDebuggerInspect :call easydebugger#Inspect_Init()<CR>
+    nnoremap <silent> <Plug>EasyDebuggerWebInspect :call easydebugger#WebInspect_Init()<CR>
     " 调试快捷键映射
-    nnoremap <silent> <Plug>EasyDebuggerContinue :call easydebugger#InspectCont()<CR>
-    nnoremap <silent> <Plug>EasyDebuggerNext :call easydebugger#InspectNext()<CR>
-    nnoremap <silent> <Plug>EasyDebuggerStepIn :call easydebugger#InspectStep()<CR>
-    nnoremap <silent> <Plug>EasyDebuggerStepOut :call easydebugger#InspectOut()<CR>
-    nnoremap <silent> <Plug>EasyDebuggerPause :call easydebugger#InspectPause()<CR>
+    nnoremap <silent> <Plug>EasyDebuggerContinue :call easydebugger#Inspect_Cont()<CR>
+    nnoremap <silent> <Plug>EasyDebuggerNext :call easydebugger#Inspect_Next()<CR>
+    nnoremap <silent> <Plug>EasyDebuggerStepIn :call easydebugger#Inspect_Step()<CR>
+    nnoremap <silent> <Plug>EasyDebuggerStepOut :call easydebugger#Inspect_Out()<CR>
+    nnoremap <silent> <Plug>EasyDebuggerPause :call easydebugger#Inspect_Pause()<CR>
     " 设置断点快捷键映射
-    nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#InspectSetBreakPoint()<CR>
+    nnoremap <silent> <Plug>EasyDebuggerSetBreakPoint :call easydebugger#Inspect_Set_BreakPoint()<CR>
     " 关闭debug
-    nnoremap <silent> <Plug>EasyDebuggerExit :call easydebugger#InspectExit()<CR>
+    nnoremap <silent> <Plug>EasyDebuggerExit :call easydebugger#Inspect_Exit()<CR>
 
     " 打开localvar和stack窗口
     nnoremap <silent> <Plug>EasyDebuggerLocalvarWindow :call runtime#Create_varwindow()<CR>
-    nnoremap <silent> <Plug>EasyDebuggerStackWindow :call runtime#Create_stackwindow()<CR>
+    nnoremap <silent> <Plug>EasyDebuggerStackWindow :call runtime#Create_StackWindow()<CR>
 endfunction " }}}
 
 " 每次进入一个新 Buffer 都要重新绑定一次 {{{
 function! s:Bind_Term_Map_Keys()
-    exec "tnoremap <silent> <Plug>EasyDebuggerContinue ".easydebugger#GetCtrlCmd('ctrl_cmd_continue')
-    exec "tnoremap <silent> <Plug>EasyDebuggerNext ".easydebugger#GetCtrlCmd('ctrl_cmd_next')
-    exec "tnoremap <silent> <Plug>EasyDebuggerStepIn ".easydebugger#GetCtrlCmd('ctrl_cmd_stepin')
-    exec "tnoremap <silent> <Plug>EasyDebuggerStepOut ".easydebugger#GetCtrlCmd('ctrl_cmd_stepout')
-    exec "tnoremap <silent> <Plug>EasyDebuggerPause ".easydebugger#GetCtrlCmd('ctrl_cmd_pause')
-    exec "tnoremap <silent> <Plug>EasyDebuggerExit ".easydebugger#GetCtrlCmd('ctrl_cmd_exit')
+    exec "tnoremap <silent> <Plug>EasyDebuggerContinue ".easydebugger#Get_CtrlCmd('ctrl_cmd_continue')
+    exec "tnoremap <silent> <Plug>EasyDebuggerNext ".easydebugger#Get_CtrlCmd('ctrl_cmd_next')
+    exec "tnoremap <silent> <Plug>EasyDebuggerStepIn ".easydebugger#Get_CtrlCmd('ctrl_cmd_stepin')
+    exec "tnoremap <silent> <Plug>EasyDebuggerStepOut ".easydebugger#Get_CtrlCmd('ctrl_cmd_stepout')
+    exec "tnoremap <silent> <Plug>EasyDebuggerPause ".easydebugger#Get_CtrlCmd('ctrl_cmd_pause')
+    exec "tnoremap <silent> <Plug>EasyDebuggerExit ".easydebugger#Get_CtrlCmd('ctrl_cmd_exit')
 endfunction " }}}
 
 " 命令定义 {{{
 function! s:Build_Command()
     " Debugger 启动 Debugger, StopDebugger 终止 Debug
-    command! -nargs=0 -complete=command -buffer Debugger call easydebugger#InspectInit()
-    command! -nargs=0 -complete=command -buffer InspectInit call easydebugger#InspectInit()
-    command! -nargs=0 -complete=command -buffer WebInspectInit call easydebugger#WebInspectInit()
-    command! -nargs=0 -complete=command InspectCont call easydebugger#InspectCont()
-    command! -nargs=0 -complete=command InspectNext call easydebugger#InspectNext()
-    command! -nargs=0 -complete=command InspectStep call easydebugger#InspectStep()
-    command! -nargs=0 -complete=command InspectOut  call easydebugger#InspectOut()
-    command! -nargs=0 -complete=command InspectPause call easydebugger#InspectPause()
-    command! -nargs=0 -complete=command InspectExit call easydebugger#InspectExit()
-    command! -nargs=0 -complete=command ExitDebugger call easydebugger#InspectExit()
-    command! -nargs=0 -complete=command StackWindow call runtime#Create_stackwindow()
+    command! -nargs=0 -complete=command Debugger       call easydebugger#Inspect_Init()
+    command! -nargs=0 -complete=command InspectInit    call easydebugger#Inspect_Init()
+    command! -nargs=0 -complete=command WebInspectInit call easydebugger#WebInspect_Init()
+    command! -nargs=0 -complete=command InspectCont    call easydebugger#Inspect_Cont()
+    command! -nargs=0 -complete=command InspectNext    call easydebugger#Inspect_Next()
+    command! -nargs=0 -complete=command InspectStep    call easydebugger#Inspect_Step()
+    command! -nargs=0 -complete=command InspectOut     call easydebugger#Inspect_Out()
+    command! -nargs=0 -complete=command InspectPause   call easydebugger#Inspect_Pause()
+    command! -nargs=0 -complete=command InspectExit    call easydebugger#Inspect_Exit()
+    command! -nargs=0 -complete=command ExitDebugger   call easydebugger#Inspect_Exit()
+    command! -nargs=0 -complete=command StackWindow    call runtime#Create_StackWindow()
     command! -nargs=0 -complete=command LocalvarWindow call runtime#Create_varwindow()
 endfunction " }}}
 
-function! easydebugger#ExitSourceCode()
-    if runtime#Term_is_running() && g:debugger.original_winid  == bufwinid(bufnr(""))
-        call easydebugger#InspectExit()
+function! easydebugger#Exit_SourceCode()
+    if runtime#Term_Is_Running() && g:debugger.original_winid  == bufwinid(bufnr(""))
+        call easydebugger#Inspect_Exit()
         call execute("split " . expand("%:p"), "silent!")
     endif
 endfunction
@@ -103,7 +103,7 @@ function! s:Create_Lang_Setup()
         " 如果当前文件类型满足条件
         call execute('let g:language_setup = debugger#'. s:Get_Filetype() .'#Setup()' )
         if exists("g:language_setup")
-            let g:language_setup.language = s:Get_Filetype() 
+            let g:language_setup.language = s:Get_Filetype()
         endif
     elseif exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running' &&
                 \ (g:debugger.localvars_winid == winnr() || g:debugger.stacks_winid == winnr())
@@ -119,9 +119,9 @@ function! s:Create_Lang_Setup()
     endif
 endfunction "}}}
 
-function! easydebugger#GetCtrlCmd(cmd) "{{{
+function! easydebugger#Get_CtrlCmd(cmd) "{{{
     call s:Create_Lang_Setup()
-    if !exists('g:language_setup') || !s:Language_supported(get(g:language_setup,"language")) 
+    if !exists('g:language_setup') || !s:Language_Supported(get(g:language_setup,"language")) 
         return "should_execute_nothing1"
     endif
     if has_key(g:language_setup, a:cmd)
@@ -131,81 +131,81 @@ function! easydebugger#GetCtrlCmd(cmd) "{{{
     endif
 endfunction "}}}
 
-function! easydebugger#InspectInit() "{{{
+function! easydebugger#Inspect_Init() "{{{
     call s:Create_Lang_Setup()
-    if !s:Language_supported() || !exists('g:language_setup')
-        return util#LogMsg(g:None_Lang_Sp_Msg)
+    if !s:Language_Supported() || !exists('g:language_setup')
+        return util#Log_Msg(g:None_Lang_Sp_Msg)
     endif
     call get(g:language_setup,'InspectInit')()
 endfunction "}}}
 
-function! easydebugger#WebInspectInit() "{{{
+function! easydebugger#WebInspect_Init() "{{{
     call s:Create_Lang_Setup()
-    if !s:Language_supported() || !exists('g:language_setup')
-        return util#LogMsg(g:None_Lang_Sp_Msg)
+    if !s:Language_Supported() || !exists('g:language_setup')
+        return util#Log_Msg(g:None_Lang_Sp_Msg)
     endif
     call get(g:language_setup,'WebInspectInit')()
 endfunction "}}}
 
-function! easydebugger#InspectCont() "{{{
+function! easydebugger#Inspect_Cont() "{{{
     call s:Create_Lang_Setup()
-    if !s:Language_supported() || !exists('g:language_setup')
-        return util#LogMsg(g:None_Lang_Sp_Msg)
+    if !s:Language_Supported() || !exists('g:language_setup')
+        return util#Log_Msg(g:None_Lang_Sp_Msg)
     endif
     call runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectCont')()
 endfunction "}}}
 
-function! easydebugger#InspectNext() "{{{
+function! easydebugger#Inspect_Next() "{{{
     call s:Create_Lang_Setup()
-    if !s:Language_supported() || !exists('g:language_setup')
-        return util#LogMsg(g:None_Lang_Sp_Msg)
+    if !s:Language_Supported() || !exists('g:language_setup')
+        return util#Log_Msg(g:None_Lang_Sp_Msg)
     endif
     call runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectNext')()
 endfunction "}}}
 
-function! easydebugger#InspectStep() "{{{
+function! easydebugger#Inspect_Step() "{{{
     call s:Create_Lang_Setup()
-    if !s:Language_supported() || !exists('g:language_setup')
-        return util#LogMsg(g:None_Lang_Sp_Msg)
+    if !s:Language_Supported() || !exists('g:language_setup')
+        return util#Log_Msg(g:None_Lang_Sp_Msg)
     endif
     call runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectStep')()
 endfunction "}}}
 
-function! easydebugger#InspectOut() "{{{
+function! easydebugger#Inspect_Out() "{{{
     call s:Create_Lang_Setup()
-    if !s:Language_supported() || !exists('g:language_setup')
-        return util#LogMsg(g:None_Lang_Sp_Msg)
+    if !s:Language_Supported() || !exists('g:language_setup')
+        return util#Log_Msg(g:None_Lang_Sp_Msg)
     endif
     call runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectOut')()
 endfunction "}}}
 
-function! easydebugger#InspectPause() "{{{
+function! easydebugger#Inspect_Pause() "{{{
     call s:Create_Lang_Setup()
-    if !s:Language_supported() || !exists('g:language_setup')
-        return util#LogMsg(g:None_Lang_Sp_Msg)
+    if !s:Language_Supported() || !exists('g:language_setup')
+        return util#Log_Msg(g:None_Lang_Sp_Msg)
     endif
     call runtime#Mark_Cursor_Position()
     call get(g:language_setup,'InspectPause')()
 endfunction "}}}
 
-function! easydebugger#InspectSetBreakPoint() "{{{
+function! easydebugger#Inspect_Set_BreakPoint() "{{{
     call s:Create_Lang_Setup()
-    if !s:Language_supported() || !exists('g:language_setup')
-        return util#LogMsg(g:None_Lang_Sp_Msg)
+    if !s:Language_Supported() || !exists('g:language_setup')
+        return util#Log_Msg(g:None_Lang_Sp_Msg)
     endif
     call get(g:language_setup,'InspectSetBreakPoint')()
 endfunction "}}}
 
-function! easydebugger#InspectExit() " {{{
+function! easydebugger#Inspect_Exit() " {{{
     call runtime#Close_Term()
 endfunction " }}}
 
 " 判断语言是否被支持 {{{
-function! s:Language_supported(...)
+function! s:Language_Supported(...)
     " 如果是 quickfix window 和 tagbar 时忽略
     let ft = exists(a:0) ? a:0 : s:Get_Filetype()
     return index(extend(deepcopy(g:Debug_Lang_Supported),['qf','tagbar']), ft) >= 0 ? 1 : 0

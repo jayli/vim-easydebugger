@@ -11,21 +11,21 @@ function! debugger#python#Setup()
         \   'ctrl_cmd_stepout':           "up",
         \   'ctrl_cmd_exit':              "exit",
         \   'ctrl_cmd_pause':             "doNothing",
-        \   'InspectInit':                function('runtime#InspectInit'),
-        \   'WebInspectInit':             function('runtime#WebInspectInit'),
-        \   'InspectCont':                function('runtime#InspectCont'),
-        \   'InspectNext':                function('runtime#InspectNext'),
-        \   'InspectStep':                function('runtime#InspectStep'),
-        \   'InspectOut':                 function('runtime#InspectOut'),
-        \   'InspectPause':               function('debugger#python#InpectPause'),
-        \   'InspectSetBreakPoint':       function('runtime#InspectSetBreakPoint'),
-        \   'DebuggerTester':             function('debugger#python#CommandExists'),
-        \   'ClearBreakPoint':            function("debugger#python#ClearBreakPoint"),
-        \   'SetBreakPoint':              function("debugger#python#SetBreakPoint"),
-        \   'TermSetupScript':            function('debugger#python#TermSetupScript'),
-        \   'AfterStopScript':            function('debugger#python#AfterStopScript'),
-        \   'GetErrorMsg':                function('debugger#python#GetErrorMsg'),
-        \   'TermCallbackHandler':        function('debugger#python#TermCallbackHandler'),
+        \   'InspectInit':                function('runtime#Inspect_Init'),
+        \   'WebInspectInit':             function('runtime#WebInspect_Init'),
+        \   'InspectCont':                function('runtime#Inspect_Cont'),
+        \   'InspectNext':                function('runtime#Inspect_Next'),
+        \   'InspectStep':                function('runtime#Inspect_Step'),
+        \   'InspectOut':                 function('runtime#Inspect_Out'),
+        \   'InspectPause':               function('debugger#python#Inpect_Pause'),
+        \   'InspectSetBreakPoint':       function('runtime#Inspect_Set_BreakPoint'),
+        \   'DebuggerTester':             function('debugger#python#Command_Exists'),
+        \   'ClearBreakPoint':            function("debugger#python#Clear_BreakPoint"),
+        \   'SetBreakPoint':              function("debugger#python#Set_BreakPoint"),
+        \   'TermSetupScript':            function('debugger#python#Term_SetupScript'),
+        \   'AfterStopScript':            function('debugger#python#AfterStop_Script'),
+        \   'GetErrorMsg':                function('debugger#python#Get_ErrorMsg'),
+        \   'TermCallbackHandler':        function('debugger#python#Term_Callback_Handler'),
         \   'DebuggerNotInstalled':       'pdb not installed ！Please install pdb first.',
         \   'WebDebuggerCommandPrefix':   'python3 -m pdb',
         \   'LocalDebuggerCommandPrefix': 'python3 -m pdb',
@@ -40,7 +40,7 @@ function! debugger#python#Setup()
     return setup_options
 endfunction
 
-function! debugger#python#GetErrorMsg(line)
+function! debugger#python#Get_ErrorMsg(line)
     let flag = ""
     let ErrorTypes = [
                 \ "ZeroDivisionError",
@@ -90,7 +90,7 @@ function! debugger#python#GetErrorMsg(line)
     return flag
 endfunction
 
-function! debugger#python#TermCallbackHandler(full_log)
+function! debugger#python#Term_Callback_Handler(full_log)
     " 刷新函数调用堆栈
     if exists('g:debugger.show_stack_log') && g:debugger.show_stack_log == 1
         " 确保只在应该刷新stack时执行
@@ -99,12 +99,12 @@ function! debugger#python#TermCallbackHandler(full_log)
         " 只做term的命令输出，在show_localvars 时统一做渲染，可能会有一定的冗
         " 余，比如Fillup_Stacks_window的操作可能会有多次，但始终会保证最后
         " 一次parse是正确的
-        call debugger#python#ShowLocalVarNames()
+        call debugger#python#Show_LocalVar_Names()
     endif
 
     " 刷新本地变量列表
     if exists('g:debugger.show_localvars') && g:debugger.show_localvars == 1
-        let localvars =  s:Fillup_localvars_window(a:full_log)
+        let localvars =  s:Fillup_Localvars_Window(a:full_log)
         call s:Fillup_Stacks_window(a:full_log)
         if len(localvars) != 0
             let g:debugger.show_localvars = 0
@@ -112,9 +112,9 @@ function! debugger#python#TermCallbackHandler(full_log)
     endif
 endfunction
 
-function! s:Fillup_localvars_window(full_log)
+function! s:Fillup_Localvars_Window(full_log)
     let localvars = s:Get_Localvars(a:full_log)
-    call s:Set_localvarlist(localvars)
+    call s:Set_Localvarlist(localvars)
 
     let g:debugger.log = []
     let g:debugger.localvars = localvars
@@ -157,18 +157,18 @@ function! s:Fillup_Stacks_window(full_log)
     if len(stacks) == 0
         return
     endif
-    call s:Set_stackslist(stacks)
+    call s:Set_Stackslist(stacks)
     let g:debugger.log = []
     let g:debugger.callback_stacks = stacks
     let g:debugger.show_stack_log = 0
 endfunction
 
-function! s:Set_stackslist(stacks)
+function! s:Set_Stackslist(stacks)
     let stacks_content = []
     let ix = 0
     for item in a:stacks
         let ix = ix + 1
-        let bufline_str = "*" . util#GetFileName(item.filename) . "* : " .
+        let bufline_str = "*" . util#Get_FileName(item.filename) . "* : " .
                     \ "|" . item.linnr . "|" .
                     \ " → " . item.callstack
         call add(stacks_content, bufline_str)
@@ -177,7 +177,7 @@ function! s:Set_stackslist(stacks)
     call runtime#Render_Stack_window()
 endfunction
 
-function! s:Set_localvarlist(localvars)
+function! s:Set_Localvarlist(localvars)
     let vars_content = []
     let ix = 0
     for item in a:localvars
@@ -188,13 +188,6 @@ function! s:Set_localvarlist(localvars)
     endfor
     let g:debugger.localvars_content = vars_content
     call runtime#Render_Localvars_window()
-endfunction
-
-" 从path中得到文件名
-function! s:Get_FileName(path)
-    let path  = simplify(a:path)
-    let fname = matchstr(path,"\\([\\/]\\)\\@<=[^\\/]\\+$")
-    return fname
 endfunction
 
 function! s:Get_Stack(full_log)
@@ -213,12 +206,12 @@ function! s:Get_Stack(full_log)
     while i <= endline
         if a:full_log[i] =~ go_stack_regx
             let pointer = " "
-            let callstack = util#StringTrim(matchstr(a:full_log[i],"\\(->\\s\\+\\)\\@<=.\\+"))
+            let callstack = util#trim(matchstr(a:full_log[i],"\\(->\\s\\+\\)\\@<=.\\+"))
             " if i == endline 
             "   break
             " endif
-            let filename = util#StringTrim(matchstr(a:full_log[i-1],"\\(\\s\\+\\)\\@<=\\S.\\+\\.py\\((\\d\\)\\@="))
-            let linnr = util#StringTrim(matchstr(a:full_log[i-1],"\\(\\S\\.py(\\)\\@<=\\d\\+\\()\\)\\@="))
+            let filename = util#trim(matchstr(a:full_log[i-1],"\\(\\s\\+\\)\\@<=\\S.\\+\\.py\\((\\d\\)\\@="))
+            let linnr = util#trim(matchstr(a:full_log[i-1],"\\(\\S\\.py(\\)\\@<=\\d\\+\\()\\)\\@="))
             if filename == "" || linnr == "" || callstack == ""
                 let i = i + 1
                 continue
@@ -239,67 +232,67 @@ function! s:Get_Stack(full_log)
     return stacks
 endfunction
 
-function! debugger#python#CommandExists()
+function! debugger#python#Command_Exists()
     let result =    system("python3 --version 2>/dev/null")
     return empty(result) ? 0 : 1
 endfunction
 
-function! debugger#python#TermSetupScript()
-    call s:SetPythonLocalvarsCmd()
+function! debugger#python#Term_SetupScript()
+    call s:Set_Python_Localvars_Cmd()
     " call runtime#Mark_Cursor_Position()
 endfunction
 
-function! s:SetPythonLocalvarsCmd()
+function! s:Set_Python_Localvars_Cmd()
     call term_sendkeys(get(g:debugger,'debugger_window_name'),
         \ "alias pi for __localvars__ in dir(): print('$ '+__localvars__+' =',str(eval(__localvars__))[0:80])\<CR>")
 endfunction
 
-function! debugger#python#AfterStopScript(msg)
-    let g:debugger.term_callback_hijacking = function('debugger#python#handleStackAndLocalvars')
-    call debugger#python#ShowStacks()
-    call s:SetPythonLocalvarsCmd()
+function! debugger#python#AfterStop_Script(msg)
+    let g:debugger.term_callback_hijacking = function('debugger#python#Handle_Stack_And_Localvars')
+    call debugger#python#Show_Stacks()
+    call s:Set_Python_Localvars_Cmd()
     call timer_start(350,
-            \ {-> util#DelTermCallbackHijacking()},
+            \ {-> util#Del_Term_Callback_Hijacking()},
             \ {'repeat' : 1})
 endfunction
 
-function! debugger#python#handleStackAndLocalvars(channel, msg, full_log)
-    call debugger#python#TermCallbackHandler(a:full_log)
+function! debugger#python#Handle_Stack_And_Localvars(channel, msg, full_log)
+    call debugger#python#Term_Callback_Handler(a:full_log)
 endfunction
 
-function s:set_stacks_flag(flag)
+function s:Set_Stacks_Flag(flag)
     let g:debugger.show_stack_log = a:flag
 endfunction
 
-function! debugger#python#ShowStacks()
+function! debugger#python#Show_Stacks()
     let g:debugger.show_stack_log = 1
     call term_sendkeys(get(g:debugger,'debugger_window_name'), "w\<CR>")
 endfunction
 
-function s:set_localvars_flag(flag)
+function s:Set_Localvars_Flag(flag)
     let g:debugger.show_localvars = a:flag
 endfunction
 
-function! debugger#python#ShowLocalVarNames()
+function! debugger#python#Show_LocalVar_Names()
     let g:debugger.show_localvars = 1
     call term_sendkeys(get(g:debugger,'debugger_window_name'), "pi\<CR>")
 endfunction
 
-function! debugger#python#InpectPause()
-    call util#LogMsg("PDB 不支持 Pause，'Pause' is not supported by PDB")
+function! debugger#python#Inpect_Pause()
+    call util#Log_Msg("PDB 不支持 Pause，'Pause' is not supported by PDB")
 endfunction
 
-function! debugger#python#ClearBreakPoint(fname,line)
+function! debugger#python#Clear_BreakPoint(fname,line)
     return "clear ".a:fname.":".a:line."\<CR>"
 endfunction
 
-function! debugger#python#SetBreakPoint(fname,line)
+function! debugger#python#Set_BreakPoint(fname,line)
     return "break ".a:fname.":".a:line."\<CR>"
 endfunction
 
 " 输出 LogMsg
-function! s:LogMsg(msg)
-    call util#LogMsg(a:msg)
+function! s:Log_Msg(msg)
+    call util#Log_Msg(a:msg)
 endfunction
 
 " 输出 debug log {{{

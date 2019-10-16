@@ -24,11 +24,11 @@ if has( 'vim_starting' ) " vim 启动时加载
     augroup EasyDebuggerStart " EasyDebuggerStart {{{
         autocmd!
         autocmd VimEnter * call easydebugger#Enable()
-        autocmd BufRead,BufNewFile * call easydebugger#BindTermMapKeys()
+        autocmd BufRead,BufNewFile * call easydebugger#Bind_Term_MapKeys()
         autocmd WinEnter * call runtime#Mark_Cursor_Position()
-        autocmd QuitPre * call easydebugger#ExitSourceCode()
+        autocmd QuitPre * call easydebugger#Exit_SourceCode()
     augroup END "}}}
 else " 通过 :packadd 手动加载
     call easydebugger#Enable()
-    call easydebugger#BindTermMapKeys()
+    call easydebugger#Bind_Term_MapKeys()
 endif

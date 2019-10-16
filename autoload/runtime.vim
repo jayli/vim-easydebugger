@@ -141,9 +141,9 @@ function! s:Create_Debugger()
 endfunction " }}}
 
 " 启动 Chrome DevTools 模式的调试服务（只实现了 NodeJS）{{{
-function! runtime#WebInspectInit()
-    if s:Term_is_running()
-        return s:LogMsg("Please terminate the running debugger first.")
+function! runtime#WebInspect_Init()
+    if s:Term_Is_Running()
+        return s:Log_Msg("Please terminate the running debugger first.")
     endif
 
     if !exists('g:language_setup')
@@ -152,17 +152,17 @@ function! runtime#WebInspectInit()
 
     if !get(g:language_setup,'DebuggerTester')()
         if has_key(g:language_setup, 'DebuggerNotInstalled')
-            return s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
+            return s:Log_Msg(get(g:language_setup,'DebuggerNotInstalled'))
         endif
     endif
 
     let l:command = get(g:language_setup,'WebDebuggerCommandPrefix') .
                 \ ' ' . getbufinfo('%')[0].name
     if has_key(g:language_setup, "LocalDebuggerCommandSufix")
-        let l:full_command = s:StringTrim(l:command .
+        let l:full_command = s:String_Trim(l:command .
                     \ ' ' . get(g:language_setup, "LocalDebuggerCommandSufix"))
     else
-        let l:full_command = s:StringTrim(l:command)
+        let l:full_command = s:String_Trim(l:command)
     endif
 
     call term_start(l:full_command,{
@@ -187,7 +187,7 @@ function! s:Get_DebuggerEntry()
             endif
             if filename =~ "^\\."
                 let bufile = getbufinfo(bufnr(''))[0].name
-                let bufdir = util#GetDirName(bufile)
+                let bufdir = util#Get_DirName(bufile)
                 let filename = simplify(bufdir . filename)
             endif
             return filename
@@ -197,9 +197,9 @@ function! s:Get_DebuggerEntry()
 endfunction " }}}
 
 " 初始化 VIM 调试窗 {{{
-function! runtime#InspectInit()
-    if s:Term_is_running()
-        return s:LogMsg("Please terminate the running debugger first.")
+function! runtime#Inspect_Init()
+    if s:Term_Is_Running()
+        return s:Log_Msg("Please terminate the running debugger first.")
     endif
 
     if !exists('g:language_setup')
@@ -208,7 +208,7 @@ function! runtime#InspectInit()
 
     if !get(g:language_setup,'DebuggerTester')()
         if has_key(g:language_setup, 'DebuggerNotInstalled')
-            return s:LogMsg(get(g:language_setup,'DebuggerNotInstalled'))
+            return s:Log_Msg(get(g:language_setup,'DebuggerNotInstalled'))
         endif
     endif
 
@@ -216,10 +216,10 @@ function! runtime#InspectInit()
     let debug_filename = in_file_debugger_entry == "" ? getbufinfo('%')[0].name : in_file_debugger_entry
     let l:command = get(g:language_setup,'LocalDebuggerCommandPrefix') . ' ' . debug_filename
     if has_key(g:language_setup, "LocalDebuggerCommandSufix")
-        let l:full_command = s:StringTrim(l:command . ' ' .
+        let l:full_command = s:String_Trim(l:command . ' ' .
                     \ get(g:language_setup, "LocalDebuggerCommandSufix"))
     else
-        let l:full_command = s:StringTrim(l:command)
+        let l:full_command = s:String_Trim(l:command)
     endif
 
     call s:Create_Debugger()
@@ -254,7 +254,7 @@ function! runtime#InspectInit()
         \ 'term_name':get(g:debugger,'debugger_window_name') ,
         \ 'vertical':'1',
         \ 'curwin':'1',
-        \ 'out_cb':'runtime#Term_callback',
+        \ 'out_cb':'runtime#Term_Callback',
         \ 'out_timeout':400,
         \ 'exit_cb':'runtime#Reset_Editor',
         \ })
@@ -277,9 +277,9 @@ endfunction "}}}
 
 " Terminal do nothing {{{
 function! runtime#Terminal_Do_Nothing()
-    let g:debugger.term_callback_hijacking = function("util#DoNothing")
+    let g:debugger.term_callback_hijacking = function("util#Do_Nothing")
     call timer_start(200,
-            \ {-> util#DelTermCallbackHijacking()},
+            \ {-> util#Del_Term_Callback_Hijacking()},
             \ {'repeat' : 1})
 endfunction " }}}
 
@@ -293,77 +293,77 @@ function! s:Set_Bottom_Window_Statusline(name)
 endfunction "}}}
 
 " Continue {{{
-function! runtime#InspectCont()
+function! runtime#Inspect_Cont()
     if !exists('g:language_setup')
         return easydebugger#Create_Lang_Setup()
     endif
     if !exists('g:debugger')
-        return s:LogMsg("Please startup debugger first.")
+        return s:Log_Msg("Please startup debugger first.")
     endif
-    if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
+    if len(get(g:debugger,'bufs')) != 0 && s:Term_Is_Running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_continue."\<CR>")
     endif
 endfunction " }}}
 
 " Next {{{
-function! runtime#InspectNext()
+function! runtime#Inspect_Next()
     if !exists('g:language_setup')
         call easydebugger#Create_Lang_Setup()
     endif
     if !exists('g:debugger')
-        return s:LogMsg("Please startup debugger first.")
+        return s:Log_Msg("Please startup debugger first.")
     endif
-    if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
+    if len(get(g:debugger,'bufs')) != 0 && s:Term_Is_Running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_next."\<CR>")
     endif
 endfunction " }}}
 
 " Stepin {{{
-function! runtime#InspectStep()
+function! runtime#Inspect_Step()
     if !exists('g:language_setup')
         call easydebugger#Create_Lang_Setup()
     endif
     if !exists('g:debugger')
-        return s:LogMsg("Please startup debugger first.")
+        return s:Log_Msg("Please startup debugger first.")
     endif
-    if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
+    if len(get(g:debugger,'bufs')) != 0 && s:Term_Is_Running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_stepin."\<CR>")
     endif
 endfunction " }}}
 
 " Stepout {{{
-function! runtime#InspectOut()
+function! runtime#Inspect_Out()
     if !exists('g:language_setup')
         call easydebugger#Create_Lang_Setup()
     endif
     if !exists('g:debugger')
-        return s:LogMsg("Please startup debugger first.")
+        return s:Log_Msg("Please startup debugger first.")
     endif
-    if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
+    if len(get(g:debugger,'bufs')) != 0 && s:Term_Is_Running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_stepout."\<CR>")
     endif
 endfunction " }}}
 
 " Pause {{{
-function! runtime#InspectPause()
+function! runtime#Inspect_Pause()
     if !exists('g:language_setup')
         call easydebugger#Create_Lang_Setup()
     endif
     if !exists('g:debugger')
-        return s:LogMsg("Please startup debugger first.")
+        return s:Log_Msg("Please startup debugger first.")
     endif
-    if len(get(g:debugger,'bufs')) != 0 && s:Term_is_running()
+    if len(get(g:debugger,'bufs')) != 0 && s:Term_Is_Running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_pause."\<CR>")
     endif
 endfunction " }}}
 
 " 设置/取消断点，在当前行按 F12 {{{
-function! runtime#InspectSetBreakPoint()
-    if !s:Term_is_running()
-        return s:LogMsg("Please startup debugger first.")
+function! runtime#Inspect_Set_BreakPoint()
+    if !s:Term_Is_Running()
+        return s:Log_Msg("Please startup debugger first.")
     endif
     if g:debugger.hangup == 1
-        return util#WarningMsg("Negative! Terminal is hanging up!")
+        return util#Warning_Msg("Negative! Terminal is hanging up!")
     endif
     " 如果是当前文件所在的 Buf 或者是临时加载的 Buf
     if exists("g:debugger") && (bufnr('') == g:debugger.original_bnr ||
@@ -372,32 +372,32 @@ function! runtime#InspectSetBreakPoint()
         let line = line('.')
         let fname = expand("%:p")
         let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
-        let g:debugger.term_callback_hijacking = function("util#DoNothing")
+        let g:debugger.term_callback_hijacking = function("util#Do_Nothing")
         if breakpoint_contained >= 0
             " 已经存在 BreakPoint，则清除掉 BreakPoint
-            call term_sendkeys(get(g:debugger,'debugger_window_name'),runtime#clearBreakpoint(fname,line))
+            call term_sendkeys(get(g:debugger,'debugger_window_name'),runtime#Clear_BreakPoint(fname,line))
             let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
             exec ":sign unplace ".sid." file=".s:Get_Fullname(fname)
             let g:debugger.break_points[str2nr(sid) - 1] = "None"
-            call s:LogMsg("Remove break point successfully.")
+            call s:Log_Msg("Remove break point successfully.")
         else
             " 如果不存在 BreakPoint，则新增 BreakPoint
-            call term_sendkeys(get(g:debugger,'debugger_window_name'),runtime#setBreakpoint(fname,line))
+            call term_sendkeys(get(g:debugger,'debugger_window_name'),runtime#Set_BreakPoint(fname,line))
             call add(g:debugger.break_points, fname."|".line)
             let sid = string(index(g:debugger.break_points, fname."|".line) + 1)
             exec ":sign place ".sid." line=".line." name=break_point file=".s:Get_Fullname(fname)
-            call s:LogMsg("Add break point successfully.")
+            call s:Log_Msg("Add break point successfully.")
         endif
         call timer_start(200,
-                \ {-> util#DelTermCallbackHijacking()},
+                \ {-> util#Del_Term_Callback_Hijacking()},
                 \ {'repeat' : 1})
     else
-        call s:LogMsg('No response for break point setting.')
+        call s:Log_Msg('No response for break point setting.')
     endif
 endfunction " }}}
 
 " 清除断点 {{{
-function! runtime#clearBreakpoint(fname,line)
+function! runtime#Clear_BreakPoint(fname,line)
     if !exists('g:language_setup')
         call easydebugger#Create_Lang_Setup()
     endif
@@ -405,7 +405,7 @@ function! runtime#clearBreakpoint(fname,line)
 endfunction " }}}
 
 " 设置断点 {{{
-function! runtime#setBreakpoint(fname,line)
+function! runtime#Set_BreakPoint(fname,line)
     if !exists('g:language_setup')
         call easydebugger#Create_Lang_Setup()
     endif
@@ -419,13 +419,13 @@ function! runtime#Reset_Editor(...)
     if !exists("g:debugger")
         return
     endif
-    call g:Goto_sourcecode_window()
+    call g:Goto_Sourcecode_Window()
     " 短名长名都不等，当前所在buf不是原始buf的话，先切换到原始Buf
     if g:debugger.original_bufname !=  bufname('%') &&
                 \ g:debugger.original_bufname != fnameescape(fnamemodify(bufname('%'),':p'))
         exec ":b ". g:debugger.original_bufname
     endif
-    call s:Debugger_del_tmpbuf()
+    call s:Debugger_Del_TmpBuf()
     if g:debugger.original_cursor_color
         " 恢复 CursorLine 的高亮样式
         call execute("setlocal cursorline","silent!")
@@ -453,14 +453,14 @@ function! runtime#Reset_Editor(...)
 endfunction " }}}
 
 " hijacking 函数劫持监听 {{{
-function! runtime#Term_callback_event_handler(channel, msg)
+function! runtime#Term_Callback_Event_Handler(channel, msg)
     if exists("g:debugger.term_callback_hijacking")
         call g:debugger.term_callback_hijacking(a:channel, a:msg)
     endif
 endfunction " }}}
 
 " Terminal 消息回传 {{{
-function! runtime#Term_callback(channel, msg)
+function! runtime#Term_Callback(channel, msg)
     call s:log('----------out_cb----------{{')
     call s:log('msg 原始信息字符串 ' . a:msg)
     call s:log('msg 原始信息Ascii  ' . join(util#ascii(a:msg), " "))
@@ -510,7 +510,7 @@ function! runtime#Term_callback(channel, msg)
                 call s:Cursor_Restore()
             endif
         endif
-        return s:LogMsg("Debug stopped")
+        return s:Log_Msg("Debug stopped")
     endif
 
     " 有输出时的回调句柄
@@ -628,7 +628,7 @@ endfunction " }}}
 
 " 输出初始调试信息 {{{
 function! s:Echo_debugging_info(command)
-    call s:LogMsg(a:command)
+    call s:Log_Msg(a:command)
 endfunction " }}}
 
 " 设置停驻的行高亮样式 {{{
@@ -671,12 +671,12 @@ endfunction " }}}
 
 " 显示 Term 窗口关闭消息 {{{
 function! s:Show_Close_Msg()
-    call s:LogMsg(bufname('%')." ". get(g:debugger,'close_msg'))
+    call s:Log_Msg(bufname('%')." ". get(g:debugger,'close_msg'))
 endfunction " }}}
 
 " 设置停留的代码行 {{{
 function! s:Debugger_Stop_Action(log)
-    if !s:Term_is_running()
+    if !s:Term_Is_Running()
         return
     endif
     let break_msg = s:Get_Term_Stop_Msg(a:log)
@@ -740,10 +740,10 @@ function! s:Get_Term_Stop_Msg(log)
         endif
         let fn = matchstr(line, fn_regex)
         let nr = matchstr(line, nr_regex)
-        if s:StringTrim(fn) != ''
+        if s:String_Trim(fn) != ''
             let fname = fn
         endif
-        if s:StringTrim(nr) != ''
+        if s:String_Trim(nr) != ''
             let break_line = str2nr(nr)
         endif
     endfor
@@ -756,8 +756,8 @@ function! s:Get_Term_Stop_Msg(log)
 endfunction " }}}
 
 " 相当于 trim，去掉首尾的空字符 {{{
-function! s:StringTrim(str)
-    return util#StringTrim(a:str)
+function! s:String_Trim(str)
+    return util#trim(a:str)
 endfunction " }}}
 
 " 执行到什么文件的什么行 {{{
@@ -769,8 +769,8 @@ function! s:Debugger_Stop(fname, line)
         call easydebugger#Create_Lang_Setup()
     endif
 
-    call g:Goto_sourcecode_window()
-    let fname = s:Debugger_get_filebuf(fname)
+    call g:Goto_Sourcecode_Window()
+    let fname = s:Debugger_Get_FileBuf(fname)
     " 如果读到一个不存在的文件，认为进入到 Native 部分的 Debugging，
     " 比如进入到了 Node Native 部分 Debugging, node inspect 没有给
     " 出完整路径，调试不得不中断，TODO，这里不应该中断
@@ -783,7 +783,7 @@ function! s:Debugger_Stop(fname, line)
     call execute('setlocal nocursorline','silent!')
 
     let shorten_filename = len(fname) > 40 ? pathshorten(fname) : fname
-    call s:LogMsg('Stop at '. shorten_filename .', line '.a:line. '.')
+    call s:Log_Msg('Stop at '. shorten_filename .', line '.a:line. '.')
     " 如果定义了AfterStopScript，且停驻行变更，或者发生了停驻行为，都重新计算
     " 堆栈和变量
     " TODO：
@@ -799,7 +799,7 @@ function! s:Debugger_Stop(fname, line)
             if g:debugger.hangup_term_style == 1
                 call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
             else
-                call util#DoNothing()
+                call util#Do_Nothing()
             endif
         else
             call get(g:language_setup, 'AfterStopScript')(g:debugger.log)
@@ -845,7 +845,7 @@ function! s:Sign_Set_StopPoint(fname, line)
 endfunction " }}}
 
 " s:goto_win(winnr) {{{
-function! s:Goto_winnr(winnr) abort
+function! s:Goto_Winnr(winnr) abort
     let cmd = type(a:winnr) == type(0) ? a:winnr . 'wincmd w'
                                      \ : 'wincmd ' . a:winnr
     noautocmd execute cmd
@@ -853,14 +853,14 @@ function! s:Goto_winnr(winnr) abort
 endfunction " }}}
 
 " 跳转到原始源码所在的窗口 {{{
-function! g:Goto_sourcecode_window()
-    call g:Goto_window(g:debugger.original_winid)
+function! g:Goto_Sourcecode_Window()
+    call g:Goto_Window(g:debugger.original_winid)
 endfunction " }}}
 
 " 跳转到 Term 所在的窗口 {{{
 function! g:Goto_terminal_window()
-    if s:Term_is_running()
-        call g:Goto_window(get(g:debugger,'term_winid'))
+    if s:Term_Is_Running()
+        call g:Goto_Window(get(g:debugger,'term_winid'))
     endif
 endfunction " }}}
 
@@ -883,20 +883,20 @@ function! runtime#stack_jumpping()
         let stacks = g:debugger.callback_stacks
         let obj = stacks[lnum - 1]
         if filereadable(obj.filename)
-            call g:Goto_sourcecode_window()
+            call g:Goto_Sourcecode_Window()
             call execute("e " . obj.filename)
             call cursor(obj.linnr, 1) "TODO 定位到对应列
         else
-            call util#WarningMsg(obj.filename ." not exists!")
+            call util#Warning_Msg(obj.filename ." not exists!")
         endif
     else
-        call util#WarningMsg("g:debugger.callback_stacks is undefined!")
+        call util#Warning_Msg("g:debugger.callback_stacks is undefined!")
     endif
 endfunction " }}}
 
 function! s:Close_varwindow() " {{{
     if runtime#Localvar_window_is_on()
-        call g:Goto_window(g:debugger.localvars_winnr)
+        call g:Goto_Window(g:debugger.localvars_winnr)
         if !exists('g:language_setup')
             call easydebugger#Create_Lang_Setup()
         endif
@@ -916,13 +916,13 @@ endfunction " }}}
 function! s:Create_varwindow() " {{{
     if !(has_key(g:language_setup,"ShowLocalVarsWindow") &&
                 \ get(g:language_setup, 'ShowLocalVarsWindow') == 1)
-        return s:LogMsg("This language dos not support localvars.")
+        return s:Log_Msg("This language dos not support localvars.")
     endif
-    if !s:Term_is_running()
-        return s:LogMsg("Debugger is not running.")
+    if !s:Term_Is_Running()
+        return s:Log_Msg("Debugger is not running.")
     endif
     if runtime#Localvar_window_is_on()
-        return s:LogMsg("Localvar window is exists.")
+        return s:Log_Msg("Localvar window is exists.")
     endif
     let current_winid = bufwinid(bufnr(""))
     if g:debugger.term_winid != current_winid
@@ -940,7 +940,7 @@ function! s:Create_varwindow() " {{{
 
     call runtime#Render_Localvars_window()
     call term_wait(get(g:debugger,'debugger_window_name'))
-    call g:Goto_window(current_winid)
+    call g:Goto_Window(current_winid)
 endfunction " }}}
 
 function! runtime#Create_varwindow() " {{{
@@ -949,7 +949,7 @@ endfunction " }}}
 
 function! runtime#Render_Localvars_window() " {{{
     if !runtime#Localvar_window_is_on()
-        return s:LogMsg("Debugger is not running.")
+        return s:Log_Msg("Debugger is not running.")
     endif
     let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
     call s:Render_Buf(bufnr, g:debugger.localvars_content)
@@ -976,7 +976,7 @@ endfunction " }}}
 
 function! runtime#Render_Stack_window() " {{{
     if !runtime#Stack_window_is_on()
-        return s:LogMsg("Debugger is not running.")
+        return s:Log_Msg("Debugger is not running.")
     endif
     let bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
     call s:Render_Buf(bufnr, g:debugger.callstack_content)
@@ -1003,11 +1003,11 @@ endfunction " }}}
 
 function! s:Create_stackwindow() " {{{
     if runtime#Stack_window_is_on()
-        return s:LogMsg("Call stack window is exists")
+        return s:Log_Msg("Call stack window is exists")
     endif
     let current_winid = bufwinid(bufnr(""))
     if g:debugger.original_winid  != current_winid
-        call g:Goto_sourcecode_window()
+        call g:Goto_Sourcecode_Window()
     endif
     sil! exec "bel 10new"
     call s:Set_Bottom_Window_Statusline("stack")
@@ -1017,23 +1017,23 @@ function! s:Create_stackwindow() " {{{
     let g:debugger.stacks_bufinfo = getbufinfo(bufnr(''))
     exec s:Get_cfg_list_window_status_cmd()
     call s:Add_jump_mapping()
-    call g:Goto_window(current_winid)
-    if s:Term_is_running()
+    call g:Goto_Window(current_winid)
+    if s:Term_Is_Running()
         call runtime#Render_Stack_window()
     endif
 endfunction " }}}
 
-function! runtime#Create_stackwindow() " {{{
+function! runtime#Create_StackWindow() " {{{
     call s:Create_stackwindow()
 endfunction " }}}
 
 " 跳转到 Window {{{
-function! g:Goto_window(winid) abort
+function! g:Goto_Window(winid) abort
     if a:winid == bufwinid(bufnr(""))
         return
     endif
     for window in range(1, winnr('$'))
-        call s:Goto_winnr(window)
+        call s:Goto_Winnr(window)
         if a:winid == bufwinid(bufnr(""))
             break
         endif
@@ -1042,14 +1042,14 @@ endfunction " }}}
 
 " 如果跳转到一个新文件，新增一个 Buffer {{{
 " fname 是文件绝对地址
-function! s:Debugger_add_filebuf(fname)
+function! s:Debugger_Add_FileBuf(fname)
     exec ":badd ". a:fname
     exec ":b ". a:fname
     call add(g:debugger.bufs, a:fname)
 endfunction " }}}
 
 " 退出调试后需要删除这些新增的 Buffer {{{
-function! s:Debugger_del_tmpbuf()
+function! s:Debugger_Del_TmpBuf()
     let tmp_bufs = deepcopy(g:debugger.bufs)
     for t_buf in tmp_bufs
         " 如果 Buf 短名不是原始值，长名也不是原始值
@@ -1062,21 +1062,21 @@ function! s:Debugger_del_tmpbuf()
 endfunction " }}}
 
 " 获得当前Buffer里的文件名字 {{{
-function! s:Debugger_get_filebuf(fname)
+function! s:Debugger_Get_FileBuf(fname)
     " bufname用的相对路径为绝对路径:fixed
     let fname = s:Get_Fullname(a:fname)
     if !filereadable(fname)
         return 0
     endif
     if index(g:debugger.bufs , fname) < 0
-        call s:Debugger_add_filebuf(fname)
+        call s:Debugger_Add_FileBuf(fname)
     endif
     if fname != s:Get_Fullname(bufname("%"))
         " call execute('redraw','silent!')
         try
             call execute('buffer '.a:fname)
         catch
-            call util#WarningMsg("File '" . a:fname . "' is opened in another shell. ".
+            call util#Warning_Msg("File '" . a:fname . "' is opened in another shell. ".
                     \ " Close it first.")
         endtry
     endif
@@ -1096,13 +1096,13 @@ function! s:Close_Term()
         unlet g:debugger.term_winid
     endif
     call execute('redraw','silent!')
-    call s:LogMsg("Node Inspector terminated.")
+    call s:Log_Msg("Node Inspector terminated.")
 endfunction " }}}
 
 function! runtime#Close_Term() " {{{
     call s:Clean_Hangup_Terminal_Style()
-    if !s:Term_is_running()
-        return s:LogMsg("Debugger is not running.")
+    if !s:Term_Is_Running()
+        return s:Log_Msg("Debugger is not running.")
     endif
     call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>exit\<CR>")
     call term_wait(get(g:debugger,'debugger_window_name'))
@@ -1110,11 +1110,11 @@ function! runtime#Close_Term() " {{{
         unlet g:debugger.term_winid
     endif
     call execute('redraw','silent!')
-    call s:LogMsg("Debug terminated.")
+    call s:Log_Msg("Debug terminated.")
 endfunction " }}}
 
 function! runtime#Mark_Cursor_Position() "{{{
-    if s:Term_is_running()
+    if s:Term_Is_Running()
         let g:debugger.cursor_original_winid = bufwinid(bufnr(""))
     endif
 endfunction " }}}
@@ -1124,14 +1124,14 @@ function! s:Cursor_Restore() " {{{
 endfunction " }}}
 
 function! runtime#Cursor_Restore() " {{{
-    if s:Term_is_running() &&
+    if s:Term_Is_Running() &&
                 \ g:debugger.cursor_original_winid != bufwinid(bufnr("")) &&
                 \ g:debugger.cursor_original_winid != 0
-        call g:Goto_window(g:debugger.cursor_original_winid)
+        call g:Goto_Window(g:debugger.cursor_original_winid)
     endif
 endfunction " }}}
 
-function! s:Term_is_running() " {{{
+function! s:Term_Is_Running() " {{{
     if exists("g:debugger") &&
                 \ term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
         return 1
@@ -1140,15 +1140,15 @@ function! s:Term_is_running() " {{{
     endif
 endfunction " }}}
 
-function! runtime#Term_is_running() " {{{
-    return s:Term_is_running()
+function! runtime#Term_Is_Running() " {{{
+    return s:Term_Is_Running()
 endfunction " }}}
 
 " 命令行的特殊命令处理：比如这里输入 exit 直接关掉 Terminal {{{
 function! runtime#Special_Cmd_Handler()
     let cmd = getline('.')[0 : col('.')-1]
     " node 中是 kill 关闭，let NodeJS support 'exit' cmd, Heck for NodeJS
-    let cmd = s:StringTrim(substitute(cmd,"^.*debug>\\s","","g"))
+    let cmd = s:String_Trim(substitute(cmd,"^.*debug>\\s","","g"))
     if cmd == 'exit'
         call s:Close_Term()
     elseif cmd == 'restart'
@@ -1160,8 +1160,8 @@ function! runtime#Special_Cmd_Handler()
 endfunction " }}}
 
 " 输出 LogMsg {{{
-function! s:LogMsg(msg)
-    return util#LogMsg(a:msg)
+function! s:Log_Msg(msg)
+    return util#Log_Msg(a:msg)
 endfunction " }}}
 
 " 输出调试信息 {{{

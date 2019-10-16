@@ -7,21 +7,21 @@ function! util#log(msg)
     if !exists("g:easydebugger_logging") || g:easydebugger_logging != 1
         return a:msg
     endif
-    return util#EchoMsg(a:msg, "Question")
+    return util#Echo_Msg(a:msg, "Question")
 endfunction " }}}
 
 " 输出 LogMsg {{{
-function! util#LogMsg(msg)
-    return util#EchoMsg(a:msg, "MoreMsg")
+function! util#Log_Msg(msg)
+    return util#Echo_Msg(a:msg, "MoreMsg")
 endfunction "}}}
 
 " 输出警告 LogMsg {{{
-function! util#WarningMsg(msg)
-    return util#EchoMsg(a:msg, "WarningMsg")
+function! util#Warning_Msg(msg)
+    return util#Echo_Msg(a:msg, "WarningMsg")
 endfunction "}}}
 
 " EchoMsg {{{
-function! util#EchoMsg(msg, style_group)
+function! util#Echo_Msg(msg, style_group)
     exec "echohl " . a:style_group
     echom '>>> '. a:msg
     echohl NONE
@@ -35,9 +35,9 @@ function! util#deletebufline(bn, fl, ll)
         call deletebufline(a:bn, a:fl, a:ll)
     else
         let current_winid = bufwinid(bufnr(""))
-        call g:Goto_window(bufwinid(a:bn))
+        call g:Goto_Window(bufwinid(a:bn))
         call execute(string(a:fl) . 'd ' . string(a:ll - a:fl), 'silent!')
-        call g:Goto_window(current_winid)
+        call g:Goto_Window(current_winid)
     endif
 endfunction " }}}
 
@@ -101,7 +101,7 @@ function! util#ascii(msg)
 endfunction " }}}
 
 " 相当于 trim，去掉首尾的空字符 {{{
-function! util#StringTrim(str)
+function! util#trim(str)
     if !empty(a:str)
         let a1 = substitute(a:str, "^\\s\\+\\(.\\{\-}\\)$","\\1","g")
         let a1 = substitute(a:str, "^\\(.\\{\-}\\)\\s\\+$","\\1","g")
@@ -111,7 +111,7 @@ function! util#StringTrim(str)
 endfunction "}}}
 
 " 从path中得到文件名 {{{
-function! util#GetFileName(path)
+function! util#Get_FileName(path)
     let path  = simplify(a:path)
     if len(split(path,"/")) == 1
         return path
@@ -121,16 +121,16 @@ function! util#GetFileName(path)
 endfunction "}}}
 
 " 从中得到目录名 {{{
-function! util#GetDirName(path)
+function! util#Get_DirName(path)
     let path  = simplify(a:path)
     let fname = matchstr(path,"^.\\+\\/\\([^\\/]\\{-}$\\)\\@=")
     return fname
 endfunction "}}}
 
-function! util#DoNothing(...) " {{{
+function! util#Do_Nothing(...) " {{{
 endfunction " }}}
 
-function! util#DelTermCallbackHijacking() " {{{
+function! util#Del_Term_Callback_Hijacking() " {{{
     if exists("g:debugger.term_callback_hijacking")
         unlet g:debugger.term_callback_hijacking
     endif
