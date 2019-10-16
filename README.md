@@ -213,6 +213,8 @@ Go 语言暂未实现本地变量监视。启动调试后自动执行`dlv debug 
 
 NodeJS 提供了基于 Chrome DevTools 的调试，我也封装了进来：
 
+<img src="https://gw.alicdn.com/tfs/TB1ci.QegHqK1RjSZJnXXbNLpXa-1414-797.png" width=700>
+
 在 normal 模式下按下 <kbd>Shift-W</kbd> 开启调试，这时启动了 Debug 服务，打开 Chrome DevTool 即可开始调试。关闭调试：<kbd>Ctrl-C</kbd> ，打开 Chrome DevTool 的方法：
 
 - 方法A：在 Chrome 地址栏输入`about:inspect`，点击`Open dedicated DevTools for Node`
