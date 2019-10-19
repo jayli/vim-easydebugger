@@ -18,6 +18,37 @@
 "  ║                               │                               ║
 "  ╚═══════════════════════════════╧═══════════════════════════════╝
 "
+"  The whole process of user command execuation:
+"
+"   ┌────────────────────────────────────┐
+"   │  Execute user command              │
+"   └───│────────────────────────────────┘
+"       │ Wait for terminal callback.
+"       ↓
+"   ┌────────────────────────────────────┐
+"   │  Runtime#Term_Callback_Handler()   │
+"   └───│────────────────────────────────┘
+"       │ Exception filter.
+"       ↓
+"   ┌────────────────────────────────────┐
+"   │   Runtime#Debugger_Stop_Action()   │
+"   └───│────────────────────────────────┘
+"       │ Exec done. Do stop action.
+"       ↓
+"   ┌────────────────────────────────────┐
+"   │   Language#After_Stop_Script()     │
+"   └───│────────────────────────────────┘
+"       │ Do sth just after stop action.
+"       ↓
+"   ┌────────────────────────────────────┐
+"   │  Language#Term_Callback_Handler()  │
+"   └───│────────────────────────────────┘
+"       │ Do sth after term callback all done.
+"       ↓
+"   ┌────────────────────────────────────┐
+"   | Process ends Wait for next command |
+"   └────────────────────────────────────┘
+"
 " Language APIs:
 "
 "   - ctrl_cmd_continue : {string} : continue cmd
@@ -248,7 +279,7 @@ function! runtime#Inspect_Init()
         \ 'term_name':get(g:debugger,'debugger_window_name') ,
         \ 'vertical':'1',
         \ 'curwin':'1',
-        \ 'out_cb':'runtime#Term_Callback',
+        \ 'out_cb':'runtime#Term_Callback_Handler',
         \ 'out_timeout':400,
         \ 'exit_cb':'runtime#Reset_Editor',
         \ })
@@ -456,7 +487,7 @@ function! runtime#Term_Callback_Event_Handler(channel, msg)
 endfunction " }}}
 
 " Terminal callback {{{
-function! runtime#Term_Callback(channel, msg)
+function! runtime#Term_Callback_Handler(channel, msg)
     call s:log('----------out_cb----------{{')
     call s:log('msg 原始信息字符串 ' . a:msg)
     call s:log('msg 原始信息Ascii  ' . join(util#ascii(a:msg), " "))
@@ -509,7 +540,7 @@ function! runtime#Term_Callback(channel, msg)
         return s:Log_Msg("Debug stopped")
     endif
 
-    " 有输出时的回调句柄
+    " Has callback hijacking
     if exists("g:debugger.term_callback_hijacking")
         " do not obstruct by stop action, only render call stack and localvars
         call g:debugger.term_callback_hijacking(a:channel, a:msg, full_log)
