@@ -110,8 +110,8 @@ function! s:Create_Debugger()
     let g:debugger.term_status_line         = util#Get_BgColor('StatusLineTerm')
     let g:debugger.term_status_line_nc      = util#Get_BgColor('StatusLineTermNC')
     let g:debugger.term_status_line_nc_fg   = util#Get_HiColor('StatusLineTermNC', 'fg')
-    let g:debugger.hangup_term_statusline_bg_normal = "34" " normal style
-    let g:debugger.hangup_term_statusline_bg_error = "9"   " error style
+    let g:debugger.hangup_term_statusline_bg_normal = has("gui_running") ? "#00af00" : "34" " normal style
+    let g:debugger.hangup_term_statusline_bg_error = has("gui_running") ? "#ff0000" : "9"   " error style
     " hangup_term_style 是体验上能感知到的挂起状态，hangup 是程序真实的挂起状
     " 态，通常挂起缝隙很短，但从挂起到停驻到下一行仍然会重新计算callstack和
     " localvar，会造成闪烁，因此设置了一个hangup_term_style 的标记位
@@ -523,7 +523,7 @@ function! runtime#Term_Callback(channel, msg)
     call s:log('----------out_cb----------}}')
 endfunction " }}}
 
-" 挂起样式设置 {{{
+" Style for hangup {{{
 function! s:HangUp_Sign()
     call s:log("清空停驻标记")
     if !has_key(g:debugger, "_place_holder_for_temp")
@@ -678,7 +678,7 @@ function! s:Debugger_Stop_Action(log) " {{{
         else
             let echo_msg = echo_msg . " | Please quite or restart debug."
         endif
-        return util#EchoMsg(echo_msg, "ErrorMsg")
+        return util#Echo_Msg(echo_msg, "ErrorMsg")
     endif
 
     call s:log('Debugger_Stop_Action '. string(a:log))
@@ -983,7 +983,7 @@ function! runtime#Create_StackWindow() " {{{
     call s:Create_stackwindow()
 endfunction " }}}
 
-" 跳转到 Window {{{
+" Goto Window {{{
 function! g:Goto_Window(winid) abort
     if a:winid == bufwinid(bufnr(""))
         return
