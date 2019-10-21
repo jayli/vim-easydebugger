@@ -111,19 +111,19 @@ For Go and JavaScript
 
 Debug mode windows:
 
-	╔═══════════════════════════════╤═══════════════════════════════╗
-	║                               │                               ║
-	║                               │                               ║
-	║                               │                               ║
-	║          Source Code          │         Debug window          ║
-	║                               │                               ║
-	║                               │                               ║
-	║                               │                               ║
-	╟───────────────────────────────┼───────────────────────────────╢
-	║                               │                               ║
-	║        Callback Stacks        │          Local vars           ║
-	║                               │                               ║
-	╚═══════════════════════════════╧═══════════════════════════════╝
+     _______________________________________________________________
+    |                               |                               |
+    |                               |                               |
+    |                               |                               |
+    |        Source Window          |         Debug Window          |
+    |    g:debugger.original_winid  |     g:debugger.term_winid     |
+    |                               |                               |
+    |                               |                               |
+    |_______________________________|_______________________________|
+    |                               |                               |
+    |          Call Stack           |        Local Variables        |
+    |    g:debugger.stacks_winid    |   g:debugger.localvars_winid  |
+    |_______________________________|_______________________________|
 
 Type `next` + <kbd>Enter</kbd> in Terminal means step over. If you want to quit debug, input `exit` + <kbd>Enter</kbd> in terminal, or `:exit` (or <kbd>Shift-E</kbd>) in source code window. You can input `Ctrl-w N`（Ctrl-w, Shift-N）in terminal window if you want to get more output log. Type `i` to go back for interactive terminal.
 

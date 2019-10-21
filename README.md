@@ -167,21 +167,19 @@ Terminal 窗口如何滚动：进入 Terminal-Normal 模式即可，光标在 Te
 
 界面说明:
 
-    ╔═══════════════════════════════╤═══════════════════════════════╗
-    ║                               │                               ║
-    ║                               │                               ║
-    ║                               │                               ║
-    ║        Source Window          │         Debug Window          ║
-    ║    g:debugger.original_winid  │     g:debugger.term_winid     ║
-    ║                               │                               ║
-    ║                               │                               ║
-    ║                               │                               ║
-    ╟───────────────────────────────┼───────────────────────────────╢
-    ║                               │                               ║
-    ║          Call Stack           │        Local Variables        ║
-    ║    g:debugger.stacks_winid    │   g:debugger.localvars_winid  ║
-    ║                               │                               ║
-    ╚═══════════════════════════════╧═══════════════════════════════╝
+     _______________________________________________________________
+    |                               |                               |
+    |                               |                               |
+    |                               |                               |
+    |        Source Window          |         Debug Window          |
+    |    g:debugger.original_winid  |     g:debugger.term_winid     |
+    |                               |                               |
+    |                               |                               |
+    |_______________________________|_______________________________|
+    |                               |                               |
+    |          Call Stack           |        Local Variables        |
+    |    g:debugger.stacks_winid    |   g:debugger.localvars_winid  |
+    |_______________________________|_______________________________|
 
 Debug Window 为 Terminal，可输入命令。命令参考语言对应的调试器。
 

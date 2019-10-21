@@ -448,7 +448,7 @@ function! runtime#Set_BreakPoint(fname,line)
     return get(g:language_setup, "SetBreakPoint")(a:fname,a:line)
 endfunction " }}}
 
-" Reset Editor when exit terminal
+" Reset Editor when exit terminal {{{
 " - silently for not closing term immediately
 function! runtime#Reset_Editor(...)
     if !exists("g:debugger")
