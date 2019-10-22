@@ -76,6 +76,7 @@ function! debugger#python#Get_ErrorMsg(line)
                 \ "SyntaxError",
                 \ "TabError",
                 \ "SystemError",
+                \ "ModuleNotFoundError",
                 \ "UnicodeError",
                 \ "UnicodeDecodeError",
                 \ "UnicodeEncodeError",
