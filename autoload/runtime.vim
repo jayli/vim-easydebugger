@@ -504,15 +504,18 @@ function! runtime#Term_Callback_Handler(channel, msg)
     " 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符
     " 如果首位字母是 7 bell，8 退格，9 制表符，说明正在敲入字符
     " 如果消息为[13,10]，说明只是回车或者正在退出Term
+    " 27,91,67 是输入方向键异常字符，被带过来了，要过滤掉
     " 如果 =~ ^\w+$ ，说明tab匹配出联想词
     if !exists('g:debugger._prev_msg')
         let g:debugger._prev_msg = a:msg
     endif
+    let ascii_msg = util#ascii(a:msg)
     if !exists('g:debugger') || empty(a:msg) ||
                 \ len(a:msg) == 1 || index([7,8,9,27], char2nr(a:msg)) >= 0 ||
                 \ index([7,8,9],  char2nr(a:msg[len(a:msg) - 1])) >= 0 ||
                 \ (!s:Is_Ascii_Visiable(a:msg) && len(a:msg) == len(g:debugger._prev_msg) - 1) ||
-                \ (util#ascii(a:msg) == [13,10]) ||
+                \ (ascii_msg == [13,10]) ||
+                \ (ascii_msg[-3:] == [27,91,67]) ||
                 \ a:msg =~ "^\\w\\+$"
                 "\ char2nr(a:msg) == 13"
         return s:log("xxx输入字符被拦截xxx")
