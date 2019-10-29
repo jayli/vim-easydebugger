@@ -100,19 +100,19 @@ function! s:Create_Lang_Setup()
         call s:Global_Setup()
     endif
 
-    if index(g:Debug_Lang_Supported, s:Get_Filetype()) >= 0
-        " If current filetype is supported
-        call execute('let g:language_setup = debugger#'. s:Get_Filetype() .'#Setup()' )
-        if exists("g:language_setup")
-            let g:language_setup.language = s:Get_Filetype()
-        endif
-    elseif exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running' &&
-                \ (g:debugger.localvars_winid == winnr() || g:debugger.stacks_winid == winnr())
+    if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
         " If debugger is running or cursor is in stack window or localvar window
         let ft = g:debugger.language
         call execute('let g:language_setup = debugger#'. ft .'#Setup()' )
         if exists("g:language_setup")
             let g:language_setup.language = ft
+        endif
+    elseif index(g:Debug_Lang_Supported, s:Get_Filetype()) >= 0
+        " If current filetype is supported
+        call execute('let g:language_setup = debugger#'. s:Get_Filetype() .'#Setup()' )
+        " call util#log(bufwinid(bufnr("")))
+        if exists("g:language_setup")
+            let g:language_setup.language = s:Get_Filetype()
         endif
     else
         let g:language_setup = 0

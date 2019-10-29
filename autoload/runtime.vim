@@ -260,8 +260,8 @@ function! runtime#Inspect_Init()
 
     " ---Startup Terminal---
     call s:Set_Debug_CursorLine()
-    call execute('set nomodifiable','silent!')
-    call execute('set nowrap','silent!')
+    call execute('setl nomodifiable')
+    call execute('setl nowrap')
     " create call stack window {{{
     call s:Create_stackwindow()
     " }}}
@@ -633,7 +633,8 @@ endfunction " }}}
 
 " empty Localvar window {{{
 function! runtime#Empty_Localvars_Window()
-    if has_key(g:language_setup,"ShowLocalVarsWindow") && get(g:language_setup, 'ShowLocalVarsWindow') == 1
+    if has_key(g:language_setup,"ShowLocalVarsWindow") && 
+                \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
         if runtime#Localvar_Window_Is_On()
             let localvar_bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
             call setbufvar(localvar_bufnr, '&modifiable', 1)
@@ -819,6 +820,7 @@ function! s:Debugger_Stop(fname, line) " {{{
     call s:Sign_Set_StopPoint(fname, a:line)
     call cursor(a:line,1)
     call execute('redraw','silent!')
+    call execute('setl nomodifiable')
 
     if has_key(g:language_setup, "TerminalCursorSticky") &&
                 \ g:language_setup.TerminalCursorSticky == 1
@@ -870,7 +872,7 @@ endfunction " }}}
 function! s:Get_Cfg_List_Window_Wtatus_Cmd() " {{{
     " nowrite is a global config for all window, shoule reset it while quiting debug
     return "setl nomodifiable nolist nu noudf " .
-                \ "nowrite winfixheight nowrap filetype=help buftype=nofile"
+                \ "winfixheight nowrap filetype=help buftype=nofile" " nowrite
 endfunction " }}}
 
 function! s:Add_Jump_Mapping() " {{{
@@ -896,19 +898,25 @@ endfunction " }}}
 
 function! s:Close_Varwindow() " {{{
     if runtime#Localvar_Window_Is_On()
-        call g:Goto_Window(g:debugger.localvars_winnr)
+        call s:log('==== Close_Varwindow ===={{ ')
         if !exists('g:language_setup')
             call easydebugger#Create_Lang_Setup()
         endif
         if has_key(g:language_setup,"ShowLocalVarsWindow") &&
                     \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
+            let current_winid = bufwinid(bufnr(""))
+            call g:Goto_Window(g:debugger.localvars_winid)
             let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
             call setbufvar(bufnr, '&modifiable', 1)
             call util#deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
             call setbufvar(bufnr, '&modifiable', 0)
+            call s:log(g:debugger.localvars_winid)
+            call s:log(bufwinid(bufnr("")))
             call execute(':q!', 'silent!')
+            call g:Goto_Window(current_winid)
         endif
         call execute('setl write', 'silent!')
+        call s:log('==== Close_Varwindow ====}} ')
     endif
 endfunction " }}}
 
@@ -948,7 +956,7 @@ endfunction " }}}
 
 function! runtime#Render_Localvars_Window() " {{{
     if !runtime#Localvar_Window_Is_On()
-        return 
+        return
     endif
     let bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
     call s:Render_Buf(bufnr, g:debugger.localvars_content)
@@ -957,10 +965,15 @@ endfunction " }}}
 
 function! s:Close_StackWindow() " {{{
     if runtime#Stack_Window_Is_On()
-        " let g:debugger.callstack_content = getbufline(g:debugger.stacks_bufnr,1,"$")
-        call execute("q! " . g:debugger.stacks_winnr)
+        let current_winid = bufwinid(bufnr(""))
+        call g:Goto_Window(g:debugger.stacks_winid)
+        call s:log('==== Close_StackWindow ===={{ ')
+        "call execute("q! " . g:debugger.stacks_bufnr)
+        call execute("q!", "silent!")
         call execute('setl write', 'silent!')
         unlet g:debugger.stacks_winid
+        call g:Goto_Window(current_winid)
+        call s:log('==== Close_StackWindow ====}} ')
     endif
 endfunction " }}}
 

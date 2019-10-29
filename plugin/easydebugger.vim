@@ -18,7 +18,7 @@ if !has('terminal')
     finish
 endif
 
-if has( 'vim_starting' ) 
+if has( 'vim_starting' )
     augroup EasyDebuggerStart " EasyDebuggerStart {{{
         autocmd!
         autocmd VimEnter * call easydebugger#Enable()
