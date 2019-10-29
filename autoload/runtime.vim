@@ -898,7 +898,6 @@ endfunction " }}}
 
 function! s:Close_Varwindow() " {{{
     if runtime#Localvar_Window_Is_On()
-        call s:log('==== Close_Varwindow ===={{ ')
         if !exists('g:language_setup')
             call easydebugger#Create_Lang_Setup()
         endif
@@ -916,7 +915,6 @@ function! s:Close_Varwindow() " {{{
             call g:Goto_Window(current_winid)
         endif
         call execute('setl write', 'silent!')
-        call s:log('==== Close_Varwindow ====}} ')
     endif
 endfunction " }}}
 
@@ -967,13 +965,10 @@ function! s:Close_StackWindow() " {{{
     if runtime#Stack_Window_Is_On()
         let current_winid = bufwinid(bufnr(""))
         call g:Goto_Window(g:debugger.stacks_winid)
-        call s:log('==== Close_StackWindow ===={{ ')
-        "call execute("q! " . g:debugger.stacks_bufnr)
         call execute("q!", "silent!")
         call execute('setl write', 'silent!')
         unlet g:debugger.stacks_winid
         call g:Goto_Window(current_winid)
-        call s:log('==== Close_StackWindow ====}} ')
     endif
 endfunction " }}}
 
