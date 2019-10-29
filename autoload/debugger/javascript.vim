@@ -11,22 +11,23 @@ function! debugger#javascript#Setup()
         \   'ctrl_cmd_stepout':           "out",
         \   'ctrl_cmd_pause':             "pause",
         \   'ctrl_cmd_exit':              "kill",
-        \   'InspectInit':                function('runtime#InspectInit'),
-        \   'WebInspectInit':             function('runtime#WebInspectInit'),
-        \   'InspectCont':                function('runtime#InspectCont'),
-        \   'InspectNext':                function('runtime#InspectNext'),
-        \   'InspectStep':                function('runtime#InspectStep'),
-        \   'InspectOut':                 function('runtime#InspectOut'),
-        \   'InspectPause':               function('runtime#InspectPause'),
-        \   'InspectSetBreakPoint':       function('runtime#InspectSetBreakPoint'),
-        \   'DebuggerTester':             function('debugger#javascript#CommandExists'),
-        \   'ClearBreakPoint':            function("debugger#javascript#ClearBreakPoint"),
-        \   'SetBreakPoint':              function("debugger#javascript#SetBreakPoint"),
-        \   'TermSetupScript':            function('debugger#javascript#TermSetupScript'),
-        \   'AfterStopScript':            function('debugger#javascript#AfterStopScript'),
-        \   'TermCallbackHandler':        function('debugger#javascript#TermCallbackHandler'),
+        \   'InspectInit':                function('runtime#Inspect_Init'),
+        \   'WebInspectInit':             function('runtime#WebInspect_Init'),
+        \   'InspectCont':                function('runtime#Inspect_Cont'),
+        \   'InspectNext':                function('runtime#Inspect_Next'),
+        \   'InspectStep':                function('runtime#Inspect_Step'),
+        \   'InspectOut':                 function('runtime#Inspect_Out'),
+        \   'InspectPause':               function('runtime#Inspect_Pause'),
+        \   'InspectSetBreakPoint':       function('runtime#Inspect_Set_BreakPoint'),
+        \   'DebuggerTester':             function('debugger#javascript#Command_Exists'),
+        \   'ClearBreakPoint':            function("debugger#javascript#Clear_BreakPoint"),
+        \   'SetBreakPoint':              function("debugger#javascript#Set_BreakPoint"),
+        \   'TermSetupScript':            function('debugger#javascript#Term_SetupScript'),
+        \   'AfterStopScript':            function('debugger#javascript#After_StopScript'),
+        \   'TermCallbackHandler':        function('debugger#javascript#Term_CallbackHandler'),
         \   'ShowLocalVarsWindow':        0,
-        \   'TerminalCursorSticky':       1,
+        \   'TerminalCursorSticky':       0,
+        \   'DebugPrompt':                'debug>',
         \   'DebuggerNotInstalled':       '系统没有安装 Node！Please install node first.',
         \   'WebDebuggerCommandPrefix':   'node --inspect-brk',
         \   'LocalDebuggerCommandPrefix': 'node inspect',
@@ -38,20 +39,20 @@ function! debugger#javascript#Setup()
     return setup_options
 endfunction
 
-function! debugger#javascript#CommandExists()
+function! debugger#javascript#Command_Exists()
     let result =  system("node -v 2>/dev/null")
     return len(matchstr(result,"^v\\d\\{1,}")) >=1 ? 1 : 0
 endfunction
 
-function! debugger#javascript#ClearBreakPoint(fname,line)
+function! debugger#javascript#Clear_BreakPoint(fname,line)
     return "clearBreakpoint('".a:fname."', ".a:line.")\<CR>"
 endfunction
 
-function! debugger#javascript#SetBreakPoint(fname,line)
+function! debugger#javascript#Set_BreakPoint(fname,line)
     return "setBreakpoint('".a:fname."', ".a:line.");list(1)\<CR>"
 endfunction
 
-function! debugger#javascript#TermCallbackHandler(msg)
+function! debugger#javascript#Term_CallbackHandler(msg)
     call s:Fillup_Stacks_window(a:msg)
 endfunction
 
@@ -73,18 +74,18 @@ function! s:Set_stackslist(stacks)
     let bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
     let buf_oldlnum = len(getbufline(bufnr,0,'$'))
     call setbufvar(bufnr, '&modifiable', 1)
-    let ix = 0 
+    let ix = 0
     for item in a:stacks
         let ix = ix + 1
-        let bufline_str = "*" . util#GetFileName(item.filename) . "* : " .
+        let bufline_str = "*" . util#Get_FileName(item.filename) . "* : " .
                     \ "|" . item.linnr . "|" .
                     \ " → " . item.callstack . " [at] " . item.filename
         call setbufline(bufnr, ix, bufline_str)
     endfor
     if buf_oldlnum >= ix + 1
-        call deletebufline(bufnr, ix + 1, buf_oldlnum)
+        call util#deletebufline(bufnr, ix + 1, buf_oldlnum)
     elseif ix == 0
-        call deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
+        call util#deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
     endif
     call setbufvar(bufnr, '&modifiable', 0)
     let g:debugger.stacks_bufinfo = getbufinfo(bufnr)
@@ -103,10 +104,10 @@ function! s:Get_Stack(msg)
     "#7 startup bootstrap_node.js:191:15
     while i <= endline
         if msg[i] =~ js_stack_regx
-            let filename = util#StringTrim(matchstr(msg[i],"\\(\\s\\)\\@<=\\S\\{-}\\(:\\d\\)\\@="))
-            let linnr = util#StringTrim(matchstr(msg[i],"\\(js:\\)\\@<=\\d\\{-}\\(:\\d\\)\\@="))
-            let callstack = util#StringTrim(matchstr(msg[i],"\\(#\\d\\{-}\\s\\)\\@<=\\S\\{-}\\(\\s\\)\\@="))
-            let pointer = util#StringTrim(matchstr(msg[i],"\\(#\\)\\@<=\\d\\{-}\\(\\s\\)\\@="))
+            let filename = util#trim(matchstr(msg[i],"\\(\\s\\)\\@<=\\S\\{-}\\(:\\d\\)\\@="))
+            let linnr = util#trim(matchstr(msg[i],"\\(js:\\)\\@<=\\d\\{-}\\(:\\d\\)\\@="))
+            let callstack = util#trim(matchstr(msg[i],"\\(#\\d\\{-}\\s\\)\\@<=\\S\\{-}\\(\\s\\)\\@="))
+            let pointer = util#trim(matchstr(msg[i],"\\(#\\)\\@<=\\d\\{-}\\(\\s\\)\\@="))
             call add(stacks, {
                 \   'filename': substitute(filename, "^file:\\/\\/","","g"),
                 \   'linnr': linnr,
@@ -120,15 +121,15 @@ function! s:Get_Stack(msg)
     return stacks
 endfunction
 
-function! debugger#javascript#TermSetupScript()
+function! debugger#javascript#Term_SetupScript()
     " Do Nothing
 endfunction
 
-function! debugger#javascript#AfterStopScript(msg)
+function! debugger#javascript#After_StopScript(msg)
     call term_sendkeys(get(g:debugger,'debugger_window_name'), "backtrace\<CR>")
 endfunction
 
 " 输出 LogMsg
-function! s:LogMsg(msg)
-    call util#LogMsg(a:msg)
+function! s:Log_Msg(msg)
+    call util#Log_Msg(a:msg)
 endfunction
