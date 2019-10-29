@@ -291,6 +291,7 @@ function! runtime#Inspect_Init()
         \ 'out_timeout':400,
         \ 'exit_cb':'runtime#Reset_Editor',
         \ })
+    call execute('setlocal nonu')
     let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
     " <CR>(Enter) Key linster in terminal. Do sth else when necessary.
     tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i
