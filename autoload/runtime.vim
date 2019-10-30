@@ -550,11 +550,14 @@ function! runtime#Term_Callback_Handler(channel, msg)
     if ascii_msg[-1:] == [8]
         return s:None_String_Output("有退格重输的情况")
     endif
+    if uniq(ascii_msg) == [32]
+        return s:None_String_Output("直接按Tab")
+    endif
     if a:msg =~ "^\\w\\+$"
         return s:None_String_Output("Tab匹配出了联想词")
     endif
     " }}}
-    
+
     let g:debugger.log += msgslist
     " due to concerns about performance, limit the length of debug log under 50
     let log_max_length = 50
