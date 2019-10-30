@@ -3,7 +3,7 @@
 " Description:  Go 的实现
 
 function! debugger#go#Setup()
-    " Delve 不支持 Pause 
+    " Delve 不支持 Pause
     let setup_options = {
         \   'ctrl_cmd_continue':          "continue",
         \   'ctrl_cmd_next':              "next",
@@ -11,26 +11,27 @@ function! debugger#go#Setup()
         \   'ctrl_cmd_stepout':           "stepout",
         \   'ctrl_cmd_pause':             "doNothing",
         \   'ctrl_cmd_exit':              "exit",
-        \   'InspectInit':                function('runtime#InspectInit'),
-        \   'WebInspectInit':             function('runtime#WebInspectInit'),
-        \   'InspectCont':                function('runtime#InspectCont'),
-        \   'InspectNext':                function('runtime#InspectNext'),
-        \   'InspectStep':                function('runtime#InspectStep'),
-        \   'InspectOut':                 function('runtime#InspectOut'),
-        \   'InspectPause':               function('debugger#go#InpectPause'),
-        \   'InspectSetBreakPoint':       function('runtime#InspectSetBreakPoint'),
-        \   'DebuggerTester':             function('debugger#go#CommandExists'),
-        \   'ClearBreakPoint':            function("debugger#go#ClearBreakPoint"),
-        \   'SetBreakPoint':              function("debugger#go#SetBreakPoint"),
-        \   'TermSetupScript':            function('debugger#go#TermSetupScript'),
-        \   'AfterStopScript':            function('debugger#go#AfterStopScript'),
-        \   'TermCallbackHandler':        function('debugger#go#TermCallbackHandler'),
+        \   'InspectInit':                function('runtime#Inspect_Init'),
+        \   'WebInspectInit':             function('runtime#WebInspect_Init'),
+        \   'InspectCont':                function('runtime#Inspect_Cont'),
+        \   'InspectNext':                function('runtime#Inspect_Next'),
+        \   'InspectStep':                function('runtime#Inspect_Step'),
+        \   'InspectOut':                 function('runtime#Inspect_Out'),
+        \   'InspectPause':               function('debugger#go#Inpect_Pause'),
+        \   'InspectSetBreakPoint':       function('runtime#Inspect_Set_BreakPoint'),
+        \   'DebuggerTester':             function('debugger#go#Command_Exists'),
+        \   'ClearBreakPoint':            function("debugger#go#Clear_BreakPoint"),
+        \   'SetBreakPoint':              function("debugger#go#Set_BreakPoint"),
+        \   'TermSetupScript':            function('debugger#go#Term_SetupScript'),
+        \   'AfterStopScript':            function('debugger#go#AfterStop_Script'),
+        \   'TermCallbackHandler':        function('debugger#go#Term_Callback_Handler'),
         \   'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
         \   'WebDebuggerCommandPrefix':   'dlv debug',
         \   'LocalDebuggerCommandPrefix': 'dlv debug',
         \   'LocalDebuggerCommandSufix':  '',
         \   'ShowLocalVarsWindow':        0,
         \   'TerminalCursorSticky':       1,
+        \   'DebugPrompt':                "(dlv)",
         \   'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
         \   'BreakFileNameRegex':         "\\(>\\s\\S\\+\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
         \   'BreakLineNrRegex':           "\\(>\\s\\S\\+\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
@@ -38,12 +39,12 @@ function! debugger#go#Setup()
     return setup_options
 endfunction
 
-function! debugger#go#TermCallbackHandler(msg)
+function! debugger#go#Term_Callback_Handler(msg)
     if type(a:msg) == type([]) &&
                 \ len(a:msg) == 1 &&
-                \ a:msg[0] == "Can not debug non-main package" 
+                \ a:msg[0] == "Can not debug non-main package"
         call timer_start(500,
-                \ {-> s:LogMsg(a:msg[0])},
+                \ {-> s:Log_Msg(a:msg[0])},
                 \ {'repeat' : 1})
     endif
     " jayli 给terminal 绑定Fx快捷键失败
@@ -53,7 +54,7 @@ endfunction
 
 function! s:Fillup_Stacks_window(msg)
     let stacks = s:Get_Stack(a:msg)
-    if len(stacks) == 0 
+    if len(stacks) == 0
         return
     endif
     call s:Set_stackslist(stacks)
@@ -66,22 +67,22 @@ function! s:Set_stackslist(stacks)
     let bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
     let buf_oldlnum = len(getbufline(bufnr,0,'$'))
     call setbufvar(bufnr, '&modifiable', 1)
-    let ix = 0 
+    let ix = 0
     for item in a:stacks
         let ix = ix + 1
-        let bufline_str = "*" . util#GetFileName(item.filename) . "* : " .
+        let bufline_str = "*" . util#Get_FileName(item.filename) . "* : " .
                     \ "|" . item.linnr . "|" .
                     \ " → " . item.callstack . " [at] " . item.pointer
         call setbufline(bufnr, ix, bufline_str)
     endfor
     if buf_oldlnum >= ix + 1
-        call deletebufline(bufnr, ix + 1, buf_oldlnum)
+        call util#deletebufline(bufnr, ix + 1, buf_oldlnum)
     elseif ix == 0
-        call deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
+        call util#deletebufline(bufnr, 1, len(getbufline(bufnr,0,'$')))
     endif
     call setbufvar(bufnr, '&modifiable', 0)
     let g:debugger.stacks_bufinfo = getbufinfo(bufnr)
-    call g:Goto_window(get(g:debugger,'term_winid'))
+    call g:Goto_Window(get(g:debugger,'term_winid'))
     call execute('redraw','silent!')
 endfunction
 
@@ -96,13 +97,13 @@ function! s:Get_Stack(msg)
     "       at /usr/local/go/src/runtime/asm_amd64.s:1333
     while i <= endline
         if a:msg[i] =~ go_stack_regx
-            let pointer = util#StringTrim(matchstr(a:msg[i],"0x\\S\\+"))
-            let callstack = util#StringTrim(matchstr(a:msg[i],"\\(in\\s\\)\\@<=.\\+$"))
+            let pointer = util#trim(matchstr(a:msg[i],"0x\\S\\+"))
+            let callstack = util#trim(matchstr(a:msg[i],"\\(in\\s\\)\\@<=.\\+$"))
             if i == endline
                 break
             endif
-            let filename = util#StringTrim(matchstr(a:msg[i+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
-            let linnr = util#StringTrim(matchstr(a:msg[i+1],"\\(:\\)\\@<=\\d\\{-}$"))
+            let filename = util#trim(matchstr(a:msg[i+1],"\\(at\\s\\)\\@<=.\\{-}\\(:\\d\\{-}\\)\\@="))
+            let linnr = util#trim(matchstr(a:msg[i+1],"\\(:\\)\\@<=\\d\\{-}$"))
             if filename == "" || linnr == "" || callstack == "" || pointer == ""
                 let i = i + 1
                 continue
@@ -123,30 +124,30 @@ function! s:Get_Stack(msg)
     return stacks
 endfunction
 
-function! debugger#go#CommandExists()
+function! debugger#go#Command_Exists()
     let result =    system("dlv version 2>/dev/null")
     return empty(result) ? 0 : 1
 endfunction
 
-function! debugger#go#TermSetupScript()
-    call term_sendkeys(get(g:debugger,'debugger_window_name'), 
+function! debugger#go#Term_SetupScript()
+    call term_sendkeys(get(g:debugger,'debugger_window_name'),
                 \ "break " .s:Get_Package(). ".main\<CR>")
     call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
 endfunction
 
-function! debugger#go#AfterStopScript(msg)
+function! debugger#go#AfterStop_Script(msg)
     call term_sendkeys(get(g:debugger,'debugger_window_name'), "stack\<CR>")
 endfunction
 
-function! debugger#go#InpectPause()
+function! debugger#go#Inpect_Pause()
     call util#LogMsg("Delve 不支持 Pause，'Pause' is not supported by Delve")
 endfunction
 
-function! debugger#go#ClearBreakPoint(fname,line)
+function! debugger#go#Clear_BreakPoint(fname,line)
     return "clearall ".a:fname.":".a:line."\<CR>"
 endfunction
 
-function! debugger#go#SetBreakPoint(fname,line)
+function! debugger#go#Set_BreakPoint(fname,line)
     return "break ".a:fname.":".a:line."\<CR>"
 endfunction
 
@@ -163,6 +164,6 @@ function! s:Get_Package()
 endfunction
 
 " 输出 LogMsg
-function! s:LogMsg(msg)
-    call util#LogMsg(a:msg)
+function! s:Log_Msg(msg)
+    call util#Log_Msg(a:msg)
 endfunction
