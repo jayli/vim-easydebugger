@@ -24,19 +24,24 @@ function! debugger#javascript#Setup()
         \   'SetBreakPoint':              function("debugger#javascript#Set_BreakPoint"),
         \   'TermSetupScript':            function('debugger#javascript#Term_SetupScript'),
         \   'AfterStopScript':            function('debugger#javascript#After_StopScript'),
-        \   'TermCallbackHandler':        function('debugger#javascript#Term_CallbackHandler'),
-        \   'ShowLocalVarsWindow':        0,
-        \   'TerminalCursorSticky':       0,
-        \   'DebugPrompt':                'debug>',
+        \   'GetErrorMsg':                function('debugger#javascript#Get_ErrorMsg'),
+        \   'TermCallbackHandler':        function('debugger#javascript#Term_Callback_Handler'),
         \   'DebuggerNotInstalled':       '系统没有安装 Node！Please install node first.',
         \   'WebDebuggerCommandPrefix':   'node --inspect-brk',
         \   'LocalDebuggerCommandPrefix': 'node inspect',
+        \   'ShowLocalVarsWindow':        0,
+        \   'TerminalCursorSticky':       0,
+        \   'DebugPrompt':                'debug>',
         \   'LocalDebuggerCommandSufix':  '2>/dev/null',
         \   'ExecutionTerminatedMsg':     'Waiting for the debugger to disconnect',
         \   'BreakFileNameRegex':         "\\(^\\(break in\\|Break on start in\\)\\s.\\{-}:\\/\\/\\)\\@<=.\\{-}\\(:\\)\\@=",
         \   'BreakLineNrRegex':           "\\(^>\\s\\|^>\\)\\@<=\\(\\d\\{1,10000}\\)\\(\\s\\)\\@=",
         \ }
     return setup_options
+endfunction
+
+function! debugger#javascript#Get_ErrorMsg(line)
+    return ""
 endfunction
 
 function! debugger#javascript#Command_Exists()
@@ -52,7 +57,7 @@ function! debugger#javascript#Set_BreakPoint(fname,line)
     return "setBreakpoint('".a:fname."', ".a:line.");list(1)\<CR>"
 endfunction
 
-function! debugger#javascript#Term_CallbackHandler(msg)
+function! debugger#javascript#Term_Callback_Handler(msg)
     call s:Fillup_Stacks_window(a:msg)
 endfunction
 
@@ -89,7 +94,7 @@ function! s:Set_stackslist(stacks)
     endif
     call setbufvar(bufnr, '&modifiable', 0)
     let g:debugger.stacks_bufinfo = getbufinfo(bufnr)
-    call g:Goto_window(get(g:debugger,'term_winid'))
+    call g:Goto_Window(get(g:debugger,'term_winid'))
     call execute('redraw','silent!')
 endfunction
 
@@ -125,7 +130,17 @@ function! debugger#javascript#Term_SetupScript()
     " Do Nothing
 endfunction
 
+function! debugger#javascript#Handle_Stack_And_Localvars(channel, msg, full_log)
+    call debugger#javascript#Term_Callback_Handler(a:full_log)
+endfunction
+
 function! debugger#javascript#After_StopScript(msg)
+    call runtime#Terminal_Do_Nothing_But("debugger#javascript#Handle_Stack_And_Localvars")
+    call debugger#javascript#Show_Stacks()
+    " TODO Show Local Vars
+endfunction
+
+function! debugger#javascript#Show_Stacks()
     call term_sendkeys(get(g:debugger,'debugger_window_name'), "backtrace\<CR>")
 endfunction
 

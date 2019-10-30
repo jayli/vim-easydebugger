@@ -31,7 +31,7 @@ function! debugger#python#Setup()
         \   'LocalDebuggerCommandPrefix': 'python3 -m pdb',
         \   'ShowLocalVarsWindow':        1,
         \   'TerminalCursorSticky':       0,
-        \   'DebugPrompt':                '(PDB)',
+        \   'DebugPrompt':                "(PDB)",
         \   'LocalDebuggerCommandSufix':  '',
         \   'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
         \   'BreakFileNameRegex':         "\\(>\\s\\+\\)\\@<=\\S\\{-}\\.py\\(\\S\\+\\)\\@=",

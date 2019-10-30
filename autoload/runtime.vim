@@ -316,6 +316,14 @@ function! runtime#Terminal_Do_Nothing()
             \ {'repeat' : 1})
 endfunction " }}}
 
+" Terminal do nothing but {{{
+function! runtime#Terminal_Do_Nothing_But(fun_name)
+    let g:debugger.term_callback_hijacking = function(a:fun_name)
+    call timer_start(300,
+            \ {-> util#Del_Term_Callback_Hijacking()},
+            \ {'repeat' : 1})
+endfunction " }}}
+
 " set localvar window and callstack window statusline style {{{
 function! s:Set_Bottom_Window_Statusline(name)
     if a:name == "stack"
@@ -491,39 +499,62 @@ endfunction " }}}
 " hijacking term callback event {{{
 function! runtime#Term_Callback_Event_Handler(channel, msg)
     if exists("g:debugger.term_callback_hijacking")
-        call g:debugger.term_callback_hijacking(a:channel, a:msg)
+        call g:debugger.term_callback_hijacking(a:channel, a:msg, a:msg)
     endif
 endfunction " }}}
 
+function! s:None_String_Output(str)
+    return s:log("→ 输入被拦截: " . a:str)
+endfunction
+
 " Terminal callback {{{
 function! runtime#Term_Callback_Handler(channel, msg)
-    call s:log('----------out_cb----------{{')
+    call s:log('------------------------------out_cb----------------------------{{')
     call s:log('msg 原始信息字符串 ' . a:msg)
     call s:log('msg 原始信息Ascii  ' . join(util#ascii(a:msg), " "))
-    " 如果消息为空
-    " 如果消息长度为1，说明正在敲入字符
-    " 如果首字母和尾字符ascii码值在[0,31]是控制字符，说明正在删除字符
-    " 如果首位字母是 7 bell，8 退格，9 制表符，说明正在敲入字符
-    " 如果消息为[13,10]，说明只是回车或者正在退出Term
-    " 27,91,67 是输入方向键异常字符，被带过来了，要过滤掉
-    " 如果 =~ ^\w+$ ，说明tab匹配出联想词
+
     if !exists('g:debugger._prev_msg')
         let g:debugger._prev_msg = a:msg
-    endif
-    let ascii_msg = util#ascii(a:msg)
-    if !exists('g:debugger') || empty(a:msg) ||
-                \ len(a:msg) == 1 || index([7,8,9,27], char2nr(a:msg)) >= 0 ||
-                \ index([7,8,9],  char2nr(a:msg[len(a:msg) - 1])) >= 0 ||
-                \ (!s:Is_Ascii_Visiable(a:msg) && len(a:msg) == len(g:debugger._prev_msg) - 1) ||
-                \ (ascii_msg == [13,10]) ||
-                \ (ascii_msg[-3:] == [27,91,67]) ||
-                \ a:msg =~ "^\\w\\+$"
-                "\ char2nr(a:msg) == 13"
-        return s:log("xxx输入字符被拦截xxx")
     endif
     let g:debugger._prev_msg = a:msg
     let m = substitute(a:msg,"\\W\\[\\d\\{-}[a-zA-Z]","","g")
     let msgslist = split(m,"\r\n")
+
+    call s:log(string(msgslist))
+
+    " 判断输出字符被拦截的情况{{{
+    let ascii_msg = util#ascii(a:msg)
+
+    if !exists('g:debugger') || empty(a:msg)
+        return s:None_String_Output("输出为空")
+    endif
+    if len(a:msg) == 1
+        return s:None_String_Output("正在敲入字符")
+    endif
+    if !s:Is_Ascii_Visiable(a:msg) && len(a:msg) == len(g:debugger._prev_msg) - 1
+        return s:None_String_Output("输出字符为不可见字符, 且两次输出内容长度一致")
+    endif
+    if ascii_msg == [13,10]
+        return s:None_String_Output("只输出回车，或者正在退出Terminal")
+    endif
+    if ascii_msg[-3:] == [27,91,67]
+        return s:None_String_Output("带有方向键字符，说明正在输入")
+    endif
+    if index([7,8,9,27], char2nr(a:msg)) >= 0 &&
+                \ !(len(msgslist) > 0 && trim(msgslist[-1:][0]) =~ get(g:language_setup, "DebugPrompt"))
+        return s:None_String_Output("首字符是 7 bell 8 退格 9 制表符 27 Esc, 且没有给出提示符")
+    endif
+    if index(ascii_msg, 27) >= 0 && char2nr(a:msg) != 27 && get(g:language_setup, "language") != "javascript"
+        return s:None_String_Output("首字符不是 ESC，但内容中含有 ESC 符号，说明正在输入")
+    endif
+    if ascii_msg[-1:] == [8]
+        return s:None_String_Output("有退格重输的情况")
+    endif
+    if a:msg =~ "^\\w\\+$"
+        return s:None_String_Output("Tab匹配出了联想词")
+    endif
+    " }}}
+    
     let g:debugger.log += msgslist
     " due to concerns about performance, limit the length of debug log under 50
     let log_max_length = 50
@@ -555,6 +586,7 @@ function! runtime#Term_Callback_Handler(channel, msg)
     " Has callback hijacking
     if exists("g:debugger.term_callback_hijacking")
         " do not obstruct by stop action, only render call stack and localvars
+        call s:log('term_callback_hijacking...')
         call g:debugger.term_callback_hijacking(a:channel, a:msg, full_log)
     else
         call s:Debugger_Stop_Action(g:debugger.log)
@@ -563,7 +595,7 @@ function! runtime#Term_Callback_Handler(channel, msg)
         endif
     endif
 
-    call s:log('----------out_cb----------}}')
+    call s:log('------------------------------out_cb----------------------------}}')
 endfunction " }}}
 
 " Style for hangup {{{
@@ -797,6 +829,7 @@ function! s:Debugger_Stop(fname, line) " {{{
     let fname = s:Debugger_Get_FileBuf(fname)
     " Red Return or abort for some exception
     if (type(fname) == type(0) && fname == 0) || (type(fname) == type('string') && fname == '0')
+        " TODO Nodejs 进入到internal代码时找不到 fname，就一直kill了
         call term_sendkeys(get(g:debugger,'debugger_window_name'),"kill\<CR>")
         call runtime#Reset_Editor('silently')
         return s:Show_Close_Msg()
@@ -1066,6 +1099,8 @@ function! s:Debugger_Del_TmpBuf()
 endfunction " }}}
 
 function! s:Debugger_Get_FileBuf(fname) " {{{
+    " TODO js 里进入internal后没有给出绝对路径，需要计算
+    " break in internal/modules/cjs/loader.js:704
     let fname = s:Get_FullName(a:fname)
     if !filereadable(fname)
         return 0
