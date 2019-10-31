@@ -669,7 +669,7 @@ endfunction " }}}
 
 " empty Localvar window {{{
 function! runtime#Empty_Localvars_Window()
-    if has_key(g:language_setup,"ShowLocalVarsWindow") && 
+    if has_key(g:language_setup,"ShowLocalVarsWindow") &&
                 \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
         if runtime#Localvar_Window_Is_On()
             let localvar_bufnr = get(g:debugger,'localvars_bufinfo')[0].bufnr
