@@ -503,9 +503,9 @@ function! runtime#Term_Callback_Event_Handler(channel, msg)
     endif
 endfunction " }}}
 
-function! s:None_String_Output(str)
+function! s:None_String_Output(str) " {{{
     return s:log("→ 输入被拦截: " . a:str)
-endfunction
+endfunction " }}}
 
 " Terminal callback {{{
 function! runtime#Term_Callback_Handler(channel, msg)
