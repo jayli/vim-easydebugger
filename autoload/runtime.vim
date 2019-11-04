@@ -1185,9 +1185,14 @@ function! s:Cursor_Restore() " {{{
 endfunction " }}}
 
 function! runtime#Cursor_Restore() " {{{
+    call s:Log_Msg(s:Term_Is_Running())
+    call s:Log_Msg(g:debugger.cursor_original_winid != bufwinid(bufnr("")))
+    call s:Log_Msg(g:debugger.cursor_original_winid != 0)
+
     if s:Term_Is_Running() &&
-                \ g:debugger.cursor_original_winid != bufwinid(bufnr("")) &&
-                \ g:debugger.cursor_original_winid != 0
+            \ g:debugger.cursor_original_winid != bufwinid(bufnr("")) &&
+             \ g:debugger.cursor_original_winid != 0
+        call s:Log_Msg(g:debugger.cursor_original_winid)
         call g:Goto_Window(g:debugger.cursor_original_winid)
     endif
 endfunction " }}}

@@ -136,9 +136,14 @@ function! debugger#go#Command_Exists()
     return empty(result) ? 0 : 1
 endfunction
 
+" TermSetupScript
 function! debugger#go#Term_SetupScript()
     call term_sendkeys(get(g:debugger,'debugger_window_name'),
                 \ "break " .s:Get_Package(). ".main\<CR>")
+    call term_wait(get(g:debugger,'debugger_window_name'))
+    " call g:Goto_Sourcecode_Window()
+    " call runtime#Mark_Cursor_Position()
+    " TODO 执行完成后光标仍然停留在term中，要停留在sourcecode里
     call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
 endfunction
 
