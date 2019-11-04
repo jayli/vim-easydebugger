@@ -24,19 +24,26 @@ function! debugger#go#Setup()
         \   'SetBreakPoint':              function("debugger#go#Set_BreakPoint"),
         \   'TermSetupScript':            function('debugger#go#Term_SetupScript'),
         \   'AfterStopScript':            function('debugger#go#AfterStop_Script'),
+        \   'GetErrorMsg':                function('debugger#go#Get_ErrorMsg'),
         \   'TermCallbackHandler':        function('debugger#go#Term_Callback_Handler'),
         \   'DebuggerNotInstalled':       '系统没有安装 Delve ！Please install Delve first.',
         \   'WebDebuggerCommandPrefix':   'dlv debug',
         \   'LocalDebuggerCommandPrefix': 'dlv debug',
         \   'LocalDebuggerCommandSufix':  '',
         \   'ShowLocalVarsWindow':        0,
-        \   'TerminalCursorSticky':       1,
+        \   'TerminalCursorSticky':       0,
         \   'DebugPrompt':                "(dlv)",
         \   'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
         \   'BreakFileNameRegex':         "\\(>\\s\\S\\+\\s\\)\\@<=\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\)\\(:\\d\\)\\@=",
         \   'BreakLineNrRegex':           "\\(>\\s\\S\\+\\s\\S\\{-}.\\(go\\|s\\|c\\|cpp\\|h\\):\\)\\@<=\\d\\{-}\\(\\s\\)\\@=",
         \ }
     return setup_options
+endfunction
+
+
+function! debugger#go#Get_ErrorMsg(line)
+    " TODO
+    return ""
 endfunction
 
 function! debugger#go#Term_Callback_Handler(msg)

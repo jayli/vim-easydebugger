@@ -135,6 +135,8 @@ function! s:Create_Debugger()
     let g:debugger.localvars_bufinfo     = 0
     let g:debugger.localvars_bufnr       = 0
 
+    let g:debugger.tagbar_loaded         = 0
+
     " break_points: ['a.js|3','t/b.js|34']
     " indexs in break_points list are sign id
     let g:debugger.break_points= []
@@ -256,6 +258,18 @@ function! runtime#Inspect_Init()
     endif
 
     call s:Create_Debugger()
+
+    " if tagbar is loaded{{{
+    if exists('g:loaded_tagbar')
+        if exists('t:tagbar_buf_name') && bufwinnr(t:tagbar_buf_name) != -1
+            let g:debugger.tagbar_loaded = 1
+            exec "TagbarClose"
+        else
+            let g:debugger.tagbar_loaded = 0
+        endif
+    endif
+    " }}}
+
     call runtime#Reset_Editor('silently')
 
     " ---Startup Terminal---
@@ -493,6 +507,13 @@ function! runtime#Reset_Editor(...)
     let g:debugger.log = []
     if exists('g:debugger._prev_msg')
         unlet g:debugger._prev_msg
+    endif
+
+    if exists('g:loaded_tagbar') &&
+            \ !(type(a:1) == type('string') && a:1 == 'silently')
+        if g:debugger.tagbar_loaded == 1
+            exec "TagbarOpen"
+        endif
     endif
 endfunction " }}}
 
@@ -767,7 +788,8 @@ function! s:Debugger_Stop_Action(log) " {{{
     if type(break_msg) == type({})
         call s:log("有停驻信息")
         call s:Debugger_Stop(get(break_msg,'fname'), get(break_msg,'breakline'))
-    elseif len(a:log) > 0 && trim(a:log[len(a:log) - 1]) =~ get(g:language_setup, "DebugPrompt")
+    elseif len(a:log) > 0 && trim(a:log[len(a:log) - 1]) =~ get(g:language_setup, "DebugPrompt") &&
+                \ get(g:debugger, "stop_fname") != ""
         call s:Debugger_Stop(g:debugger.stop_fname, g:debugger.stop_line)
         call s:log("无停驻信息, 元命令执行完，等待输入指令")
     else
