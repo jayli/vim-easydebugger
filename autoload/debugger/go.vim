@@ -30,7 +30,7 @@ function! debugger#go#Setup()
         \   'WebDebuggerCommandPrefix':   'dlv debug',
         \   'LocalDebuggerCommandPrefix': 'dlv debug',
         \   'LocalDebuggerCommandSufix':  '',
-        \   'ShowLocalVarsWindow':        0,
+        \   'ShowLocalVarsWindow':        1,
         \   'TerminalCursorSticky':       0,
         \   'DebugPrompt':                "(dlv)",
         \   'ExecutionTerminatedMsg':     "\\(Process \\d\\{-} has exited with status\\|Process has exited with status\\)",
@@ -68,6 +68,73 @@ function! s:Fillup_Stacks_window(msg)
     let g:debugger.log = []
     let g:debugger.callback_stacks = stacks
     let g:debugger.show_stack_log = 0
+
+    call debugger#go#Show_LocalVar_Names()
+endfunction
+
+function! debugger#go#Show_LocalVar_Names()
+    let g:debugger.term_callback_hijacking = function('debugger#go#Handle_Localvars')
+    call term_sendkeys(get(g:debugger,'debugger_window_name'), "locals\<CR>")
+    call timer_start(350,
+            \ {-> util#Del_Term_Callback_Hijacking()},
+            \ {'repeat' : 1})
+endfunction
+
+function! debugger#go#Handle_Localvars(channel, msg, full_log)
+    call s:Fillup_Localvars_Window(a:full_log)
+endfunction
+
+function! s:Fillup_Localvars_Window(full_log)
+    let localvars = s:Get_Localvars(a:full_log)
+    call s:Set_Localvarlist(localvars)
+
+    let g:debugger.log = []
+    let g:debugger.localvars = localvars
+    return localvars
+endfunction
+
+function! s:Set_Localvarlist(localvars)
+    let vars_content = []
+    let ix = 0
+    for item in a:localvars
+        let ix = ix + 1
+        let bufline_str = "" . item.var_name . " " . item.var_value
+        " call setbufline(bufnr, ix, bufline_str)
+        call add(vars_content, bufline_str)
+    endfor
+    let g:debugger.localvars_content = vars_content
+    call runtime#Render_Localvars_Window()
+endfunction
+
+function! s:Get_Localvars(full_log)
+    let vars = []
+    let var_names = []
+    let longest_nr = 0
+    for item in a:full_log
+        if item =~ "^\\w\\+\\s=\\s\\(\\s\\|\\S\\)\\{-}$"
+            let var_name = util#trim(matchstr(item,"^\\w\\+\\s\\(=\\)\\@="))
+            let var_value = util#trim(matchstr(item,"\\(=\\s\\)\\@<=\\(\\s\\|\\S\\)\\{-}$"))
+            if index(var_names, var_name) == -1
+                call add(vars, {"var_name": "*" . var_name . "*", "var_value": var_value})
+                call add(var_names, var_name)
+                if len(var_name) > longest_nr
+                    let longest_nr = len(var_name)
+                endif
+            endif
+        endif
+    endfor
+    " 使 vars 对齐
+    let longest_nr = longest_nr + 2
+    for item in vars
+        if len(item['var_name']) < longest_nr
+            let cursor = len(item['var_name'])
+            while cursor < longest_nr
+                let item['var_name'] = item['var_name'] . " "
+                let cursor = cursor + 1
+            endwhile
+        endif
+    endfor
+    return vars
 endfunction
 
 function! s:Set_stackslist(stacks)
