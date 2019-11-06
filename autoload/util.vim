@@ -135,3 +135,56 @@ function! util#Del_Term_Callback_Hijacking() " {{{
         unlet g:debugger.term_callback_hijacking
     endif
 endfunction " }}}
+
+function! util#Fillup_Localvars_Window(full_log, config)
+    let localvars = util#Get_Localvars(a:full_log, a:config)
+    call util#Set_Localvarlist(localvars)
+
+    let g:debugger.log = []
+    let g:debugger.localvars = localvars
+    return localvars
+endfunction
+
+function! util#Set_Localvarlist(localvars)
+    let vars_content = []
+    let ix = 0
+    for item in a:localvars
+        let ix = ix + 1
+        let bufline_str = "" . item.var_name . " " . item.var_value
+        " call setbufline(bufnr, ix, bufline_str)
+        call add(vars_content, bufline_str)
+    endfor
+    let g:debugger.localvars_content = vars_content
+    call runtime#Render_Localvars_Window()
+endfunction
+
+function! util#Get_Localvars(full_log, config)
+    let vars = []
+    let var_names = []
+    let longest_nr = 0
+    for item in a:full_log
+        if item =~ a:config.line_regex
+            let var_name = util#trim(matchstr(item, a:config.var_name_regex))
+            let var_value = util#trim(matchstr(item, a:config.var_value_regex))
+            if index(var_names, var_name) == -1 && var_name != '__localvars__'
+                call add(vars, {"var_name": "*" . var_name . "*", "var_value": var_value})
+                call add(var_names, var_name)
+                if len(var_name) > longest_nr
+                    let longest_nr = len(var_name)
+                endif
+            endif
+        endif
+    endfor
+    " 使 vars 对齐
+    let longest_nr = longest_nr + 2
+    for item in vars
+        if len(item['var_name']) < longest_nr
+            let cursor = len(item['var_name'])
+            while cursor < longest_nr
+                let item['var_name'] = item['var_name'] . " "
+                let cursor = cursor + 1
+            endwhile
+        endif
+    endfor
+    return vars
+endfunction

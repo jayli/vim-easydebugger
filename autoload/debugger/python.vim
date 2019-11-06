@@ -114,43 +114,11 @@ function! debugger#python#Term_Callback_Handler(full_log)
 endfunction
 
 function! s:Fillup_Localvars_Window(full_log)
-    let localvars = s:Get_Localvars(a:full_log)
-    call s:Set_Localvarlist(localvars)
-
-    let g:debugger.log = []
-    let g:debugger.localvars = localvars
-    return localvars
-endfunction
-
-function! s:Get_Localvars(full_log)
-    let vars = []
-    let var_names = []
-    let longest_nr = 0
-    for item in a:full_log
-        if item =~ "^$\\s\\S\\{-}"
-            let var_name = matchstr(item,"\\(^$\\s\\)\\@<=.\\+\\(\\s=\\)\\@=")
-            let var_value = matchstr(item,"\\(^$\\s\\S\\+\\s=\\s\\)\\@<=.\\+")
-            if index(var_names, var_name) == -1 && var_name != '__localvars__'
-                call add(vars, {"var_name": "*" . var_name . "*", "var_value": var_value})
-                call add(var_names, var_name)
-                if len(var_name) > longest_nr
-                    let longest_nr = len(var_name)
-                endif
-            endif
-        endif
-    endfor
-    " 使 vars 对齐
-    let longest_nr = longest_nr + 2
-    for item in vars
-        if len(item['var_name']) < longest_nr
-            let cursor = len(item['var_name'])
-            while cursor < longest_nr
-                let item['var_name'] = item['var_name'] . " "
-                let cursor = cursor + 1
-            endwhile
-        endif
-    endfor
-    return vars
+    return util#Fillup_Localvars_Window(a:full_log, { 
+                \ "line_regex": "^$\\s\\S\\{-}", 
+                \ "var_name_regex": "\\(^$\\s\\)\\@<=.\\+\\(\\s=\\)\\@=", 
+                \ "var_value_regex": "\\(^$\\s\\S\\+\\s=\\s\\)\\@<=.\\+"
+                \ })
 endfunction
 
 function! s:Fillup_Stacks_window(full_log)
@@ -179,16 +147,7 @@ function! s:Set_Stackslist(stacks)
 endfunction
 
 function! s:Set_Localvarlist(localvars)
-    let vars_content = []
-    let ix = 0
-    for item in a:localvars
-        let ix = ix + 1
-        let bufline_str = "" . item.var_name . " " . item.var_value
-        " call setbufline(bufnr, ix, bufline_str)
-        call add(vars_content, bufline_str)
-    endfor
-    let g:debugger.localvars_content = vars_content
-    call runtime#Render_Localvars_Window()
+    call util#Set_Localvarlist(a:localvars)
 endfunction
 
 function! s:Get_Stack(full_log)
