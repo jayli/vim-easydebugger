@@ -205,7 +205,7 @@ JavaScript 暂未实现本地变量监视。启动调试后，程序自动执行
 
 #### - Go
 
-Go 语言暂未实现本地变量监视。启动调试后自动执行`dlv debug {filename}`，并自动停留在 main() 函数处，更多指令参照 Go Delve [官网文档](https://github.com/derekparker/delve/tree/master/Documentation/cli)。敲击两次 <kbd>Ctrl-C</kbd> 终止调试。也可以执行`exit`退出调试。
+启动调试后自动执行`dlv debug {filename}`，并自动停留在 main() 函数处，更多指令参照 Go Delve [官网文档](https://github.com/derekparker/delve/tree/master/Documentation/cli)。敲击两次 <kbd>Ctrl-C</kbd> 终止调试。也可以执行`exit`退出调试。
 
 #### - NodeJS 的 Chrome DevTools 调试模式
 
@@ -235,4 +235,8 @@ Terminal 仍存在瑕疵，比如 Terminal 的输出是碎片式的，另外性�
     - 支持语言种类：NodeJS
 - v1.1：支持 Go、NodeJS 调试
 - v1.2：支持 Quickfix 窗口显示回调堆栈
-- v1.3: 放弃 Quickfix 和 Localist，支持 python 以及本地变量查看，代码重构 & 大量 bugfix
+- v1.3: 放弃 Quickfix 和 Localist，支持 python 和 Go 的本地变量查看，代码重构 & 大量 bugfix
+
+### LICENSE
+
+[MIT](https://github.com/jayli/vim-easydebugger/blob/master/LICENSE)
