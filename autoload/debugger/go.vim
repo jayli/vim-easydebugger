@@ -92,10 +92,6 @@ function! s:Fillup_Localvars_Window(full_log)
                 \ })
 endfunction
 
-" function! s:Set_Localvarlist(localvars)
-"     call util#Set_Localvarlist(a:localvars)
-" endfunction
-
 function! s:Set_stackslist(stacks)
     let bufnr = get(g:debugger,'stacks_bufinfo')[0].bufnr
     let buf_oldlnum = len(getbufline(bufnr,0,'$'))
