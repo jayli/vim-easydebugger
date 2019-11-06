@@ -1111,7 +1111,7 @@ function! s:Debugger_Add_FileBuf(fname) " {{{
     call add(g:debugger.bufs, a:fname)
 endfunction " }}}
 
-" del this added new buf when quit debug {{{
+" del this added new buf when quit debug or reset editor{{{
 function! s:Debugger_Del_TmpBuf()
     let tmp_bufs = deepcopy(g:debugger.bufs)
     for t_buf in tmp_bufs
@@ -1121,6 +1121,7 @@ function! s:Debugger_Del_TmpBuf()
         endif
     endfor
     let g:debugger.bufs = []
+    call add(g:debugger.bufs, s:Get_FullName(g:debugger.original_bufname))
 endfunction " }}}
 
 function! s:Debugger_Get_FileBuf(fname) " {{{
@@ -1185,9 +1186,13 @@ function! s:Cursor_Restore() " {{{
 endfunction " }}}
 
 function! runtime#Cursor_Restore() " {{{
-    call s:Log_Msg(s:Term_Is_Running())
-    call s:Log_Msg(g:debugger.cursor_original_winid != bufwinid(bufnr("")))
-    call s:Log_Msg(g:debugger.cursor_original_winid != 0)
+    " call s:Log_Msg("{{{")
+    " call s:Log_Msg("g:debugger.cursor_original_winid = ". g:debugger.cursor_original_winid)
+    " call s:Log_Msg("bufwinid(bufnr('')) = " . string(bufwinid(bufnr(""))))
+    " call s:Log_Msg(s:Term_Is_Running())
+    " call s:Log_Msg(g:debugger.cursor_original_winid != bufwinid(bufnr("")))
+    " call s:Log_Msg(g:debugger.cursor_original_winid != 0)
+    " call s:Log_Msg("}}}")
 
     if s:Term_Is_Running() &&
             \ g:debugger.cursor_original_winid != bufwinid(bufnr("")) &&

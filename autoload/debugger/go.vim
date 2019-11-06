@@ -49,12 +49,12 @@ endfunction
 function! debugger#go#Term_Callback_Handler(msg)
     if type(a:msg) == type([]) &&
                 \ len(a:msg) == 1 &&
-                \ a:msg[0] == "Can not debug non-main package"
+                 \ a:msg[0] == "Can not debug non-main package"
         call timer_start(500,
                 \ {-> s:Log_Msg(a:msg[0])},
-                \ {'repeat' : 1})
+                 \ {'repeat' : 1})
     endif
-    " jayli 给terminal 绑定Fx快捷键失败
+    " jayli 给 terminal 绑定Fx快捷键失败
     " call s:Fillup_Localist_window(a:msg)
     call s:Fillup_Stacks_window(a:msg)
 endfunction
@@ -78,7 +78,7 @@ function! s:Set_stackslist(stacks)
     for item in a:stacks
         let ix = ix + 1
         let bufline_str = "*" . util#Get_FileName(item.filename) . "* : " .
-                    \ "|" . item.linnr . "|" .
+                   \ "|" . item.linnr . "|" .
                     \ " → " . item.callstack . " [at] " . item.pointer
         call setbufline(bufnr, ix, bufline_str)
     endfor
@@ -116,11 +116,11 @@ function! s:Get_Stack(msg)
                 continue
             else
                 call add(stacks, {
-                    \   'filename': filename,
-                    \   'linnr': linnr,
-                    \   'callstack':callstack,
-                    \   'pointer':pointer
-                    \ })
+                    \      'filename': filename,
+                     \     'linnr': linnr,
+                      \    'callstack':callstack,
+                       \   'pointer':pointer
+                        \ })
                 let i = i + 2
             endif
         else
@@ -141,10 +141,10 @@ function! debugger#go#Term_SetupScript()
     call term_sendkeys(get(g:debugger,'debugger_window_name'),
                 \ "break " .s:Get_Package(). ".main\<CR>")
     call term_wait(get(g:debugger,'debugger_window_name'))
-    " call g:Goto_Sourcecode_Window()
-    " call runtime#Mark_Cursor_Position()
+    call g:Goto_Sourcecode_Window()
     " TODO 执行完成后光标仍然停留在term中，要停留在sourcecode里
-    call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
+    " call term_sendkeys(get(g:debugger,'debugger_window_name'), "continue\<CR>")
+    call easydebugger#Inspect_Cont()
 endfunction
 
 function! debugger#go#AfterStop_Script(msg)

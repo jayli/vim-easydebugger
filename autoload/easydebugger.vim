@@ -215,3 +215,7 @@ endfunction "}}}
 function! s:Get_Filetype() "{{{
     return &filetype == "javascript.jsx" ? "javascript" : &filetype
 endfunction "}}}
+
+function! s:Log_Msg(msg)
+    call util#Log_Msg(a:msg)
+endfunction
