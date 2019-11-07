@@ -562,11 +562,14 @@ function! runtime#Term_Callback_Handler(channel, msg)
         return s:None_String_Output("带有方向键字符，说明正在输入")
     endif
     if index([7,8,9,27], char2nr(a:msg)) >= 0 &&
-                \ !(len(msgslist) > 0 && trim(msgslist[-1:][0]) =~ get(g:language_setup, "DebugPrompt"))
+                \ !(len(msgslist) > 0 &&
+                \ s:String_Trim(msgslist[-1:][0]) =~ ("^". get(g:language_setup, "DebugPrompt")) . "$")
         return s:None_String_Output("首字符是 7 bell 8 退格 9 制表符 27 Esc, 且没有给出提示符")
     endif
-    if index(ascii_msg, 27) >= 0 && char2nr(a:msg) != 27 && get(g:language_setup, "language") != "javascript"
-        return s:None_String_Output("首字符不是 ESC，但内容中含有 ESC 符号，说明正在输入")
+    if index(ascii_msg, 27) >= 0 && char2nr(a:msg) != 27 &&
+                \ index(ascii_msg, 13) < 0 &&
+                \ get(g:language_setup, "language") != "javascript"
+        return s:None_String_Output("首字符不是 ESC，但内容中含有 ESC 符号且没有回车13，说明正在输入")
     endif
     if ascii_msg[-1:] == [8]
         return s:None_String_Output("有退格重输的情况")

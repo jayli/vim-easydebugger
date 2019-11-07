@@ -42,8 +42,18 @@ endfunction
 
 
 function! debugger#go#Get_ErrorMsg(line)
-    " TODO
-    return ""
+    let flag = ""
+    let ErrorTypes = [
+                \ "=>no\\ssource\\savailable",
+                \ "invalid\\soperation",
+                \ ]
+    for line in a:line
+        if line =~ "^\\(". join(ErrorTypes, "\\|") ."\\)"
+            let flag = line
+            break
+        endif
+    endfor
+    return flag
 endfunction
 
 function! debugger#go#Term_Callback_Handler(msg)
