@@ -136,16 +136,16 @@ function! util#Del_Term_Callback_Hijacking() " {{{
     endif
 endfunction " }}}
 
-function! util#Fillup_Localvars_Window(full_log, config)
+function! util#Fillup_Localvars_Window(full_log, config) " {{{
     let localvars = util#Get_Localvars(a:full_log, a:config)
     call util#Set_Localvarlist(localvars)
 
     let g:debugger.log = []
     let g:debugger.localvars = localvars
     return localvars
-endfunction
+endfunction " }}}
 
-function! util#Set_Localvarlist(localvars)
+function! util#Set_Localvarlist(localvars) " {{{
     let vars_content = []
     let ix = 0
     for item in a:localvars
@@ -156,9 +156,9 @@ function! util#Set_Localvarlist(localvars)
     endfor
     let g:debugger.localvars_content = vars_content
     call runtime#Render_Localvars_Window()
-endfunction
+endfunction " }}}
 
-function! util#Get_Localvars(full_log, config)
+function! util#Get_Localvars(full_log, config) " {{{
     let vars = []
     let var_names = []
     let longest_nr = 0
@@ -187,4 +187,4 @@ function! util#Get_Localvars(full_log, config)
         endif
     endfor
     return vars
-endfunction
+endfunction " }}}

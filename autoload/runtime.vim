@@ -327,7 +327,7 @@ function! runtime#Terminal_Do_Nothing()
     let g:debugger.term_callback_hijacking = function("util#Do_Nothing")
     call timer_start(200,
             \ {-> util#Del_Term_Callback_Hijacking()},
-            \ {'repeat' : 1})
+             \ {'repeat' : 1})
 endfunction " }}}
 
 " Terminal do nothing but {{{
@@ -335,7 +335,7 @@ function! runtime#Terminal_Do_Nothing_But(fun_name)
     let g:debugger.term_callback_hijacking = function(a:fun_name)
     call timer_start(300,
             \ {-> util#Del_Term_Callback_Hijacking()},
-            \ {'repeat' : 1})
+             \ {'repeat' : 1})
 endfunction " }}}
 
 " set localvar window and callstack window statusline style {{{
@@ -427,7 +427,7 @@ function! runtime#Inspect_Set_BreakPoint()
     " If current file is original file or a new buf
     if exists("g:debugger") && (bufnr('') == g:debugger.original_bnr ||
                 \ index(g:debugger.bufs,bufname('%')) >= 0 ||
-                \ bufwinnr(bufnr('')) == g:debugger.original_winnr)
+                 \ bufwinnr(bufnr('')) == g:debugger.original_winnr)
         let line = line('.')
         let fname = expand("%:p")
         let breakpoint_contained = index(g:debugger.break_points, fname."|".line)
@@ -449,7 +449,7 @@ function! runtime#Inspect_Set_BreakPoint()
         endif
         call timer_start(200,
                 \ {-> util#Del_Term_Callback_Hijacking()},
-                \ {'repeat' : 1})
+                 \ {'repeat' : 1})
     else
         call s:Log_Msg('No response for break point setting.')
     endif
@@ -563,12 +563,12 @@ function! runtime#Term_Callback_Handler(channel, msg)
     endif
     if index([7,8,9,27], char2nr(a:msg)) >= 0 &&
                 \ !(len(msgslist) > 0 &&
-                \ s:String_Trim(msgslist[-1:][0]) =~ ("^". get(g:language_setup, "DebugPrompt")) . "$")
+                 \ s:String_Trim(msgslist[-1:][0]) =~ ("^". get(g:language_setup, "DebugPrompt")) . "$")
         return s:None_String_Output("首字符是 7 bell 8 退格 9 制表符 27 Esc, 且没有给出提示符")
     endif
     if index(ascii_msg, 27) >= 0 && char2nr(a:msg) != 27 &&
                 \ index(ascii_msg, 13) < 0 &&
-                \ get(g:language_setup, "language") != "javascript"
+                 \ get(g:language_setup, "language") != "javascript"
         return s:None_String_Output("首字符不是 ESC，但内容中含有 ESC 符号且没有回车13，说明正在输入")
     endif
     if ascii_msg[-1:] == [8]
@@ -645,7 +645,7 @@ function! s:HangUp_Sign()
     endif
     let g:debugger._setup_terminal_style_timer =  timer_start(70,
             \ {-> s:Set_Hangup_Terminal_Style(1)},
-            \ {'repeat' : 1})
+             \ {'repeat' : 1})
 endfunction " }}}
 
 " set hangup term style : 1 → normal styel, 2 → error style {{{
@@ -774,7 +774,7 @@ function! s:Debugger_Stop_Action(log) " {{{
         endif
         let g:debugger._setup_terminal_style_timer =  timer_start(80,
                 \ {-> s:Set_Hangup_Terminal_Style(0)},
-                \ {'repeat' : 1})
+                 \ {'repeat' : 1})
         let echo_msg = get(g:language_setup, "GetErrorMsg")(a:log)
         if type(break_msg) == type({})
             let echo_msg = pathshorten(break_msg.fname) . "(". string(break_msg.breakline) .") " . echo_msg
@@ -1189,14 +1189,6 @@ function! s:Cursor_Restore() " {{{
 endfunction " }}}
 
 function! runtime#Cursor_Restore() " {{{
-    " call s:Log_Msg("{{{")
-    " call s:Log_Msg("g:debugger.cursor_original_winid = ". g:debugger.cursor_original_winid)
-    " call s:Log_Msg("bufwinid(bufnr('')) = " . string(bufwinid(bufnr(""))))
-    " call s:Log_Msg(s:Term_Is_Running())
-    " call s:Log_Msg(g:debugger.cursor_original_winid != bufwinid(bufnr("")))
-    " call s:Log_Msg(g:debugger.cursor_original_winid != 0)
-    " call s:Log_Msg("}}}")
-
     if s:Term_Is_Running() &&
             \ g:debugger.cursor_original_winid != bufwinid(bufnr("")) &&
              \ g:debugger.cursor_original_winid != 0
