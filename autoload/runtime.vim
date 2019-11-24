@@ -1198,7 +1198,7 @@ endfunction " }}}
 
 function! s:Term_Is_Running() " {{{
     if exists("g:debugger") &&
-                \ term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+            \ term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
         return 1
     else
         return 0
