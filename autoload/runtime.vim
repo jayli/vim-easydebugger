@@ -577,6 +577,12 @@ function! runtime#Term_Callback_Handler(channel, msg)
     if uniq(ascii_msg) == [32]
         return s:None_String_Output("直接按Tab")
     endif
+    " TODO for #50
+    " c-v 粘贴进来的文本会根据这一行进行匹配，如果没有标点符号，基本就能匹配上
+    " ，由此拦截成功
+    " 但这个逻辑是不对的，c-v 应该被拦截，但不应该被这一句拦截，因为有好多误拦
+    " 另外粘贴进来的文本种类很多，不能穷举，如果有标点符号的话就完蛋了，所以要
+    " 找到一个更好的办法来拦截粘贴的文本。
     if a:msg =~ "^\\w\\+$"
         return s:None_String_Output("Tab匹配出了联想词")
     endif
