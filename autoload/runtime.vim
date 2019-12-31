@@ -169,7 +169,7 @@ function! s:Create_Debugger()
     exec 'sign define place_holder text='.g:debugger.prompt_stop_arrow.' texthl=PlaceHolder'
     " stop sign style, id=100
     exec 'sign define stop_point text='.g:debugger.prompt_stop_arrow.
-                \ ' texthl=StopPointTextStyle linehl=StopPointLineStyle'
+            \ ' texthl=StopPointTextStyle linehl=StopPointLineStyle'
     " break point sign id (same as index+1 or g:debugger.break_points)
     exec 'sign define break_point text='.g:debugger.prompt_break_point.' texthl=BreakPointStyle'
     return g:debugger
@@ -192,10 +192,10 @@ function! runtime#WebInspect_Init()
     endif
 
     let l:command = get(g:language_setup,'WebDebuggerCommandPrefix') .
-                \ ' ' . getbufinfo('%')[0].name
+            \ ' ' . getbufinfo('%')[0].name
     if has_key(g:language_setup, "LocalDebuggerCommandSufix")
         let l:full_command = s:String_Trim(l:command .
-                    \ ' ' . get(g:language_setup, "LocalDebuggerCommandSufix"))
+                \ ' ' . get(g:language_setup, "LocalDebuggerCommandSufix"))
     else
         let l:full_command = s:String_Trim(l:command)
     endif
@@ -216,7 +216,7 @@ function! s:Get_DebuggerEntry()
     for line in code_lines
         if line  =~ "^\\(#\\|\"\\|//\\)\\s\\{-}debugger_entry\\s\\{-}="
             let filename = matchstr(line ,
-                        \ "\\(\\s\\{-}debugger_entry\\s\\{-}=\\s\\{-}\\)\\@<=\\S\\+")
+                    \ "\\(\\s\\{-}debugger_entry\\s\\{-}=\\s\\{-}\\)\\@<=\\S\\+")
             if filename =~ "^\\~/"
                 let filename = expand(filename)
             endif
@@ -252,7 +252,7 @@ function! runtime#Inspect_Init()
     let l:command = get(g:language_setup,'LocalDebuggerCommandPrefix') . ' ' . debug_filename
     if has_key(g:language_setup, "LocalDebuggerCommandSufix")
         let l:full_command = s:String_Trim(l:command . ' ' .
-                    \ get(g:language_setup, "LocalDebuggerCommandSufix"))
+                \ get(g:language_setup, "LocalDebuggerCommandSufix"))
     else
         let l:full_command = s:String_Trim(l:command)
     endif
@@ -290,7 +290,7 @@ function! runtime#Inspect_Init()
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr(''))
     let g:debugger.localvars_winid = bufwinid(bufnr(""))
     if has_key(g:language_setup,"ShowLocalVarsWindow") &&
-                \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
+            \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
         " default hight of localvar window 10
         exec "abo " . (winheight(localvars_winnr) - 11) . "new"
     endif
@@ -480,7 +480,7 @@ function! runtime#Reset_Editor(...)
     call g:Goto_Sourcecode_Window()
     " If current buf is not original buf, switch to original buf first
     if g:debugger.original_bufname !=  bufname('%') &&
-                \ g:debugger.original_bufname != fnameescape(fnamemodify(bufname('%'),':p'))
+            \ g:debugger.original_bufname != fnameescape(fnamemodify(bufname('%'),':p'))
         exec ":b ". g:debugger.original_bufname
     endif
     call s:Debugger_Del_TmpBuf()
@@ -562,13 +562,13 @@ function! runtime#Term_Callback_Handler(channel, msg)
         return s:None_String_Output("带有方向键字符，说明正在输入")
     endif
     if index([7,8,9,27], char2nr(a:msg)) >= 0 &&
-                \ !(len(msgslist) > 0 &&
-                 \ s:String_Trim(msgslist[-1:][0]) =~ ("^". get(g:language_setup, "DebugPrompt")) . "$")
+            \ !(len(msgslist) > 0 &&
+             \ s:String_Trim(msgslist[-1:][0]) =~ ("^". get(g:language_setup, "DebugPrompt")) . "$")
         return s:None_String_Output("首字符是 7 bell 8 退格 9 制表符 27 Esc, 且没有给出提示符")
     endif
     if index(ascii_msg, 27) >= 0 && char2nr(a:msg) != 27 &&
-                \ index(ascii_msg, 13) < 0 &&
-                 \ get(g:language_setup, "language") != "javascript"
+            \ index(ascii_msg, 13) < 0 &&
+             \ get(g:language_setup, "language") != "javascript"
         return s:None_String_Output("首字符不是 ESC，但内容中含有 ESC 符号且没有回车13，说明正在输入")
     endif
     if ascii_msg[-1:] == [8]
