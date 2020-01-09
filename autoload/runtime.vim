@@ -289,22 +289,35 @@ function! runtime#Inspect_Init()
     let g:debugger.localvars_winnr = localvars_winnr
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr(''))
     let g:debugger.localvars_winid = bufwinid(bufnr(""))
+    let g:debug_log_window = "___________debug_log_window_". localtime()
     if has_key(g:language_setup,"ShowLocalVarsWindow") &&
             \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
         " default hight of localvar window 10
-        exec "abo " . (winheight(localvars_winnr) - 11) . "new"
+        exec "abo " . (winheight(localvars_winnr) - 11) . "new ". g:debug_log_window
+        call execute("setlocal buftype=prompt")
+        call execute('setlocal nonu')
     endif
     " }}}
 
-    call term_start(l:full_command,{
-        \ 'term_finish': 'close',
-        \ 'term_name':get(g:debugger,'debugger_window_name') ,
-        \ 'vertical':'1',
-        \ 'curwin':'1',
+    " call term_start(l:full_command,{
+    "     \ 'term_finish': 'close',
+    "     \ 'term_name':get(g:debugger,'debugger_window_name') ,
+    "     \ 'vertical':'1',
+    "     \ 'curwin':'1',
+    "     \ 'norestore':'1',
+    "     \ 'out_cb':'runtime#Term_Callback_Handler',
+    "     \ 'out_timeout':400,
+    "     \ 'exit_cb':'runtime#Reset_Editor',
+    "     \ })
+    " jayli {{{ ------------------
+    let g:job = job_start(l:full_command,{
         \ 'out_cb':'runtime#Term_Callback_Handler',
-        \ 'out_timeout':400,
         \ 'exit_cb':'runtime#Reset_Editor',
+        \ 'out_io':'buffer',
+        \ 'out_name':g:debug_log_window
         \ })
+    " call job_setoptions(g:job,{"out_io":"buffer","out_name":"debug_log_window"})
+    return
     call execute('setlocal nonu')
     let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
     " <CR>(Enter) Key linster in terminal. Do sth else when necessary.
@@ -312,6 +325,7 @@ function! runtime#Inspect_Init()
     " 监听上下键：
     " <Up> and <Down> is for showing history cmd. Should exlude them
     " <C-\><C-n> will cause pdb crash(I don't know why)，replace them to <C-W><S-N>
+    " jayli }}} ------------------
     tnoremap <silent> <Up> <C-W>:call runtime#Terminal_Do_Nothing()<CR><Up>
     tnoremap <silent> <Down> <C-W>:call runtime#Terminal_Do_Nothing()<CR><Down>
     call term_wait(get(g:debugger,'debugger_window_name'))
@@ -530,6 +544,7 @@ endfunction " }}}
 
 " Terminal callback {{{
 function! runtime#Term_Callback_Handler(channel, msg)
+    call util#Log_Msg(a:msg)
     call s:log('------------------------------out_cb----------------------------{{')
     call s:log('msg 原始信息字符串 ' . a:msg)
     call s:log('msg 原始信息Ascii  ' . join(util#ascii(a:msg), " "))
