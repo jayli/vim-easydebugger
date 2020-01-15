@@ -135,7 +135,21 @@ function! s:Create_Debugger()
     let g:debugger.localvars_bufinfo     = 0
     let g:debugger.localvars_bufnr       = 0
 
+    let g:debugger.prompt_winid = 0
+    let g:debugger.prompt_winnr = 0
+    let g:debugger.prompt_bufinfo = 0
+    let g:debugger.prompt_bufnr = 0
+
+    let g:debugger.prompt_bridge_bufinfo = 0
+    let g:debugger.prompt_bridge_bufnr = 0
+
+    let g:debugger.debug_winid = 0
+    let g:debugger.debug_winnr = 0
+    let g:debugger.debug_bufinfo = 0
+    let g:debugger.debug_bufnr = 0
+
     let g:debugger.tagbar_loaded         = 0
+    let g:debugger.prompt_str = '$ > '
 
     " break_points: ['a.js|3','t/b.js|34']
     " indexs in break_points list are sign id
@@ -288,14 +302,39 @@ function! runtime#Inspect_Init()
     let g:debugger.localvars_winnr = localvars_winnr
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr(''))
     let g:debugger.localvars_winid = bufwinid(bufnr(""))
-    if has_key(g:language_setup,"ShowLocalVarsWindow") &&
-            \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
+    " if has_key(g:language_setup,"ShowLocalVarsWindow") &&
+    "         \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
         " default hight of localvar window 10
-        exec "abo " . (winheight(localvars_winnr) - 11) . "new ". get(g:debugger,'debugger_window_name')
+        exec "" . (winheight(localvars_winnr) - 11) . "new debug_input_prompt"
         call execute("setlocal buftype=prompt")
         call execute('setlocal filetype=text')
         call execute('setlocal nonu')
-    endif
+        call execute('setlocal statusline=--------------------------------------')
+        call prompt_setprompt(bufnr(''), '')
+        let prompt_winnr = winnr()
+        let g:debugger.prompt_winnr = prompt_winnr
+        let g:debugger.prompt_bufinfo = getbufinfo(bufnr(''))
+        let g:debugger.prompt_winid = bufwinid(bufnr(""))
+
+        " exec "new debug_input_prompt_bridge"
+        " call execute("setlocal buftype=prompt")
+        " call execute('setlocal filetype=text')
+        " let g:debugger.prompt_bridge_bufinfo = getbufinfo(bufnr(''))
+        " let g:debugger.prompt_bridge_bufnr = bufnr('')
+        " call prompt_setcallback(g:debugger.prompt_bridge_bufnr, 'runtime#Prompt_Callback'))
+        " call execute('setlocal bufhidden=hide')
+
+        exec "" . (winheight(prompt_winnr) - 3) . "new ". get(g:debugger,'debugger_window_name')
+        call execute("setlocal buftype=nofile")
+        call execute('setlocal filetype=text')
+        call execute('setlocal nonu')
+        call execute('setlocal statusline=--------------------------------------')
+        let debug_winnr = winnr()
+        let g:debugger.debug_winnr = debug_winir 
+        let g:debugger.debug_bufinfo = getbufinfo(bufnr(''))
+        let g:debugger.debug_winid = bufwinid(bufnr(""))
+
+   " endif
 
     " }}}
 
@@ -315,7 +354,11 @@ function! runtime#Inspect_Init()
         \ 'exit_cb':'runtime#Reset_Editor',
         \ 'out_io':'buffer',
         \ 'out_name':get(g:debugger,'debugger_window_name'),
+        \ 'in_io':'buffer',
+        \ 'in_name': 'debug_input_prompt',
+        \ 'in_top':0
         \ })
+    let g:debugger.channel = job_getchannel(g:debugger.job)
     " call job_setoptions(g:job,{"out_io":"buffer","out_name":get(g:debugger,'debugger_window_name')})
     let g:debugger.debug_winid = bufwinid(get(g:debugger,'debugger_window_name'))
     " <CR>(Enter) Key linster in terminal. Do sth else when necessary.
