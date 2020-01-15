@@ -82,7 +82,7 @@ function! s:Build_Command()
 endfunction " }}}
 
 function! easydebugger#Exit_SourceCode() " {{{
-    if runtime#Term_Is_Running() && g:debugger.original_winid  == bufwinid(bufnr(""))
+    if runtime#Job_Is_Running() && g:debugger.original_winid  == bufwinid(bufnr(""))
         call easydebugger#Inspect_Exit()
         call execute("split " . expand("%:p"), "silent!")
     endif
@@ -100,7 +100,7 @@ function! s:Create_Lang_Setup()
         call s:Global_Setup()
     endif
 
-    if exists("g:debugger") && term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+    if runtime#Job_Is_Running()
         " If debugger is running or cursor is in stack window or localvar window
         let ft = g:debugger.language
         call execute('let g:language_setup = debugger#'. ft .'#Setup()' )
@@ -213,9 +213,13 @@ function! s:Language_Supported(...)
 endfunction "}}}
 
 function! s:Get_Filetype() "{{{
-    return &filetype == "javascript.jsx" ? "javascript" : &filetype
+    return util#Get_FileType()
 endfunction "}}}
 
 function! s:Log_Msg(msg)
     call util#Log_Msg(a:msg)
 endfunction
+
+function! s:log(msg) " {{{
+    return util#log(a:msg)
+endfunction " }}}

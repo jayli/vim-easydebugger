@@ -172,7 +172,7 @@ Terminal 窗口如何滚动：进入 Terminal-Normal 模式即可，光标在 Te
     |                               |                               |
     |                               |                               |
     |        Source Window          |         Debug Window          |
-    |    g:debugger.original_winid  |     g:debugger.term_winid     |
+    |    g:debugger.original_winid  |     g:debugger.debug_winid     |
     |                               |                               |
     |                               |                               |
     |_______________________________|_______________________________|

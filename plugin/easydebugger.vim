@@ -8,7 +8,7 @@
 " ╚╗╔╝││││  ║╣ ├─┤└─┐└┬┘ ║║├┤ ├┴┐│ ││ ┬│ ┬├┤ ├┬┘
 "  ╚╝ ┴┴ ┴  ╚═╝┴ ┴└─┘ ┴ ═╩╝└─┘└─┘└─┘└─┘└─┘└─┘┴└─
 
-let g:easydebugger_logging = 0
+let g:easydebugger_logging = 1
 
 if version < 800
     finish

@@ -6,7 +6,7 @@
 "  |                               |                               |
 "  |                               |                               |
 "  |        Source Window          |         Debug Window          |
-"  |    g:debugger.original_winid  |     g:debugger.term_winid     |
+"  |    g:debugger.original_winid  |     g:debugger.debug_winid     |
 "  |                               |                               |
 "  |                               |                               |
 "  |_______________________________|_______________________________|
@@ -99,7 +99,7 @@ function! s:Create_Debugger()
         let g:debugger_window_id += 1
     endif
     " debug window name is different every time (same is ok)
-    let g:debugger.debugger_window_name = "dw" . g:debugger_window_id
+    let g:debugger.debugger_window_name = "dw" . g:debugger_window_id . localtime() .".py"
     let g:debugger.original_bnr         = bufnr('')
     " winnr is non-uniqueness. I can not identfy window by winnr, use bufinfo instead
     let g:debugger.original_winnr        = winnr()
@@ -177,7 +177,7 @@ endfunction " }}}
 
 " Nodejs Chrome devtools startup {{{
 function! runtime#WebInspect_Init()
-    if s:Term_Is_Running()
+    if s:Job_Is_Running()
         return s:Log_Msg("Please terminate the running debugger first.")
     endif
 
@@ -233,7 +233,7 @@ endfunction " }}}
 
 " Inspect init {{{
 function! runtime#Inspect_Init()
-    if s:Term_Is_Running()
+    if s:Job_Is_Running()
         return s:Log_Msg("Please terminate the running debugger first.")
     endif
 
@@ -269,7 +269,6 @@ function! runtime#Inspect_Init()
         endif
     endif
     " }}}
-
     call runtime#Reset_Editor('silently')
 
     " ---Startup Terminal---
@@ -289,14 +288,15 @@ function! runtime#Inspect_Init()
     let g:debugger.localvars_winnr = localvars_winnr
     let g:debugger.localvars_bufinfo = getbufinfo(bufnr(''))
     let g:debugger.localvars_winid = bufwinid(bufnr(""))
-    let g:debug_log_window = "___________debug_log_window_". localtime()
     if has_key(g:language_setup,"ShowLocalVarsWindow") &&
             \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
         " default hight of localvar window 10
-        exec "abo " . (winheight(localvars_winnr) - 11) . "new ". g:debug_log_window
+        exec "abo " . (winheight(localvars_winnr) - 11) . "new ". get(g:debugger,'debugger_window_name')
         call execute("setlocal buftype=prompt")
+        call execute('setlocal filetype=text')
         call execute('setlocal nonu')
     endif
+
     " }}}
 
     " call term_start(l:full_command,{
@@ -310,25 +310,24 @@ function! runtime#Inspect_Init()
     "     \ 'exit_cb':'runtime#Reset_Editor',
     "     \ })
     " jayli {{{ ------------------
-    let g:job = job_start(l:full_command,{
+    let g:debugger.job = job_start(l:full_command,{
         \ 'out_cb':'runtime#Term_Callback_Handler',
         \ 'exit_cb':'runtime#Reset_Editor',
         \ 'out_io':'buffer',
-        \ 'out_name':g:debug_log_window
+        \ 'out_name':get(g:debugger,'debugger_window_name'),
         \ })
-    " call job_setoptions(g:job,{"out_io":"buffer","out_name":"debug_log_window"})
-    return
-    call execute('setlocal nonu')
-    let g:debugger.term_winid = bufwinid(get(g:debugger,'debugger_window_name'))
+    " call job_setoptions(g:job,{"out_io":"buffer","out_name":get(g:debugger,'debugger_window_name')})
+    let g:debugger.debug_winid = bufwinid(get(g:debugger,'debugger_window_name'))
     " <CR>(Enter) Key linster in terminal. Do sth else when necessary.
-    tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i
+    " tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i
     " 监听上下键：
     " <Up> and <Down> is for showing history cmd. Should exlude them
     " <C-\><C-n> will cause pdb crash(I don't know why)，replace them to <C-W><S-N>
     " jayli }}} ------------------
-    tnoremap <silent> <Up> <C-W>:call runtime#Terminal_Do_Nothing()<CR><Up>
-    tnoremap <silent> <Down> <C-W>:call runtime#Terminal_Do_Nothing()<CR><Down>
-    call term_wait(get(g:debugger,'debugger_window_name'))
+    " tnoremap <silent> <Up> <C-W>:call runtime#Terminal_Do_Nothing()<CR><Up>
+    " tnoremap <silent> <Down> <C-W>:call runtime#Terminal_Do_Nothing()<CR><Down>
+
+
     call s:Debugger_Stop_Action(g:debugger.log)
 
     if has_key(g:language_setup, "TermSetupScript")
@@ -369,7 +368,7 @@ function! runtime#Inspect_Cont()
     if !exists('g:debugger')
         return s:Log_Msg("Please startup debugger first.")
     endif
-    if len(get(g:debugger,'bufs')) != 0 && s:Term_Is_Running()
+    if len(get(g:debugger,'bufs')) != 0 && s:Job_Is_Running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_continue."\<CR>")
     endif
 endfunction " }}}
@@ -382,7 +381,7 @@ function! runtime#Inspect_Next()
     if !exists('g:debugger')
         return s:Log_Msg("Please startup debugger first.")
     endif
-    if len(get(g:debugger,'bufs')) != 0 && s:Term_Is_Running()
+    if len(get(g:debugger,'bufs')) != 0 && s:Job_Is_Running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_next."\<CR>")
     endif
 endfunction " }}}
@@ -395,7 +394,7 @@ function! runtime#Inspect_Step()
     if !exists('g:debugger')
         return s:Log_Msg("Please startup debugger first.")
     endif
-    if len(get(g:debugger,'bufs')) != 0 && s:Term_Is_Running()
+    if len(get(g:debugger,'bufs')) != 0 && s:Job_Is_Running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_stepin."\<CR>")
     endif
 endfunction " }}}
@@ -408,7 +407,7 @@ function! runtime#Inspect_Out()
     if !exists('g:debugger')
         return s:Log_Msg("Please startup debugger first.")
     endif
-    if len(get(g:debugger,'bufs')) != 0 && s:Term_Is_Running()
+    if len(get(g:debugger,'bufs')) != 0 && s:Job_Is_Running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_stepout."\<CR>")
     endif
 endfunction " }}}
@@ -421,14 +420,14 @@ function! runtime#Inspect_Pause()
     if !exists('g:debugger')
         return s:Log_Msg("Please startup debugger first.")
     endif
-    if len(get(g:debugger,'bufs')) != 0 && s:Term_Is_Running()
+    if len(get(g:debugger,'bufs')) != 0 && s:Job_Is_Running()
         call term_sendkeys(get(g:debugger,'debugger_window_name'), g:language_setup.ctrl_cmd_pause."\<CR>")
     endif
 endfunction " }}}
 
 " toggle break points，press F12 {{{
 function! runtime#Inspect_Set_BreakPoint()
-    if !s:Term_Is_Running()
+    if !s:Job_Is_Running()
         return s:Log_Msg("Please startup debugger first.")
     endif
     let current_winid = bufwinid(bufnr(""))
@@ -593,13 +592,13 @@ function! runtime#Term_Callback_Handler(channel, msg)
         return s:None_String_Output("直接按Tab")
     endif
     " bugfix for #50
-    " 如果是单行输出，且结尾为回车，则认为是print输出，属于挂起，否则不属于挂起
-    if len(msgslist) == 1 && !(
-            \   len(ascii_msg) >= 3 && 
-             \  ascii_msg[-1:][0] == 10 && 
-              \ ascii_msg[-2:-1][0] == 13)
-        return s:None_String_Output("不是程序正常print输出，很有可能是ctrl-v")
-    endif
+    " for terminal only: 如果是单行输出，且结尾为回车，则认为是print输出，属于挂起，否则不属于挂起
+    " if len(msgslist) == 1 && !(
+    "         \   len(ascii_msg) >= 3 && 
+    "          \  ascii_msg[-1:][0] == 10 && 
+    "           \ ascii_msg[-2:-1][0] == 13)
+    "     return s:None_String_Output("不是程序正常print输出，很有可能是ctrl-v")
+    " endif
     if a:msg =~ "^\\w\\+$"
         return s:None_String_Output("Tab匹配出了联想词")
     endif
@@ -783,7 +782,7 @@ function! s:Show_Close_Msg() " {{{
 endfunction " }}}
 
 function! s:Debugger_Stop_Action(log) " {{{
-    if !s:Term_Is_Running()
+    if !s:Job_Is_Running()
         return s:Log_Msg("Terminal is running.")
     endif
     let break_msg = s:Get_Term_Stop_Msg(a:log)
@@ -949,8 +948,8 @@ function! g:Goto_Sourcecode_Window() " {{{
 endfunction " }}}
 
 function! g:Goto_Terminal_Window() " {{{
-    if s:Term_Is_Running()
-        call g:Goto_Window(get(g:debugger,'term_winid'))
+    if s:Job_Is_Running()
+        call g:Goto_Window(get(g:debugger,'debug_winid'))
     endif
 endfunction " }}}
 
@@ -1008,14 +1007,14 @@ function! s:Create_Varwindow() " {{{
                 \ get(g:language_setup, 'ShowLocalVarsWindow') == 1)
         return s:Log_Msg("This language dos not support localvars.")
     endif
-    if !s:Term_Is_Running()
+    if !s:Job_Is_Running()
         return s:Log_Msg("Debugger is not running.")
     endif
     if runtime#Localvar_Window_Is_On()
         return s:Log_Msg("Localvar window is exists.")
     endif
     let current_winid = bufwinid(bufnr(""))
-    if g:debugger.term_winid != current_winid
+    if g:debugger.debug_winid != current_winid
         call g:Goto_Terminal_Window()
     endif
 
@@ -1109,7 +1108,7 @@ function! s:Create_stackwindow() " {{{
     exec s:Get_Cfg_List_Window_Wtatus_Cmd()
     call s:Add_Jump_Mapping()
     call g:Goto_Window(current_winid)
-    if s:Term_Is_Running()
+    if s:Job_Is_Running()
         call runtime#Render_Stack_window()
     endif
 endfunction " }}}
@@ -1181,7 +1180,7 @@ function! s:Close_Term()
     call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>\<C-C>\<C-C>")
     if exists('g:debugger') && g:debugger.original_winid != bufwinid(bufnr(""))
         call feedkeys("\<C-C>\<C-C>", 't')
-        unlet g:debugger.term_winid
+        unlet g:debugger.debug_winid
     endif
     call execute('redraw','silent!')
     call s:Log_Msg("Node Inspector terminated.")
@@ -1189,20 +1188,20 @@ endfunction " }}}
 
 function! runtime#Close_Term() " {{{
     call s:Clean_Hangup_Terminal_Style()
-    if !s:Term_Is_Running()
+    if !s:Job_Is_Running()
         return s:Log_Msg("Debugger is not running.")
     endif
     call term_sendkeys(get(g:debugger,'debugger_window_name'),"\<CR>exit\<CR>")
     call term_wait(get(g:debugger,'debugger_window_name'))
-    if has_key(g:debugger, 'term_winid')
-        unlet g:debugger.term_winid
+    if has_key(g:debugger, 'debug_winid')
+        unlet g:debugger.debug_winid
     endif
     call execute('redraw','silent!')
     call s:Log_Msg("Debug terminated.")
 endfunction " }}}
 
 function! runtime#Mark_Cursor_Position() "{{{
-    if s:Term_Is_Running()
+    if s:Job_Is_Running()
         let g:debugger.cursor_original_winid = bufwinid(bufnr(""))
     endif
 endfunction " }}}
@@ -1212,24 +1211,27 @@ function! s:Cursor_Restore() " {{{
 endfunction " }}}
 
 function! runtime#Cursor_Restore() " {{{
-    if s:Term_Is_Running() &&
+    if s:Job_Is_Running() &&
             \ g:debugger.cursor_original_winid != bufwinid(bufnr("")) &&
              \ g:debugger.cursor_original_winid != 0
         call g:Goto_Window(g:debugger.cursor_original_winid)
     endif
 endfunction " }}}
 
-function! s:Term_Is_Running() " {{{
-    if exists("g:debugger") &&
-            \ term_getstatus(get(g:debugger,'debugger_window_name')) == 'running'
+function! s:Job_Is_Running() " {{{
+    if !exists("g:debugger")
+        return 0
+    endif
+
+    if exists("g:debugger.job") && job_status(g:debugger.job) == "run"
         return 1
     else
         return 0
     endif
 endfunction " }}}
 
-function! runtime#Term_Is_Running() " {{{
-    return s:Term_Is_Running()
+function! runtime#Job_Is_Running() " {{{
+    return s:Job_Is_Running()
 endfunction " }}}
 
 " Special cmd handler: for example, typein 'exit' to close terminal {{{

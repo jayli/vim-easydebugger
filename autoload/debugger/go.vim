@@ -121,7 +121,7 @@ function! s:Set_stackslist(stacks)
     endif
     call setbufvar(bufnr, '&modifiable', 0)
     let g:debugger.stacks_bufinfo = getbufinfo(bufnr)
-    call g:Goto_Window(get(g:debugger,'term_winid'))
+    call g:Goto_Window(get(g:debugger,'debug_winid'))
     call execute('redraw','silent!')
 endfunction
 

@@ -116,7 +116,7 @@ Debug mode windows:
     |                               |                               |
     |                               |                               |
     |        Source Window          |         Debug Window          |
-    |    g:debugger.original_winid  |     g:debugger.term_winid     |
+    |    g:debugger.original_winid  |     g:debugger.debug_winid     |
     |                               |                               |
     |                               |                               |
     |_______________________________|_______________________________|

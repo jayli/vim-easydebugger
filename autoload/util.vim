@@ -28,6 +28,10 @@ function! util#Echo_Msg(msg, style_group)
     return a:msg
 endfunction " }}}
 
+function! util#Get_FileType()
+    return &filetype == "javascript.jsx" ? "javascript" : &filetype
+endfunction
+
 " deletebufline {{{
 function! util#deletebufline(bn, fl, ll)
     " version <= 801 deletebufline dos not exists
