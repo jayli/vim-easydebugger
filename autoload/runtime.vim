@@ -305,7 +305,7 @@ function! runtime#Inspect_Init()
     " if has_key(g:language_setup,"ShowLocalVarsWindow") &&
     "         \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
         " default hight of localvar window 10
-        exec "" . (winheight(localvars_winnr) - 11) . "new debug_input_prompt"
+        exec "abo " . (winheight(localvars_winnr) - 11) . "new debug_input_prompt"
         call execute("setlocal buftype=prompt")
         call execute('setlocal filetype=text')
         call execute('setlocal nonu')
@@ -315,6 +315,7 @@ function! runtime#Inspect_Init()
         let g:debugger.prompt_winnr = prompt_winnr
         let g:debugger.prompt_bufinfo = getbufinfo(bufnr(''))
         let g:debugger.prompt_winid = bufwinid(bufnr(""))
+        call prompt_setcallback(g:debugger.prompt_winnr, 'runtime#Prompt_Callback'))
 
         " exec "new debug_input_prompt_bridge"
         " call execute("setlocal buftype=prompt")
@@ -324,15 +325,15 @@ function! runtime#Inspect_Init()
         " call prompt_setcallback(g:debugger.prompt_bridge_bufnr, 'runtime#Prompt_Callback'))
         " call execute('setlocal bufhidden=hide')
 
-        exec "" . (winheight(prompt_winnr) - 3) . "new ". get(g:debugger,'debugger_window_name')
-        call execute("setlocal buftype=nofile")
-        call execute('setlocal filetype=text')
-        call execute('setlocal nonu')
-        call execute('setlocal statusline=--------------------------------------')
-        let debug_winnr = winnr()
-        let g:debugger.debug_winnr = debug_winir 
-        let g:debugger.debug_bufinfo = getbufinfo(bufnr(''))
-        let g:debugger.debug_winid = bufwinid(bufnr(""))
+        " exec "" . (winheight(prompt_winnr) - 3) . "new ". get(g:debugger,'debugger_window_name')
+        " call execute("setlocal buftype=nofile")
+        " call execute('setlocal filetype=text')
+        " call execute('setlocal nonu')
+        " call execute('setlocal statusline=--------------------------------------')
+        " let debug_winnr = winnr()
+        " let g:debugger.debug_winnr = debug_winir
+        " let g:debugger.debug_bufinfo = getbufinfo(bufnr(''))
+        " let g:debugger.debug_winid = bufwinid(bufnr(""))
 
    " endif
 
@@ -353,7 +354,7 @@ function! runtime#Inspect_Init()
         \ 'out_cb':'runtime#Term_Callback_Handler',
         \ 'exit_cb':'runtime#Reset_Editor',
         \ 'out_io':'buffer',
-        \ 'out_name':get(g:debugger,'debugger_window_name'),
+        \ 'out_name':'debug_input_prompt',
         \ 'in_io':'buffer',
         \ 'in_name': 'debug_input_prompt',
         \ 'in_top':0
@@ -377,6 +378,10 @@ function! runtime#Inspect_Init()
         call get(g:language_setup,"TermSetupScript")()
     endif
 endfunction "}}}
+
+function! runtime#Prompt_Callback(text)
+    call s:log(a:text)
+endfunction
 
 " Terminal do nothing {{{
 function! runtime#Terminal_Do_Nothing()
