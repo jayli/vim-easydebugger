@@ -305,17 +305,17 @@ function! runtime#Inspect_Init()
     " if has_key(g:language_setup,"ShowLocalVarsWindow") &&
     "         \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
         " default hight of localvar window 10
-        exec "abo " . (winheight(localvars_winnr) - 11) . "new debug_input_prompt"
+        "exec "abo " . (winheight(localvars_winnr) - 11) . "new ".get(g:debugger,'debugger_window_name')
+        exec "" . (winheight(localvars_winnr) - 11) . "new debug.py"
         call execute("setlocal buftype=prompt")
         call execute('setlocal filetype=text')
         call execute('setlocal nonu')
-        call execute('setlocal statusline=--------------------------------------')
-        call prompt_setprompt(bufnr(''), '')
+        " call prompt_setprompt(bufnr(''), '')
         let prompt_winnr = winnr()
         let g:debugger.prompt_winnr = prompt_winnr
         let g:debugger.prompt_bufinfo = getbufinfo(bufnr(''))
         let g:debugger.prompt_winid = bufwinid(bufnr(""))
-        call prompt_setcallback(g:debugger.prompt_winnr, 'runtime#Prompt_Callback'))
+        " call prompt_setcallback(g:debugger.prompt_winnr, 'runtime#Prompt_Callback')
 
         " exec "new debug_input_prompt_bridge"
         " call execute("setlocal buftype=prompt")
@@ -354,14 +354,11 @@ function! runtime#Inspect_Init()
         \ 'out_cb':'runtime#Term_Callback_Handler',
         \ 'exit_cb':'runtime#Reset_Editor',
         \ 'out_io':'buffer',
-        \ 'out_name':'debug_input_prompt',
-        \ 'in_io':'buffer',
-        \ 'in_name': 'debug_input_prompt',
-        \ 'in_top':0
+        \ 'out_name':"debug.py",
         \ })
     let g:debugger.channel = job_getchannel(g:debugger.job)
     " call job_setoptions(g:job,{"out_io":"buffer","out_name":get(g:debugger,'debugger_window_name')})
-    let g:debugger.debug_winid = bufwinid(get(g:debugger,'debugger_window_name'))
+    let g:debugger.debug_winid = bufwinid("debug.py")
     " <CR>(Enter) Key linster in terminal. Do sth else when necessary.
     " tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i
     " 监听上下键：
@@ -370,7 +367,6 @@ function! runtime#Inspect_Init()
     " jayli }}} ------------------
     " tnoremap <silent> <Up> <C-W>:call runtime#Terminal_Do_Nothing()<CR><Up>
     " tnoremap <silent> <Down> <C-W>:call runtime#Terminal_Do_Nothing()<CR><Down>
-
 
     call s:Debugger_Stop_Action(g:debugger.log)
 
