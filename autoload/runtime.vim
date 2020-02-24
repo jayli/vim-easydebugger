@@ -306,7 +306,7 @@ function! runtime#Inspect_Init()
     "         \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
         " default hight of localvar window 10
         "exec "abo " . (winheight(localvars_winnr) - 11) . "new ".get(g:debugger,'debugger_window_name')
-        exec "" . (winheight(localvars_winnr) - 11) . "new debug.py"
+        exec "" . (winheight(localvars_winnr) - 11) . "new debug.txt"
         call execute("setlocal buftype=prompt")
         call execute('setlocal filetype=text')
         call execute('setlocal nonu')
@@ -354,11 +354,11 @@ function! runtime#Inspect_Init()
         \ 'out_cb':'runtime#Term_Callback_Handler',
         \ 'exit_cb':'runtime#Reset_Editor',
         \ 'out_io':'buffer',
-        \ 'out_name':"debug.py",
+        \ 'out_name':"debug.txt",
         \ })
     let g:debugger.channel = job_getchannel(g:debugger.job)
     " call job_setoptions(g:job,{"out_io":"buffer","out_name":get(g:debugger,'debugger_window_name')})
-    let g:debugger.debug_winid = bufwinid("debug.py")
+    let g:debugger.debug_winid = bufwinid("debug.txt")
     " <CR>(Enter) Key linster in terminal. Do sth else when necessary.
     " tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i
     " 监听上下键：
