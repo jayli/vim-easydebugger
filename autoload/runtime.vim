@@ -135,18 +135,18 @@ function! s:Create_Debugger()
     let g:debugger.localvars_bufinfo     = 0
     let g:debugger.localvars_bufnr       = 0
 
-    let g:debugger.prompt_winid = 0
-    let g:debugger.prompt_winnr = 0
-    let g:debugger.prompt_bufinfo = 0
-    let g:debugger.prompt_bufnr = 0
+    let g:debugger.prompt_winid          = 0
+    let g:debugger.prompt_winnr          = 0
+    let g:debugger.prompt_bufinfo        = 0
+    let g:debugger.prompt_bufnr          = 0
 
     let g:debugger.prompt_bridge_bufinfo = 0
-    let g:debugger.prompt_bridge_bufnr = 0
+    let g:debugger.prompt_bridge_bufnr   = 0
 
-    let g:debugger.debug_winid = 0
-    let g:debugger.debug_winnr = 0
-    let g:debugger.debug_bufinfo = 0
-    let g:debugger.debug_bufnr = 0
+    let g:debugger.debug_winid           = 0
+    let g:debugger.debug_winnr           = 0
+    let g:debugger.debug_bufinfo         = 0
+    let g:debugger.debug_bufnr           = 0
 
     let g:debugger.tagbar_loaded         = 0
     let g:debugger.prompt_str = '$ > '
