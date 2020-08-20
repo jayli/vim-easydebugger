@@ -1,6 +1,6 @@
 " File:         util.vim
 " Author:       @jayli
-" Description:  util tools
+" Description:  util tools and functions
 
 " Debug logging {{{
 function! util#log(msg)
