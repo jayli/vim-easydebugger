@@ -2,17 +2,17 @@
 
 [中文](README.md) | [English](README-en.md)
 
-![Vim](https://img.shields.io/badge/vim-awesome-brightgreen.svg) [![Gitter](https://img.shields.io/badge/gitter-join%20chat-yellowgreen.svg)](https://gitter.im/jayli/vim-easydebugger) [![Join the chat at https://gitter.im/jayli/vim-easydebugger](https://badges.gitter.im/jayli/vim-easydebugger.svg)](https://gitter.im/jayli/vim-easydebugger?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![](https://img.shields.io/badge/Linux-available-brightgreen.svg) ![](https://img.shields.io/badge/MacOS-available-brightgreen.svg) ![](https://img.shields.io/badge/:%20h-easydebugger-orange.svg) ![](https://img.shields.io/badge/license-MIT-blue.svg) 
+[![Join the chat at https://gitter.im/jayli/vim-easydebugger](https://badges.gitter.im/jayli/vim-easydebugger.svg)](https://gitter.im/jayli/vim-easydebugger?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![](https://img.shields.io/badge/Linux-available-brightgreen.svg) ![](https://img.shields.io/badge/MacOS-available-brightgreen.svg) ![](https://img.shields.io/badge/license-MIT-blue.svg)
 
-VIM 的调试器插件（[演示](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif)，以 Python 语言为例） @author：[Jayli](http://jayli.github.io/)
+（[演示](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif)） @author：[Jayli](http://jayli.github.io/)
 
-![](https://raw.githubusercontent.com/jayli/jayli.github.com/master/photo/assets/python_demo.gif?t=5)
+<img src="https://gw.alicdn.com/tfs/TB1fpLNf.z1gK0jSZLeXXb9kVXa-993-575.gif" width=660>
 
 ### VIM 调试器简介
 
-Easy-Debugger 是基于 VimL 和 Terminal 实现的一个简单的调试器，支持 VIM 8.1 及以上版本。支持三个语言（js、python、go），需要 JS 运行环境 [node](https://nodejs.org)、Go 调试器 [Delve](https://github.com/derekparker/delve)、Python 调试工具 [PDB](https://docs.python.org/3/library/pdb.html)。
+Easy-Debugger 是 VIM 逐行调试器插件，支持 VIM 8.1 及以上版本，和三种语言（js、python、go）。
 
-参考这些调试器的实现：
+已有调试器插件梳理：
 
 <table>
 <tr>
@@ -220,16 +220,13 @@ NodeJS 提供了基于 Chrome DevTools 的调试，我也封装了进来：
 
 ![](https://gw.alicdn.com/tfs/TB1uX3YekzoK1RjSZFlXXai4VXa-744-95.png)
 
-### 后记
+### For Help！？
 
-Terminal 仍存在瑕疵，比如 Terminal 的输出是碎片式的，另外性能上也有问题，再比如 quickfix 和 localist 窗口性能极差，最后我换成了普通的 buffer 来管理辅助窗口，另外我也没有实现 Go 和 Python 的多线程，只满足单线程的调试。
-
-### For Help！？需要帮助
-
-→ [在这里提 ISSUE](https://github.com/jayli/vim-easydebugger/issues)
+→ [ISSUE](https://github.com/jayli/vim-easydebugger/issues)
 
 ### ChangeLog
 
+- TODO：目前不支持 Go 协程和 Python 多线程
 - v1.0：
     - 支持 Unix 和 MacOS，Windows 平台暂未支持
     - 支持语言种类：NodeJS
