@@ -8,38 +8,7 @@
 
 <img src="https://gw.alicdn.com/tfs/TB1fpLNf.z1gK0jSZLeXXb9kVXa-993-575.gif" width=660>
 
-### VIM 调试器简介
-
-Easy-Debugger 是 VIM 逐行调试器插件，支持 VIM 8.1 及以上版本，和三种语言（js、python、go）。
-
-已有调试器插件梳理：
-
-<table>
-<tr>
-<td>名称</td><td>语言支持</td><td>VIM版本</td><td>更新速度</td><td>纯VimL实现</td><td>配置难度</td>
-</tr>
-<tr>
-<td>vdebug</td><td>多语言<br>不支持 Node、Go</td><td>8.1</td><td>慢</td><td>否</td><td>中等</td>
-</tr>
-<tr>
-<td>vim-vebugger</td><td>多语言支持</td><td>VIM 8.1<br>不支持MacOS</td><td>快</td><td>否</td><td>中等</td>
-</tr>
-<tr>
-<td>Node-Vim-Debugger</td><td>仅支持Node</td><td>不支持<br>Node Inspect</td><td>废弃</td><td>是</td><td>简单</td>
-</tr>
-<tr>
-<td>Vim-Godebug</td><td>仅支持Go</td><td>8.1</td><td>中等</td><td>否</td><td>复杂</td>
-</tr>
-<tr>
-<td>Fisa-Vim-Config</td><td>支持Python<br>不支持Node</td><td>8.1</td><td>已经废弃</td><td>否</td><td>简单</td>
-</tr>
-</table>
-
-我的需求：支持Go、Js、Python，引擎部分只基于 VimL，容易扩展新的语言，需要有命令输入窗。
-
-**实现原理**
-
-<img src="https://gw.alicdn.com/tfs/TB1pCvLjhD1gK0jSZFKXXcJrVXa-1844-1014.png" width=660>
+VIM 逐行调试器插件，支持 VIM 8.1 及以上版本，和三种语言（js、python、go）。
 
 ### 安装
 
