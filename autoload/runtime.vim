@@ -306,10 +306,11 @@ function! runtime#Inspect_Init()
     "         \ get(g:language_setup, 'ShowLocalVarsWindow') == 1
         " default hight of localvar window 10
         "exec "abo " . (winheight(localvars_winnr) - 11) . "new ".get(g:debugger,'debugger_window_name')
-        exec "" . (winheight(localvars_winnr) - 11) . "new debug.txt"
+        exec "" . (winheight(localvars_winnr) - 11) . "new"
         call execute("setlocal buftype=prompt")
         call execute('setlocal filetype=text')
         call execute('setlocal nonu')
+
         " call prompt_setprompt(bufnr(''), '')
         let prompt_winnr = winnr()
         let g:debugger.prompt_winnr = prompt_winnr
@@ -354,7 +355,7 @@ function! runtime#Inspect_Init()
         \ 'out_cb':'runtime#Term_Callback_Handler',
         \ 'exit_cb':'runtime#Reset_Editor',
         \ 'out_io':'buffer',
-        \ 'out_name':"debug.txt",
+        \ 'out_buf':get(g:debugger,'prompt_bufinfo')[0].bufnr
         \ })
     let g:debugger.channel = job_getchannel(g:debugger.job)
     " call job_setoptions(g:job,{"out_io":"buffer","out_name":get(g:debugger,'debugger_window_name')})
@@ -832,6 +833,11 @@ function! s:Debugger_Stop_Action(log) " {{{
     let break_msg = s:Get_Term_Stop_Msg(a:log)
 
     " Runtime error, show msg and set hangup
+    "
+    "
+    "
+    "
+    call s:log(string(g:language_setup))
     if has_key(g:language_setup, "GetErrorMsg") &&
                 \ get(g:language_setup, "GetErrorMsg")(a:log) != ""
         let g:debugger.hangup = 1
