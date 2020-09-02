@@ -357,9 +357,9 @@ function! runtime#Inspect_Init()
         \ 'out_io':'buffer',
         \ 'out_buf':get(g:debugger,'prompt_bufinfo')[0].bufnr
         \ })
-    let g:debugger.channel = job_getchannel(g:debugger.job)
+    let g:debugger.job_channel = job_getchannel(g:debugger.job)
     " call job_setoptions(g:job,{"out_io":"buffer","out_name":get(g:debugger,'debugger_window_name')})
-    let g:debugger.debug_winid = bufwinid("debug.txt")
+    let g:debugger.debug_winid = bufwinid(get(g:debugger,'prompt_bufinfo')[0].bufnr)
     " <CR>(Enter) Key linster in terminal. Do sth else when necessary.
     " tnoremap <silent> <CR> <C-\><C-n>:call runtime#Special_Cmd_Handler()<CR>i
     " 监听上下键：
@@ -374,6 +374,13 @@ function! runtime#Inspect_Init()
     if has_key(g:language_setup, "TermSetupScript")
         call get(g:language_setup,"TermSetupScript")()
     endif
+
+    " TODO here
+    " 通过 channel 给 job 传递命令，不work
+    call s:log(string(g:debugger.job_channel))
+    call ch_sendraw(g:debugger.job, "continue", {'callback': "runtime#Term_Callback_Handler"})
+
+
 endfunction "}}}
 
 function! runtime#Prompt_Callback(text)
